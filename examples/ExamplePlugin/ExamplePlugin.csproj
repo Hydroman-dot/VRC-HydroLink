@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><EnableDynamicLoading>true</EnableDynamicLoading></PropertyGroup><ItemGroup><ProjectReference Include="../../src/HydroLink.Sdk/HydroLink.Sdk.csproj"/><None Include="plugin.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup></Project>

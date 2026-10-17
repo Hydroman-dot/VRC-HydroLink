@@ -1,0 +1,24 @@
+**/bin/
+**/obj/
+artifacts/
+.vs/
+*.user
+
+# Local diagnostics and credentials
+preview*.txt
+*.log
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+settings.json
+WizardSync/
+.DS_Store
+Thumbs.db
+# Unity local state (toolkit source is kept)
+**/Library/
+**/Temp/
+**/Logs/
+**/UserSettings/
