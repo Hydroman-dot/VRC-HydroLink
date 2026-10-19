@@ -104,7 +104,7 @@ public partial class MainWindow
         AddModulePage("windforce", "WindForce", "Quellenwahl und Prioritäten direkt einstellen. Steuerung, Gerätewerte und Eingänge auf einer Seite.",
         [ ("Lüfterausgabe · %", "windforce/output-percent"), ("Aktive Quelle", "windforce/source"), ("Zielwert · %", "windforce/target-percent"), ("ESP32", "windforce/device/ip"), ("Fan 1 · %", "windforce/device/fan1"), ("Fan 2 · %", "windforce/device/fan2"), ("Fan 3 · %", "windforce/device/fan3"), ("Drehzahl · rpm", "windforce/device/rpm"), ("WLAN · dBm", "windforce/device/rssi"), ("PWM", "windforce/device/pwm"), ("Laufband · km/h", "windforce/input/speed"), ("Puls · bpm", "windforce/input/heart") ]);
         AddModulePage("osc", "OSC Hub", "OSCQuery findet den tatsächlichen OSC-Port. Die letzten Nachrichten erscheinen hier.", [("Letzte OSC-Nachricht", "hydrolink/osc-last"), ("Nachrichten", "hydrolink/osc-count")]);
-        AddModulePage("haptics", "Haptics", "Max 2 und Ridge · eigene Regler · SPS-Plugs und Sockets automatisch verbinden.", []);
+        AddModulePage("haptics", "Haptics", "Max 2, Ridge und Solace Pro · eigene Regler · SPS-Plugs und Sockets automatisch verbinden.", []);
         var programs = Page("Programme automatisch starten", "Nur aktivierte Programme starten, wenn ein Tool ihre Quelle benötigt. Bereits laufende EXEs werden nicht doppelt gestartet. Beim Stoppen eines Tools bleiben externe Programme geöffnet.");
         startWithApp = new CheckBox { Content = "Ausgewählte Module mit HydroLink starten", IsChecked = settings.StartModulesWithApp }; programs.Children.Add(startWithApp);
         foreach (var program in settings.Programs)

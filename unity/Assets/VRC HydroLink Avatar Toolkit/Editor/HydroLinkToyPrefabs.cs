@@ -15,12 +15,12 @@ namespace HydroLink.AvatarToolkit.Editor
     public static class HydroLinkToyPrefabs
     {
         public const string Folder = "Assets/VRC HydroLink Avatar Toolkit/Toys";
-        public static string Label(string toy) { CheckToy(toy); return toy == "Max2" ? "Max 2" : "Ridge"; }
+        public static string Label(string toy) { CheckToy(toy); return toy == "Max2" ? "Max 2" : toy == "Ridge" ? "Ridge" : "Solace Pro"; }
         public static string ObjectName(string toy) => "HydroLink " + Label(toy);
         public static string AssetPath(string toy) => Folder + "/" + toy + "/" + ObjectName(toy) + ".prefab";
         public static string Prefix(string toy) { CheckToy(toy); return "HydroLink/" + toy + "/"; }
-        public static string[] Channels(string toy) => toy == "Max2" ? new[] { "Enabled", "Vibration", "Pump", "Manual", "ManualVibration", "ManualPump", "Stop" } : new[] { "Enabled", "Vibration", "Rotation", "Clockwise", "Manual", "ManualVibration", "ManualRotation", "ManualClockwise", "Stop" };
-        static void CheckToy(string toy) { if (toy != "Max2" && toy != "Ridge") throw new ArgumentException("Unbekanntes Toy."); }
+        public static string[] Channels(string toy) => toy == "SolacePro" ? new[] { "Enabled", "Motion", "Manual", "ManualMotion", "Stop" } : toy == "Max2" ? new[] { "Enabled", "Vibration", "Pump", "Manual", "ManualVibration", "ManualPump", "Stop" } : new[] { "Enabled", "Vibration", "Rotation", "Clockwise", "Manual", "ManualVibration", "ManualRotation", "ManualClockwise", "Stop" };
+        static void CheckToy(string toy) { if (toy != "Max2" && toy != "Ridge" && toy != "SolacePro") throw new ArgumentException("Unbekanntes Toy."); }
         static bool IsBool(string key) => key == "Enabled" || key == "Stop" || key.EndsWith("Clockwise") || key == "Manual";
         static float Default(string key) => key == "Enabled" || key == "Stop" || key == "Manual" ? 0 : key.EndsWith("Clockwise") ? 1 : .25f;
         static void EnsureFolder(string path)
@@ -123,10 +123,10 @@ namespace HydroLink.AvatarToolkit.Editor
             catch { AssetDatabase.DeleteAsset(directory); throw; }
             finally { if (go) UnityEngine.Object.DestroyImmediate(go); }
         }
-        public static string Install(GameObject root, bool max2, bool ridge)
+        public static string Install(GameObject root, bool max2, bool ridge, bool solacePro = false)
         {
             CheckRoot(root);
-            var selected = new[] { max2 ? "Max2" : null, ridge ? "Ridge" : null }.Where(s => s != null).ToArray();
+            var selected = new[] { max2 ? "Max2" : null, ridge ? "Ridge" : null, solacePro ? "SolacePro" : null }.Where(s => s != null).ToArray();
             if (selected.Length == 0) throw new InvalidOperationException("Mindestens ein Toy auswaehlen.");
             foreach (var toy in selected) Preflight(root, toy);
             foreach (var toy in selected) EnsurePrefab(toy);
@@ -166,7 +166,7 @@ namespace HydroLink.AvatarToolkit.Editor
             var sources = HydroLinkSetupWizard.Scan(root);
             var profile = new SyncProfile {
                 revision = Guid.NewGuid().ToString(), avatarId = id, avatarName = root.name,
-                toys = new[] { "Max2", "Ridge" }.Where(t => { var go = Existing(root, t); return go && go.activeInHierarchy; }).ToArray(),
+                toys = new[] { "Max2", "Ridge", "SolacePro" }.Where(t => { var go = Existing(root, t); return go && go.activeInHierarchy; }).ToArray(),
                 plugs = sources.Count(s => s.kind == "Plug"), sockets = sources.Count(s => s.kind == "Socket")
             };
             var folder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VRC HydroLink", "WizardSync");
@@ -211,19 +211,19 @@ namespace HydroLink.AvatarToolkit.Editor
         {
             CheckRoot(root);
             var lines = new List<string>();
-            foreach (var toy in new[] { "Max2", "Ridge" })
+            foreach (var toy in new[] { "Max2", "Ridge", "SolacePro" })
             {
                 var instance = Existing(root, toy);
                 if (!instance) { lines.Add(Label(toy) + ": nicht installiert"); continue; }
                 Preflight(root, toy);
                 lines.Add("PASS " + Label(toy) + ": eigene Prefab-Instanz, " + Channels(toy).Length + " lokale Parameter, eigenes Menue und FX-Ergaenzung.");
             }
-            return string.Join("\n", lines) + "\nDesktop 0.9 erforderlich fuer Toy-Menues. Alle SPS-Plugs und Sockets bleiben automatisch nutzbar.";
+            return string.Join("\n", lines) + "\nDesktop 0.11 erforderlich fuer Toy-Menues. Alle SPS-Plugs und Sockets bleiben automatisch nutzbar.";
         }
 
         static VRCExpressionsMenu.Control Control(string toy, string key)
         {
-            var label = key == "Enabled" ? "Haptik einschalten" : key == "Manual" ? "Manuell einschalten" : key == "Stop" ? "Toy stoppen" : key.EndsWith("Clockwise") ? "Im Uhrzeigersinn" : key.Replace("Manual", "");
+            var label = key == "Enabled" ? "Haptik einschalten" : key == "Manual" ? "Manuell einschalten" : key == "Stop" ? "Toy stoppen" : key.EndsWith("Clockwise") ? "Im Uhrzeigersinn" : key.EndsWith("Motion") ? "Hubgeschwindigkeit" : key.Replace("Manual", "");
             var c = new VRCExpressionsMenu.Control { name = label };
             if (IsBool(key)) { c.type = key == "Stop" ? VRCExpressionsMenu.Control.ControlType.Button : VRCExpressionsMenu.Control.ControlType.Toggle; c.parameter = new VRCExpressionsMenu.Control.Parameter { name = Prefix(toy) + key }; c.value = 1; }
             else { c.type = VRCExpressionsMenu.Control.ControlType.RadialPuppet; c.subParameters = new[] { new VRCExpressionsMenu.Control.Parameter { name = Prefix(toy) + key } }; }

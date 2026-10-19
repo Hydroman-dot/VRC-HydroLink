@@ -32,7 +32,7 @@ public partial class MainWindow
     private bool wizardStarting;
     private void BuildToyHaptics(StackPanel panel)
     {
-        panel.Children.Add(new TextBlock { Text = "Toy aktivieren → alle SPS-Plugs und Sockets werden automatisch verbunden. Beide Toys können gleichzeitig laufen.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 0) });
+        panel.Children.Add(new TextBlock { Text = "Toy aktivieren → alle SPS-Plugs und Sockets werden automatisch verbunden. Mehrere Toys können gleichzeitig laufen.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 0) });
         socketAutoStatus = new TextBlock { Text = "Warte auf VRChat · keine Quellenauswahl oder Übertragung nötig", Margin = new Thickness(0, 10, 0, 10), TextWrapping = TextWrapping.Wrap };
         panel.Children.Add(socketAutoStatus);
         wizardSyncStatus = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10), Foreground = Color("#93ADC5") };
@@ -40,7 +40,7 @@ public partial class MainWindow
         toyTabs = new TabControl { Background = Color("#182638"), BorderBrush = Color("#294454"), Foreground = Color("#E5EDF7") }; panel.Children.Add(toyTabs);
         foreach (var kind in Enum.GetValues<ToyKind>())
         {
-            string title = kind == ToyKind.Max2 ? "Max 2" : "Ridge";
+            string title = kind == ToyKind.Max2 ? "Max 2" : kind == ToyKind.Ridge ? "Ridge" : "Solace Pro";
             var content = new StackPanel { Margin = new Thickness(12) };
             var devices = new ComboBox { MinWidth = 300, HorizontalAlignment = HorizontalAlignment.Stretch };
             content.Children.Add(new TextBlock { Text = "Gerät · wird bei eindeutigem Namen automatisch ausgewählt" }); content.Children.Add(devices);
@@ -52,8 +52,9 @@ public partial class MainWindow
                 slider.ValueChanged += (_, _) => label.Text = caption + $" · {slider.Value:P0}";
                 content.Children.Add(slider); return slider;
             }
-            var vibration = Level("Vibration maximal");
+            var vibration = Level(kind == ToyKind.SolacePro ? "Hubgeschwindigkeit maximal" : "Vibration maximal");
             var secondary = Level(kind == ToyKind.Max2 ? "Pump maximal" : "Rotation maximal");
+            if (kind == ToyKind.SolacePro) { secondary.Visibility = Visibility.Collapsed; content.Children[content.Children.Count - 2].Visibility = Visibility.Collapsed; }
             var clockwise = new CheckBox { Content = "Im Uhrzeigersinn", IsChecked = true, Visibility = kind == ToyKind.Ridge ? Visibility.Visible : Visibility.Collapsed };
             content.Children.Add(clockwise);
             var buttons = new WrapPanel { Margin = new Thickness(0, 4, 0, 8) }; content.Children.Insert(3, buttons);
@@ -143,7 +144,7 @@ public partial class MainWindow
             }
             var included = wizardSync.Profile?.Includes(view.Kind) ?? true;
             var tab = toyTabs!.Items.OfType<TabItem>().ElementAt((int)view.Kind);
-            tab.Visibility = included ? Visibility.Visible : Visibility.Collapsed;
+            tab.Visibility = included || view.Kind == ToyKind.SolacePro ? Visibility.Visible : Visibility.Collapsed;
             if (!included && tab.IsSelected) toyTabs.SelectedItem = toyTabs.Items.OfType<TabItem>().FirstOrDefault(t => t != tab && t.Visibility == Visibility.Visible);
             var devices = service?.Toys.Devices(view.Kind) ?? [];
             var signature = wizardSync.Fingerprint + "|" + string.Join("|", devices.Select(d => $"{d.Id}:{d.Name}"));
@@ -158,10 +159,11 @@ public partial class MainWindow
             }
             var selected = view.Devices.SelectedItem as ToyDevice;
             var features = (service?.Backend.Features ?? []).Where(f => f.DeviceId == selected?.Id).ToArray();
-            var vibration = features.Any(f => f.Supported && f.Type == OutputType.Vibrate);
+            var vibration = features.Any(f => f.Supported && f.Type == (view.Kind == ToyKind.SolacePro ? OutputType.Oscillate : OutputType.Vibrate));
             var secondary = features.Any(f => f.Supported && f.Type == (view.Kind == ToyKind.Max2 ? OutputType.Constrict : OutputType.Rotate));
             view.Channels.Text = selected == null ? "Gerätefunktionen: verfügbar, sobald ein Toy verbunden und ausgewählt ist."
                 : $"Gerätefunktionen · Vibration: {(vibration ? "bereit" : "von Intiface nicht gemeldet")} · {(view.Kind == ToyKind.Max2 ? "Pump" : "Rotation")}: {(secondary ? "bereit" : "von Intiface nicht gemeldet")}";
+            if (view.Kind == ToyKind.SolacePro && selected != null) view.Channels.Text = "Gerätefunktion · Hubgeschwindigkeit: " + (vibration ? "bereit" : "von Intiface nicht gemeldet") + " · Hubweg/Positionsmodus hier nicht angebunden.";
             view.Vibration.IsEnabled = vibration; view.Secondary.IsEnabled = secondary;
             view.Clockwise.IsEnabled = features.Any(f => f.Reversible);
             if (!view.Clockwise.IsEnabled) view.Clockwise.IsChecked = true;

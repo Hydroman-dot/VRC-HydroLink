@@ -89,7 +89,7 @@ public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvi
                 if (!backend.Connected || routes.Length == 0 || routes.Any(r => !backend.Features.Contains(r.Feature)))
                     throw new InvalidOperationException("Zuerst verfügbare Gerätefunktionen übernehmen.");
                 armed = true; status = "Freigegeben; neue Avatar-Werte erforderlich";
-                if (automaticSps) { avatarEnabled = !requireToyEnable; controls["ManualVibration"] = controls["ManualPump"] = controls["ManualRotation"] = .25; status = "Freigegeben · Haptik im Radialmenü einschalten"; }
+                if (automaticSps) { avatarEnabled = !requireToyEnable; controls["ManualMotion"] = controls["ManualVibration"] = controls["ManualPump"] = controls["ManualRotation"] = .25; status = "Freigegeben · Haptik im Radialmenü einschalten"; }
             }
         }
         finally { gate.Release(); }
@@ -147,7 +147,7 @@ public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvi
         lock (sync)
         {
             if (!automaticSps || !armed) return;
-            controls["Strength"] = 1; controls["Vibration"] = vibration;
+            controls["Strength"] = 1; controls["Motion"] = controls["Vibration"] = vibration;
             controls["Pump"] = secondary; controls["Rotation"] = secondary; clockwise = direction;
         }
     }
@@ -184,10 +184,10 @@ public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvi
                 if (manualToy != next) { manualToy = next; sps.Clear(); sourceLevel = 0; lastSource = default; }
             }
             else if (channel == "ManualClockwise") manualClockwise = value >= .5;
-            else if (channel == "ManualVibration") controls[channel] = Math.Clamp(value, 0, 1);
+            else if (channel is "ManualVibration" or "ManualMotion") controls["ManualMotion"] = controls["ManualVibration"] = Math.Clamp(value, 0, 1);
             else if (channel is "ManualPump" or "ManualRotation") controls["ManualPump"] = controls["ManualRotation"] = Math.Clamp(value, 0, 1);
             else if (channel == "Clockwise") clockwise = value >= .5;
-            else if (channel == "Vibration") controls["Vibration"] = Math.Clamp(value, 0, 1);
+            else if (channel is "Vibration" or "Motion") controls["Motion"] = controls["Vibration"] = Math.Clamp(value, 0, 1);
             else if (channel is "Pump" or "Rotation") controls["Pump"] = controls["Rotation"] = Math.Clamp(value, 0, 1);
         }
     }

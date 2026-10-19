@@ -101,6 +101,30 @@ internal static class ToyChecks
         check(toys[ToyKind.Ridge].ActiveToyLevels.Secondary==.7 && toys[ToyKind.Ridge].SpsLevels.Secondary==.4, "desktop manual slider never overwrites SPS strengths");
         await toys.StopAllAsync(); await toys.ActivateAsync(ToyKind.Ridge,2,.2,.4,true);
         check(!toys[ToyKind.Ridge].Snapshot.AvatarEnabled && !toys[ToyKind.Ridge].ManualToy, "stop and new desktop release reset radial enables");
+        var solaceBackend = new UniversalMemory([
+            new(3, 7, "Lovense Solace Pro", "Stroker", OutputType.Oscillate, 0, 20, 0),
+            new(3, 7, "Lovense Solace Pro", "Stroker", OutputType.HwPositionWithDuration, 0, 100, 0, 0, 100000)]);
+        await using var solace = new ToyHaptics(solaceBackend);
+        check(ToyHaptics.Matches(ToyKind.SolacePro,"Lovense Solace Pro") && !ToyHaptics.Matches(ToyKind.SolacePro,"Lovense Solace"), "Solace Pro auto selection never confuses original Solace");
+        await solace.ActivateAsync(ToyKind.SolacePro,3,.4,0,true);
+        var se = solace[ToyKind.SolacePro];
+        check(se.Snapshot.SelectedFeatures==1 && !se.Snapshot.AvatarEnabled, "Solace selects speed only, never both commands of the same actuator");
+        solace.Receive([new(P("BeforeGate","PenOthers"),1)]); await se.TickAsync();
+        check(solaceBackend.Values.Count==0,"Solace requires radial gate before movement");
+        solace.Receive([new("/avatar/parameters/HydroLink/SolacePro/Enabled",1),new(P("Socket","PenOthers"),.5)]); await se.TickAsync();
+        check(solaceBackend.Values.Count==1 && solaceBackend.Values[0].Feature.Type==OutputType.Oscillate && Math.Abs(solaceBackend.Values[0].Amount-.2)<.0001,"Solace SPS socket scales oscillation speed using its own limit");
+        solace.Receive([new("/avatar/parameters/HydroLink/SolacePro/ManualMotion",.7),new("/avatar/parameters/HydroLink/SolacePro/Manual",1)]); await Task.Delay(60); await se.TickAsync();
+        check(Math.Abs(solaceBackend.Values.Last().Amount-.7)<.0001 && se.SpsLevels.Vibration==.4,"Solace manual speed is independent of SPS speed");
+        se.SetActiveToyLevels(.6,0,true); await Task.Delay(60); await se.TickAsync();
+        check(Math.Abs(solaceBackend.Values.Last().Amount-.6)<.0001,"Solace desktop manual speed reaches oscillation output");
+        solace.Receive([new("/avatar/parameters/HydroLink/SolacePro/Manual",0)]); await Task.Delay(60); await se.TickAsync();
+        check(solaceBackend.Values.Last().Amount==0,"Solace leaving manual mode stops until fresh contact");
+        solace.Receive([new("/avatar/parameters/HydroLink/SolacePro/Motion",.3),new("/avatar/parameters/OGB/Pen/Plug/PenOthers",1)]); await Task.Delay(60); await se.TickAsync();
+        check(Math.Abs(solaceBackend.Values.Last().Amount-.3)<.0001,"Solace radial SPS speed and plug input are routed");
+        solace.Receive([new("/avatar/parameters/HydroLink/SolacePro/Stop",1)]); await se.TickAsync();
+        check(!se.Snapshot.Armed && solaceBackend.Stops.Contains(3),"Solace stop uses device stop and never positional movement");
+        var allProfile = new WizardProfile(1,Guid.NewGuid().ToString(),"avtr_00000000-0000-0000-0000-000000000001","Test",["Max2","Ridge","SolacePro"],1,2);
+        check(WizardSyncReader.Parse(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(allProfile)).Includes(ToyKind.SolacePro),"wizard handoff accepts three independent toy profiles");
         if(!network) return;
         await using var server=new FakeServer(); server.UniversalDevices=true; await server.StartAsync();
         var bus=new DataBus(); await using var service=new HapticsService(new(){IntifaceUrl=server.Url},bus,Console.WriteLine);
@@ -108,10 +132,17 @@ internal static class ToyChecks
         while(service.Backend.Features.Count<8) await Task.Delay(25,timeout.Token);
         await service.ActivateToyAsync(ToyKind.Max2,7,.2,.2,true); service.Toys.Receive([new("/avatar/parameters/HydroLink/Max2/Enabled",1)]);
         await service.ActivateToyAsync(ToyKind.Ridge,9,.3,.3,true); service.Toys.Receive([new("/avatar/parameters/HydroLink/Ridge/Enabled",1)]);
+        await service.ActivateToyAsync(ToyKind.SolacePro,10,.4,0,true);
+        service.Toys.Receive([new("/avatar/parameters/HydroLink/SolacePro/Enabled",1)]);
         var address=P("DiscoveredAtRuntime","PenOthers");
         bus.Publish("osc/receive"+address,new{address,arguments=new[]{.7}},"test");
         while(service.Toys[ToyKind.Max2].Snapshot.Sent.Count<2 || service.Toys[ToyKind.Ridge].Snapshot.Sent.Count<3) await Task.Delay(25,timeout.Token);
         check(service.Toys[ToyKind.Ridge].SourceCount==1 && service.Toys[ToyKind.Max2].SourceCount==1, "service auto routes live bus sockets to both toys over real WebSocket");
+        while(service.Toys[ToyKind.SolacePro].Snapshot.Sent.Count<1) await Task.Delay(25,timeout.Token);
+        check(server.Messages.Where(m=>m.TryGetProperty("OutputCmd",out _)).Select(m=>m.GetProperty("OutputCmd")).Any(m=>m.GetProperty("DeviceIndex").GetInt32()==10 && m.GetProperty("FeatureIndex").GetInt32()==17 && m.GetProperty("Command").TryGetProperty("Oscillate",out var c) && c.GetProperty("Value").GetInt32()==28), "Solace profile sends correctly scaled Oscillate command over WebSocket alongside Max 2 and Ridge");
+        var solaceStop="/avatar/parameters/HydroLink/SolacePro/Stop";
+        bus.Publish("osc/receive"+solaceStop,new{address=solaceStop,arguments=new[]{true}},"test");
+        check(!service.Toys[ToyKind.SolacePro].Snapshot.Armed && service.Toys[ToyKind.Max2].Snapshot.Armed && service.Toys[ToyKind.Ridge].Snapshot.Armed,"Solace radial stop is isolated from both other toy sessions");
         var plugAddress="/avatar/parameters/OGB/Pen/LivePlug/PenOthers";
         bus.Publish("osc/receive"+plugAddress,new{address=plugAddress,arguments=new[]{1.0}},"test");
         while(service.Toys[ToyKind.Ridge].Snapshot.SourceLevel!=1 || service.Toys[ToyKind.Ridge].Snapshot.Sent.Values.Any(v=>Math.Abs(v-.3)>.0001)) await Task.Delay(25,timeout.Token);

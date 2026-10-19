@@ -1,7 +1,7 @@
 using Buttplug.Core.Messages;
 namespace VrcHapticsBridge.Core;
 
-public enum ToyKind { Max2, Ridge }
+public enum ToyKind { Max2, Ridge, SolacePro }
 public sealed record ToyDevice(uint Id, string Name)
 {
     public override string ToString() => Name;
@@ -25,10 +25,10 @@ public sealed class ToyHaptics : IAsyncDisposable
     public static bool Matches(ToyKind toy, string name)
     {
         var words = System.Text.RegularExpressions.Regex.Replace(name.ToLowerInvariant(), "[^a-z0-9]+", " ").Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return toy == ToyKind.Ridge ? words.Contains("ridge") : words.Contains("max") || words.Contains("max2");
+        return toy == ToyKind.SolacePro ? words.Contains("solace") && words.Contains("pro") : toy == ToyKind.Ridge ? words.Contains("ridge") : words.Contains("max") || words.Contains("max2");
     }
     public static bool Compatible(ToyKind toy, HapticFeature feature) => feature.Supported &&
-        (feature.Type == OutputType.Vibrate || feature.Type == (toy == ToyKind.Max2 ? OutputType.Constrict : OutputType.Rotate));
+        (toy == ToyKind.SolacePro ? feature.Type == OutputType.Oscillate : feature.Type == OutputType.Vibrate || feature.Type == (toy == ToyKind.Max2 ? OutputType.Constrict : OutputType.Rotate));
     public ToyDevice[] Devices(ToyKind toy) => backend.Features.Where(f => Compatible(toy, f)).GroupBy(f => f.DeviceId)
         .Select(g => new ToyDevice(g.Key, g.First().DeviceName)).OrderBy(d => d.Name).ToArray();
     public void StartWorkers() { foreach (var engine in engines.Values) engine.Start(); }
@@ -59,7 +59,7 @@ public sealed class ToyHaptics : IAsyncDisposable
             {
                 var channel = value.Address[prefix.Length..];
                 if (value.Value is not { } number || !double.IsFinite(number)) continue;
-                if (channel is "Enabled" or "Vibration" or "Manual" or "ManualVibration" || toy == ToyKind.Max2 && channel is "Pump" or "ManualPump" || toy == ToyKind.Ridge && channel is "Rotation" or "Clockwise" or "ManualRotation" or "ManualClockwise")
+                if (channel is "Enabled" or "Manual" || toy != ToyKind.SolacePro && channel is "Vibration" or "ManualVibration" || toy == ToyKind.SolacePro && channel is "Motion" or "ManualMotion" || toy == ToyKind.Max2 && channel is "Pump" or "ManualPump" || toy == ToyKind.Ridge && channel is "Rotation" or "Clockwise" or "ManualRotation" or "ManualClockwise")
                     engines[toy].SetSpsChannel(channel, number);
             }
         }

@@ -69,7 +69,7 @@ public sealed class HapticsService : Worker
                 if (address is "/avatar/change" or "/avatar/parameters/OGB_ENABLED") Interlocked.Increment(ref toyActivationEpoch);
                 var args = e.Value.GetProperty("arguments");
                 var values = new OscValue[] { new(address, args.GetArrayLength() > 0 ? OscRouting.Number(args[0]) : null) };
-                if (address is "/avatar/parameters/HydroLink/Max2/Stop" or "/avatar/parameters/HydroLink/Ridge/Stop" && values[0].Value >= .5)
+                if (address is "/avatar/parameters/HydroLink/Max2/Stop" or "/avatar/parameters/HydroLink/Ridge/Stop" or "/avatar/parameters/HydroLink/SolacePro/Stop" && values[0].Value >= .5)
                 {
                     Interlocked.Increment(ref toyActivationEpoch);
                     Toys.Receive(values);

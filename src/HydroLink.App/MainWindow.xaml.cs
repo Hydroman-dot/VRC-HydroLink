@@ -52,6 +52,7 @@ public partial class MainWindow : Window
                 if (commandArgs.Contains("--preview-edit")) EditDashboard.IsChecked = true;
                 if (commandArgs.Contains("--preview-osc-fixture")) PreviewOscFixture();
                 if (commandArgs.Contains("--preview-ridge") && toyTabs != null) toyTabs.SelectedIndex = 1;
+                if (commandArgs.Contains("--preview-solace") && toyTabs != null) toyTabs.SelectedIndex = 2;
                 if (commandArgs.Contains("--verify-expanders")) VerifyExpandableSections();
                 UpdateLayout();
                 var bitmap = new RenderTargetBitmap((int)ActualWidth, (int)ActualHeight, 96, 96, PixelFormats.Pbgra32);

@@ -2,7 +2,7 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Version 0.10.1 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Version 0.11.0 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Avatar-Toolkit und Haptics (0.10)
 
@@ -70,3 +70,5 @@ Einstellungen und Sessions liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Tokens u
 - [Lizenzen](THIRD-PARTY-NOTICES.md)
 
 Repository: `Hydroman-dot/VRC-HydroLink`. Entwicklungsvorschau; kein signierter Installer. Inno-Setup-Definition und CI-Workflow sind enthalten. .NET 8 wird nach Microsofts Supportplan bis 10. November 2026 unterstützt; vor einer späteren stabilen Veröffentlichung auf ein unterstütztes LTS aktualisieren.
+
+Solace Pro ist in der Windows-App vorbereitet: [Funktionsumfang und noch ausstehende Unity-Einrichtung](docs/SOLACE-PRO.md).

@@ -106,7 +106,7 @@ internal static class UniversalChecks
         check(!service.Universal.Snapshot.Armed && service.Universal.Snapshot.SelectedFeatures == 0, "Intiface disconnect clears universal selection");
     }
 }
-internal sealed class UniversalMemory : IUniversalHapticsBackend
+internal sealed class UniversalMemory(IReadOnlyList<HapticFeature>? extra = null) : IUniversalHapticsBackend
 {
     public bool Connected { get; set; } = true;
     public IReadOnlyList<HapticFeature> Features { get; } = new HapticFeature[] {
@@ -114,7 +114,7 @@ internal sealed class UniversalMemory : IUniversalHapticsBackend
         new(1, 9, "A", "Pump", OutputType.Constrict, 0, 3, 0),
         new(2, 15, "B", "Rotation", OutputType.Rotate, -20, 20, 0),
         new(2, 19, "B", "Second motor", OutputType.Vibrate, 0, 20, 0)
-    };
+    }.Concat(extra ?? []).ToArray();
     public List<(HapticFeature Feature, double Amount, bool Clockwise)> Values { get; } = [];
     public List<uint> Stops { get; } = [];
     public List<string> Events { get; } = [];

@@ -21,7 +21,7 @@ namespace HydroLink.AvatarToolkit.Editor
         public const string AddonName = "HydroLink Bridge Preview";
         const string Prefix = "HydroLink/";
         [SerializeField] GameObject avatar;
-        [SerializeField] bool installMax2 = true, installRidge = true;
+        [SerializeField] bool installMax2 = true, installRidge = true, installSolacePro = false;
         bool legacyExpanded;
         Vector2 scroll;
         string report = "Avatar auswaehlen und pruefen.";
@@ -86,10 +86,11 @@ namespace HydroLink.AvatarToolkit.Editor
             avatar = (GameObject)EditorGUILayout.ObjectField("Avatar", avatar, typeof(GameObject), true);
             installMax2 = EditorGUILayout.ToggleLeft("Max 2 - SPS / Manuell, Vibration, Pump und Stopp", installMax2);
             installRidge = EditorGUILayout.ToggleLeft("Ridge - SPS / Manuell, Vibration, Rotation, Richtung und Stopp", installRidge);
+            installSolacePro = EditorGUILayout.ToggleLeft("Solace Pro - SPS / Manuell, Hubgeschwindigkeit und Stopp", installSolacePro);
             using (new EditorGUI.DisabledScope(!avatar || EditorApplication.isCompiling || EditorApplication.isPlayingOrWillChangePlaymode))
             {
                 if (GUILayout.Button("1. Avatar und SPS pruefen")) Run(() => report = Inspect(avatar));
-                if (GUILayout.Button("2. Toy-Prefabs anlegen und automatisch uebergeben")) Run(() => { report = HydroLinkToyPrefabs.Install(avatar, installMax2, installRidge); lastFolder = HydroLinkToyPrefabs.Folder; });
+                if (GUILayout.Button("2. Toy-Prefabs anlegen und automatisch uebergeben")) Run(() => { report = HydroLinkToyPrefabs.Install(avatar, installMax2, installRidge, installSolacePro); lastFolder = HydroLinkToyPrefabs.Folder; });
                 if (GUILayout.Button("3. Toy-Prefabs pruefen")) Run(() => report = HydroLinkToyPrefabs.Validate(avatar));
                 if (GUILayout.Button("Vorhandene Einrichtung erneut an HydroLink uebergeben")) Run(() => report = "Unity-Einrichtung: lokal fuer HydroLink gespeichert.\nVRChat-Avatar: wird in der Desktop-App geprueft.\nToy / Intiface: wird in der Desktop-App geprueft.\n\nDatei: " + HydroLinkToyPrefabs.PublishToHydroLink(avatar));
                 legacyExpanded = EditorGUILayout.Foldout(legacyExpanded, "Erweitert: bisherige gemeinsame Menue-Einrichtung");
