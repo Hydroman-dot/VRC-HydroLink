@@ -118,13 +118,14 @@ internal static class ToyChecks
         se.SetActiveToyLevels(.6,0,true); await Task.Delay(60); await se.TickAsync();
         check(Math.Abs(solaceBackend.Values.Last().Amount-.6)<.0001,"Solace desktop manual speed reaches oscillation output");
         solace.Receive([new("/avatar/parameters/HydroLink/SolacePro/Manual",0)]); await Task.Delay(60); await se.TickAsync();
-        check(solaceBackend.Values.Last().Amount==0,"Solace leaving manual mode stops until fresh contact");
+        check(solaceBackend.Stops.Contains(3) && se.Snapshot.Sent.Count==0,"Solace leaving manual mode stops until fresh contact");
         solace.Receive([new("/avatar/parameters/HydroLink/SolacePro/Motion",.3),new("/avatar/parameters/OGB/Pen/Plug/PenOthers",1)]); await Task.Delay(60); await se.TickAsync();
         check(Math.Abs(solaceBackend.Values.Last().Amount-.3)<.0001,"Solace radial SPS speed and plug input are routed");
         solace.Receive([new("/avatar/parameters/HydroLink/SolacePro/Stop",1)]); await se.TickAsync();
         check(!se.Snapshot.Armed && solaceBackend.Stops.Contains(3),"Solace stop uses device stop and never positional movement");
         var allProfile = new WizardProfile(1,Guid.NewGuid().ToString(),"avtr_00000000-0000-0000-0000-000000000001","Test",["Max2","Ridge","SolacePro"],1,2);
         check(WizardSyncReader.Parse(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(allProfile)).Includes(ToyKind.SolacePro),"wizard handoff accepts three independent toy profiles");
+        await SolaceControlChecks.Run(check);
         if(!network) return;
         await using var server=new FakeServer(); server.UniversalDevices=true; await server.StartAsync();
         var bus=new DataBus(); await using var service=new HapticsService(new(){IntifaceUrl=server.Url},bus,Console.WriteLine);

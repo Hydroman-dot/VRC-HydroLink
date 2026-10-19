@@ -19,6 +19,8 @@ public partial class MainWindow
         public string Signature = "unset";
         public string WizardRevision = "";
         public bool Updating, Busy;
+        public CheckBox? PositionMode;
+        public readonly Dictionary<string, Slider> SolaceControls = [];
     }
     private readonly List<ToyView> toyViews = [];
     private TextBlock? socketAutoStatus;
@@ -65,6 +67,27 @@ public partial class MainWindow
             content.Children.Insert(5, manual);
             var view = new ToyView { Kind = kind, Devices = devices, Vibration = vibration, Secondary = secondary, Clockwise = clockwise, Manual = manual, Activate = activate, Status = status, Channels = channels };
             toyViews.Add(view);
+            if (kind == ToyKind.SolacePro)
+            {
+                view.PositionMode = new CheckBox { Content = "Zielposition steuern (statt wiederholter Hübe)", Margin = new Thickness(0, 8, 0, 8) };
+                content.Children.Add(view.PositionMode);
+                void PositionModeChanged() { if (!view.Updating) host?.Haptics?.Toys[kind].SetActiveSolaceControl("PositionMode", view.PositionMode.IsChecked == true ? 1 : 0); }
+                view.PositionMode.Checked += (_, _) => PositionModeChanged();
+                view.PositionMode.Unchecked += (_, _) => PositionModeChanged();
+                foreach (var (key, caption, initial) in new[] { ("StrokeStart", "Hubweg · untere Grenze", 0d), ("StrokeEnd", "Hubweg · obere Grenze", 1d), ("Position", "Zielposition im Hubweg / SPS-Tiefe maximal", 1d), ("TravelTime", "Fahrzeit zur Zielposition", 400d / 4900) })
+                {
+                    var slider = Level(caption); slider.Value = initial;
+                    if (key == "TravelTime")
+                    {
+                        var label = (TextBlock)content.Children[content.Children.Count - 2];
+                        void UpdateDuration() => label.Text = $"Fahrzeit zur Zielposition · {(.1 + slider.Value * 4.9):F2} s";
+                        slider.ValueChanged += (_, _) => UpdateDuration(); UpdateDuration();
+                    }
+                    view.SolaceControls[key] = slider;
+                    slider.ValueChanged += (_, _) => { if (!view.Updating) host?.Haptics?.Toys[kind].SetActiveSolaceControl(key, slider.Value); };
+                }
+                content.Children.Add(new TextBlock { Text = "Hubgrenzen gelten bei Positionssteuerung und begrenzten Hüben. Begrenzte Hübe werden von HydroLink über Positionsbefehle erzeugt. Bei vollem Hubweg nutzt der Hubmodus die native Geschwindigkeit. Fahrzeit gilt im Positionsmodus; im Hubmodus bestimmt die Geschwindigkeit die Taktung.", TextWrapping = TextWrapping.Wrap, Foreground = Color("#93ADC5"), Margin = new Thickness(0, 8, 0, 8) });
+            }
             manual.Checked += (_, _) => { if (!view.Updating) host?.Haptics?.Toys[kind].SetSpsChannel("Manual", 1); };
             manual.Unchecked += (_, _) => { if (!view.Updating) host?.Haptics?.Toys[kind].SetSpsChannel("Manual", 0); };
             void Apply() { if (!view.Updating) host?.Haptics?.Toys[kind].SetActiveToyLevels(vibration.Value, secondary.Value, clockwise.IsChecked == true); }
@@ -163,7 +186,7 @@ public partial class MainWindow
             var secondary = features.Any(f => f.Supported && f.Type == (view.Kind == ToyKind.Max2 ? OutputType.Constrict : OutputType.Rotate));
             view.Channels.Text = selected == null ? "Gerätefunktionen: verfügbar, sobald ein Toy verbunden und ausgewählt ist."
                 : $"Gerätefunktionen · Vibration: {(vibration ? "bereit" : "von Intiface nicht gemeldet")} · {(view.Kind == ToyKind.Max2 ? "Pump" : "Rotation")}: {(secondary ? "bereit" : "von Intiface nicht gemeldet")}";
-            if (view.Kind == ToyKind.SolacePro && selected != null) view.Channels.Text = "Gerätefunktion · Hubgeschwindigkeit: " + (vibration ? "bereit" : "von Intiface nicht gemeldet") + " · Hubweg/Positionsmodus hier nicht angebunden.";
+            if (view.Kind == ToyKind.SolacePro && selected != null) view.Channels.Text = "Gerätefunktion · Hubgeschwindigkeit: " + (vibration ? "bereit" : "von Intiface nicht gemeldet") + " · Position/Hubgrenzen: " + (features.Any(f => f.Supported && f.Type == OutputType.HwPositionWithDuration) ? "bereit" : "nicht gemeldet");
             view.Vibration.IsEnabled = vibration; view.Secondary.IsEnabled = secondary;
             view.Clockwise.IsEnabled = features.Any(f => f.Reversible);
             if (!view.Clockwise.IsEnabled) view.Clockwise.IsChecked = true;
@@ -177,6 +200,26 @@ public partial class MainWindow
                 view.Vibration.Value = levels.Vibration; view.Secondary.Value = levels.Secondary;
                 view.Clockwise.IsChecked = levels.Clockwise;
                 view.Updating = false;
+            }
+            if (view.PositionMode != null)
+            {
+                var positionReady = features.Any(f => f.Supported && f.Type == OutputType.HwPositionWithDuration);
+                view.PositionMode.IsEnabled = positionReady && snapshot?.Armed == true;
+                foreach (var slider in view.SolaceControls.Values) slider.IsEnabled = positionReady && snapshot?.Armed == true;
+                if (engine != null && snapshot?.Armed == true)
+                {
+                    var settings = engine.ActiveSolaceSettings;
+                    view.Updating = true;
+                    view.PositionMode.IsChecked = settings.PositionMode;
+                    view.SolaceControls["StrokeStart"].Value = settings.StrokeStart;
+                    view.SolaceControls["StrokeEnd"].Value = settings.StrokeEnd;
+                    view.SolaceControls["Position"].Value = settings.Position;
+                    view.SolaceControls["TravelTime"].Value = settings.TravelTime;
+                    view.Updating = false;
+                    view.Vibration.IsEnabled = vibration && !settings.PositionMode;
+                    view.SolaceControls["Position"].IsEnabled &= settings.PositionMode;
+                    view.SolaceControls["TravelTime"].IsEnabled &= settings.PositionMode;
+                }
             }
             view.Activate.IsEnabled = !view.Busy && service?.Backend.Connected == true && selected != null && snapshot?.Armed != true && service.WizardAllows(view.Kind);
             view.Devices.IsEnabled = !view.Busy;
@@ -196,6 +239,8 @@ public partial class MainWindow
                 : $"Ausgabe: SPS bereit · {engine.SourceCount} Live-Quellen · Kontakt {snapshot.SourceLevel:P0}"
                 : "Ausgabe: aus · zum Starten Toy aktivieren.";
             view.Status.Text = connectionStatus + "\n" + outputStatus;
+            if (view.Kind == ToyKind.SolacePro && snapshot?.Armed == true)
+                view.Status.Text += "\nBewegung: " + snapshot.Status;
         }
         if (toyTabs!.SelectedItem is not TabItem selectedTab || selectedTab.Visibility != Visibility.Visible)
             toyTabs.SelectedItem = toyTabs.Items.OfType<TabItem>().FirstOrDefault(t => t.Visibility == Visibility.Visible);

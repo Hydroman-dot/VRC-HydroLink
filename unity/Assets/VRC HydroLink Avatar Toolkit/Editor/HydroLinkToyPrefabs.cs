@@ -19,10 +19,10 @@ namespace HydroLink.AvatarToolkit.Editor
         public static string ObjectName(string toy) => "HydroLink " + Label(toy);
         public static string AssetPath(string toy) => Folder + "/" + toy + "/" + ObjectName(toy) + ".prefab";
         public static string Prefix(string toy) { CheckToy(toy); return "HydroLink/" + toy + "/"; }
-        public static string[] Channels(string toy) => toy == "SolacePro" ? new[] { "Enabled", "Motion", "Manual", "ManualMotion", "Stop" } : toy == "Max2" ? new[] { "Enabled", "Vibration", "Pump", "Manual", "ManualVibration", "ManualPump", "Stop" } : new[] { "Enabled", "Vibration", "Rotation", "Clockwise", "Manual", "ManualVibration", "ManualRotation", "ManualClockwise", "Stop" };
+        public static string[] Channels(string toy) => toy == "SolacePro" ? new[] { "Enabled", "Motion", "StrokeStart", "StrokeEnd", "Position", "TravelTime", "PositionMode", "Manual", "ManualMotion", "ManualStrokeStart", "ManualStrokeEnd", "ManualPosition", "ManualTravelTime", "ManualPositionMode", "Stop" } : toy == "Max2" ? new[] { "Enabled", "Vibration", "Pump", "Manual", "ManualVibration", "ManualPump", "Stop" } : new[] { "Enabled", "Vibration", "Rotation", "Clockwise", "Manual", "ManualVibration", "ManualRotation", "ManualClockwise", "Stop" };
         static void CheckToy(string toy) { if (toy != "Max2" && toy != "Ridge" && toy != "SolacePro") throw new ArgumentException("Unbekanntes Toy."); }
-        static bool IsBool(string key) => key == "Enabled" || key == "Stop" || key.EndsWith("Clockwise") || key == "Manual";
-        static float Default(string key) => key == "Enabled" || key == "Stop" || key == "Manual" ? 0 : key.EndsWith("Clockwise") ? 1 : .25f;
+        static bool IsBool(string key) => key == "Enabled" || key == "Stop" || key.EndsWith("Clockwise") || key == "Manual" || key.EndsWith("PositionMode");
+        static float Default(string key) => key == "Enabled" || key == "Stop" || key == "Manual" ? 0 : key.EndsWith("PositionMode") || key.EndsWith("StrokeStart") ? 0 : key.EndsWith("StrokeEnd") || key == "Position" || key.EndsWith("Clockwise") ? 1 : key.EndsWith("TravelTime") ? 400f / 4900f : .25f;
         static void EnsureFolder(string path)
         {
             if (AssetDatabase.IsValidFolder(path)) return;
@@ -223,7 +223,7 @@ namespace HydroLink.AvatarToolkit.Editor
 
         static VRCExpressionsMenu.Control Control(string toy, string key)
         {
-            var label = key == "Enabled" ? "Haptik einschalten" : key == "Manual" ? "Manuell einschalten" : key == "Stop" ? "Toy stoppen" : key.EndsWith("Clockwise") ? "Im Uhrzeigersinn" : key.EndsWith("Motion") ? "Hubgeschwindigkeit" : key.Replace("Manual", "");
+            var label = key == "Enabled" ? "Haptik einschalten" : key == "Manual" ? "Manuell einschalten" : key == "Stop" ? "Toy stoppen" : key.EndsWith("Clockwise") ? "Im Uhrzeigersinn" : key.EndsWith("PositionMode") ? "Positionsmodus" : key.EndsWith("StrokeStart") ? "Hubweg Anfang" : key.EndsWith("StrokeEnd") ? "Hubweg Ende" : key.EndsWith("Position") ? "Position / SPS-Tiefe" : key.EndsWith("TravelTime") ? "Fahrzeit 0.1-5s" : key.EndsWith("Motion") ? "Hubgeschwindigkeit" : key.Replace("Manual", "");
             var c = new VRCExpressionsMenu.Control { name = label };
             if (IsBool(key)) { c.type = key == "Stop" ? VRCExpressionsMenu.Control.ControlType.Button : VRCExpressionsMenu.Control.ControlType.Toggle; c.parameter = new VRCExpressionsMenu.Control.Parameter { name = Prefix(toy) + key }; c.value = 1; }
             else { c.type = VRCExpressionsMenu.Control.ControlType.RadialPuppet; c.subParameters = new[] { new VRCExpressionsMenu.Control.Parameter { name = Prefix(toy) + key } }; }

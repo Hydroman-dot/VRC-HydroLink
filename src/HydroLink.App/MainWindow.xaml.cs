@@ -55,6 +55,7 @@ public partial class MainWindow : Window
                 if (commandArgs.Contains("--preview-solace") && toyTabs != null) toyTabs.SelectedIndex = 2;
                 if (commandArgs.Contains("--verify-expanders")) VerifyExpandableSections();
                 UpdateLayout();
+                if (commandArgs.Contains("--preview-scroll-end") && Tabs.SelectedItem is TabItem selectedPage && selectedPage.Content is ScrollViewer scroller) { scroller.ScrollToEnd(); UpdateLayout(); }
                 var bitmap = new RenderTargetBitmap((int)ActualWidth, (int)ActualHeight, 96, 96, PixelFormats.Pbgra32);
                 bitmap.Render(this);
                 var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));

@@ -98,6 +98,12 @@ internal static class UniversalChecks
         check(messages.Any(m => m.GetProperty("FeatureIndex").GetInt32() == 21 && m.GetProperty("Command").GetProperty("HwPositionWithDuration").GetProperty("Duration").GetInt32() == 500), "linear output uses bounded duration and advertised index");
         check(messages.Any(m => m.GetProperty("DeviceIndex").GetInt32() == 10 && m.GetProperty("Command").TryGetProperty("Oscillate", out _)), "oscillation is routed as its own capability");
         check(!messages.Any(m => m.GetProperty("DeviceIndex").GetInt32() == 7), "unselected devices never receive output");
+        var positionFeature = features.Single(f => f.Type == OutputType.HwPositionWithDuration);
+        await service.Backend.SetPositionAsync(positionFeature,.33,750,timeout.Token);
+        check(server.Messages.Where(m=>m.TryGetProperty("OutputCmd",out _)).Select(m=>m.GetProperty("OutputCmd")).Any(m=>m.GetProperty("FeatureIndex").GetInt32()==21 && m.GetProperty("Command").TryGetProperty("HwPositionWithDuration",out var c) && c.GetProperty("Duration").GetInt32()==750 && c.GetProperty("Value").GetInt32()==33), "explicit position and travel duration reach real WebSocket output command");
+        bool invalidDuration=false;
+        try { await service.Backend.SetPositionAsync(positionFeature,.33,1001,timeout.Token); } catch(ArgumentException) { invalidDuration=true; }
+        check(invalidDuration,"position backend rejects duration outside advertised device range");
         bus.Publish("osc/target-changed", false, "test");
         while (service.Universal.Snapshot.Armed) await Task.Delay(25, timeout.Token);
         check(!service.Universal.Snapshot.Armed, "OSC target loss disarms service");
@@ -118,6 +124,9 @@ internal sealed class UniversalMemory(IReadOnlyList<HapticFeature>? extra = null
     public List<(HapticFeature Feature, double Amount, bool Clockwise)> Values { get; } = [];
     public List<uint> Stops { get; } = [];
     public List<string> Events { get; } = [];
+    public List<(HapticFeature Feature, double Position, uint Duration)> Positions { get; } = [];
+    public async Task SetPositionAsync(HapticFeature feature, double position, uint duration, CancellationToken token)
+    { await SetFeatureAsync(feature, position, true, token); Positions.Add((feature, position, duration)); }
     public bool FailOutput;
     public uint? FailStopId;
     public TaskCompletionSource? Hold, Entered;

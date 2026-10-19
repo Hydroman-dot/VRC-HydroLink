@@ -1,18 +1,30 @@
-# Solace Pro – Vorbereitung in HydroLink 0.11.0
+# Solace Pro in HydroLink 0.12.0
 
-Solace Pro hat einen eigenen Reiter. Angeschlossene Geräte werden anhand des Modellnamens vorgeschlagen; der normale Solace wird nicht automatisch als Solace Pro ausgewählt.
+Der eigene Solace-Pro-Reiter enthält folgende Steuerungen, jeweils mit getrennten Werten für SPS und Manuell:
 
-Umgesetzt:
-- Hubgeschwindigkeit über die von Intiface gemeldete Oscillate-Funktion.
-- SPS-Plugs und Sockets: stärkster Kontakt steuert die Geschwindigkeit bis zur eingestellten Obergrenze.
-- Manueller Modus mit eigener Geschwindigkeit, unabhängig vom SPS-Wert.
-- Eigener Stopp und gemeinsame Nutzung mit Max 2 und Ridge an unterschiedlichen Geräten.
-- Bestehende Freigaben und automatische SPS-Empfängeraktivierung bleiben erhalten.
+- Hubgeschwindigkeit.
+- Untere und obere Grenze des Hubwegs (0–100 %).
+- Umschalter zwischen wiederholtem Hub und Zielposition.
+- Zielposition innerhalb des eingestellten Hubwegs; bei SPS die maximale genutzte Kontakttiefe.
+- Fahrzeit zur Zielposition, 0,1 bis 5 Sekunden, zusätzlich begrenzt durch die vom Gerät gemeldeten Werte.
+- Haptik-Freigabe, manueller Modus und eigener Stopp.
 
-Noch nicht umgesetzt: alternative direkte Positionssteuerung sowie separate Hubweg-Grenzen. Die installierte Intiface-Konfiguration meldet Geschwindigkeit und Positionssteuerung als alternative Befehle desselben Motors; HydroLink verwendet in diesem Profil ausschließlich Geschwindigkeit. Separate Hubweg-Grenzen werden dort nicht angeboten.
+## Betriebsarten
 
-Die Unity-Editor-Quellen sind für ein eigenes Solace-Pro-Prefab vorbereitet: HydroLink/SolacePro/Enabled, Motion, Manual, ManualMotion und Stop. Der Wizard kann das Profil automatisch übergeben. Diese Erweiterung wurde noch nicht im Unity-Editor ausgeführt oder geprüft; das bestehende Paket 0.10.0 enthält kein Solace-Pro-Prefab. Ein neues geprüftes Unity-Paket folgt bei der Einrichtung im geöffneten Projekt.
+**Voller Hubweg:** Im Hubmodus mit Grenzen 0 % und 100 % wird die native Oscillate-Geschwindigkeit verwendet. SPS skaliert die Geschwindigkeit anhand des stärksten Plug- oder Socket-Kontakts.
 
-Bis dahin bleibt die neue Toy-Ausgabe bei bestehenden Avatar-Profilen ohne Solace Pro gesperrt. Der Reiter ist zur Vorbereitung sichtbar. Kein vorhandenes Unity-Projekt, Avatar-Controller oder SPS-Socket wurde geändert. Die Funktion am echten Solace Pro ist noch nicht bestätigt.
+**Begrenzter Hubweg:** Im Hubmodus mit engeren Grenzen erzeugt HydroLink die Hübe abwechselnd durch Positionsbefehle an beide Grenzen. Das ist eine Softwaresteuerung, kein nativer Lovense-Hubweg-Befehl. Die Geschwindigkeit bestimmt eine angeforderte Fahrzeit von 2 bis 0,2 Sekunden je Richtung. Bei Geschwindigkeit null wird gestoppt. Ohne SPS-Kontakt bleibt der SPS-Modus still.
 
-Für den späteren Einsatz: Unity-Prefab einrichten, Avatar hochladen, Intiface verbinden, Solace Pro am PC aktivieren und Haptik im Radialmenü einschalten. Anfangswert 25 %. Im Untermenü Manuell lässt sich der separate direkte Modus einschalten; sonst wirkt SPS.
+**Zielposition:** Im manuellen Modus bestimmt der Positionsregler das Ziel innerhalb des Hubwegs. Im SPS-Modus wird die Kontakttiefe mit dem Positionsregler als Obergrenze auf den Hubweg abgebildet. Fahrzeit bestimmt die angeforderte Bewegungsdauer. Der Geschwindigkeitsregler ist in diesem Modus ohne Funktion und deaktiviert. Neue Ziele werden frühestens nach der vorherigen angeforderten Fahrzeit gesendet. Die tatsächlich ausgeführte Geschwindigkeit hängt von Gerät und Firmware ab.
+
+SPS und Manuell behalten unabhängige Einstellungen. Beim Wechsel der Betriebsart oder Hubgrenzen wird zuerst gestoppt. Eine untere Grenze größer oder gleich der oberen verhindert Bewegung. Stopp, Verlust der Freigabe und Kontaktverlust im SPS-Positionsmodus senden einen Stoppbefehl, keine automatische Fahrt zur Position null. Position null kann im manuellen Positionsmodus ausdrücklich als Ziel gewählt werden.
+
+## Anbindung und Stand
+
+Intiface muss Oscillate und für erweiterte Steuerung HwPositionWithDuration am selben Motor melden. Fehlende Positionssteuerung sperrt diese Funktion; es erfolgt kein automatischer Ersatz durch uneingeschränkte Hübe. Native Lovense-EventsAPI und Bluetooth-Direktbefehle sind nicht integriert.
+
+Unity-Quellen sind für 15 lokale Parameter vorbereitet: Enabled, Motion, StrokeStart, StrokeEnd, Position, TravelTime, PositionMode, Manual, ManualMotion, ManualStrokeStart, ManualStrokeEnd, ManualPosition, ManualTravelTime, ManualPositionMode und Stop, jeweils unter HydroLink/SolacePro/. Die Untermenüs für SPS und Manuell bleiben getrennt.
+
+Die Unity-Änderung ist noch nicht im Editor eingerichtet oder geprüft. Das bestehende Unity-Paket 0.10.0 enthält kein Solace-Pro-Prefab. Bei bisherigen Avatar-Profilen ohne Solace Pro bleibt die Ausgabe gesperrt. Das neue Paket und der Avatar-Upload folgen bei der gemeinsamen Unity-Einrichtung. Bestehende Unity-Projekte wurden in dieser Vorbereitung nicht verändert.
+
+Die App wurde mit simulierten Geräten geprüft. Der Test am echten Solace Pro und die Prüfung seiner tatsächlichen Bewegung und Fahrzeit stehen noch aus.

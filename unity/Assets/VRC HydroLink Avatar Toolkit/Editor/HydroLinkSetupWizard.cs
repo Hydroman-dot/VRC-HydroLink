@@ -86,7 +86,7 @@ namespace HydroLink.AvatarToolkit.Editor
             avatar = (GameObject)EditorGUILayout.ObjectField("Avatar", avatar, typeof(GameObject), true);
             installMax2 = EditorGUILayout.ToggleLeft("Max 2 - SPS / Manuell, Vibration, Pump und Stopp", installMax2);
             installRidge = EditorGUILayout.ToggleLeft("Ridge - SPS / Manuell, Vibration, Rotation, Richtung und Stopp", installRidge);
-            installSolacePro = EditorGUILayout.ToggleLeft("Solace Pro - SPS / Manuell, Hubgeschwindigkeit und Stopp", installSolacePro);
+            installSolacePro = EditorGUILayout.ToggleLeft("Solace Pro - SPS / Manuell, Geschwindigkeit, Hubweg, Position, Fahrzeit und Stopp", installSolacePro);
             using (new EditorGUI.DisabledScope(!avatar || EditorApplication.isCompiling || EditorApplication.isPlayingOrWillChangePlaymode))
             {
                 if (GUILayout.Button("1. Avatar und SPS pruefen")) Run(() => report = Inspect(avatar));

@@ -7,7 +7,7 @@ public sealed record UniversalSnapshot(bool Armed, bool AvatarEnabled, double St
     int SelectedFeatures, double SourceLevel, string Status, IReadOnlyDictionary<string, double> Sent);
 
 /// <summary>Single serialized writer for explicitly selected device features. Session-only device IDs.</summary>
-public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvider? clock = null) : IAsyncDisposable
+public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvider? clock = null) : IAsyncDisposable
 {
     private readonly TimeProvider time = clock ?? TimeProvider.System;
     private readonly object sync = new();
@@ -45,14 +45,14 @@ public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvi
         foreach (var r in routes) pendingStops.Add(r.Feature.DeviceId);
         controls.Clear(); sps.Clear(); sourceLevel = 0; clockwise = true; profile = 3; lastSource = default;
         if (automaticSps) sources = [];
-        manualToy = false; manualClockwise = true;
+        manualToy = false; manualClockwise = true; ResetSolaceMovement();
     }
     public void Invalidate(string reason = "Verbindung oder Avatar geändert")
     { lock (sync) { Disarm(reason); } }
     public void ForgetDevices()
     { lock (sync) { Disarm("Geräte neu auswählen"); routes = []; } }
 
-    public async Task ConfigureAsync(IEnumerable<FeatureRoute> selected, UniversalSourceMode mode, IEnumerable<SpsSource> selectedSources, int idleTimeout = 0, bool allSps = false, bool toyGate = false)
+    public async Task ConfigureAsync(IEnumerable<FeatureRoute> selected, UniversalSourceMode mode, IEnumerable<SpsSource> selectedSources, int idleTimeout = 0, bool allSps = false, bool toyGate = false, bool solace = false)
     {
         var list = selected.ToArray(); var inputs = selectedSources.ToArray();
         if (!Enum.IsDefined(mode) || idleTimeout is < 0 or > 600) throw new ArgumentException("Ungültiger Eingangsmodus.");
@@ -71,7 +71,7 @@ public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvi
         {
             lock (sync) Disarm("Auswahl geändert");
             await FlushStops();
-            lock (sync) { routes = list; sources = inputs; sourceMode = mode; idleSeconds = idleTimeout; automaticSps = allSps; requireToyEnable = toyGate; }
+            lock (sync) { routes = list; sources = inputs; sourceMode = mode; idleSeconds = idleTimeout; automaticSps = allSps; requireToyEnable = toyGate; solaceControl = solace; }
         }
         finally { gate.Release(); }
     }
@@ -88,6 +88,7 @@ public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvi
                 if (ticket != generation) return;
                 if (!backend.Connected || routes.Length == 0 || routes.Any(r => !backend.Features.Contains(r.Feature)))
                     throw new InvalidOperationException("Zuerst verfügbare Gerätefunktionen übernehmen.");
+                InitSolaceControls();
                 armed = true; status = "Freigegeben; neue Avatar-Werte erforderlich";
                 if (automaticSps) { avatarEnabled = !requireToyEnable; controls["ManualMotion"] = controls["ManualVibration"] = controls["ManualPump"] = controls["ManualRotation"] = .25; status = "Freigegeben · Haptik im Radialmenü einschalten"; }
             }
@@ -171,6 +172,7 @@ public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvi
         lock (sync)
         {
             if (!automaticSps || !armed) return;
+            if (SetSolaceControl(channel, value)) return;
             if (channel == "Enabled")
             {
                 var next = value >= .5;
@@ -181,7 +183,7 @@ public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvi
             else if (channel == "Manual")
             {
                 var next = value >= .5 && avatarEnabled;
-                if (manualToy != next) { manualToy = next; sps.Clear(); sourceLevel = 0; lastSource = default; }
+                if (manualToy != next) { if (solaceControl) StopSolaceMovement(); manualToy = next; sps.Clear(); sourceLevel = 0; lastSource = default; }
             }
             else if (channel == "ManualClockwise") manualClockwise = value >= .5;
             else if (channel is "ManualVibration" or "ManualMotion") controls["ManualMotion"] = controls["ManualVibration"] = Math.Clamp(value, 0, 1);
@@ -222,7 +224,7 @@ public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvi
             }
             catch (Exception e) { errors.Add(e); }
         }
-        lock (sync) { sent.Clear(); directions.Clear(); nextSend.Clear(); }
+        lock (sync) { sent.Clear(); directions.Clear(); nextSend.Clear(); ResetSolaceMovement(); }
         if (errors.Count > 0) throw new AggregateException("Stop nicht für alle Geräte bestätigt.", errors);
     }
     public async Task TickAsync()
@@ -232,7 +234,8 @@ public sealed class UniversalHaptics(IUniversalHapticsBackend backend, TimeProvi
         {
             bool stop;
             lock (sync) stop = pendingStops.Count > 0;
-            if (stop) { await FlushStops(); return; }
+            if (stop) { await FlushStops(); if (!solaceControl) return; }
+            if (await TickSolaceAsync()) return;
             FeatureRoute[] batch;
             lock (sync) batch = routes;
             for (var n = 0; n < batch.Length; n++)

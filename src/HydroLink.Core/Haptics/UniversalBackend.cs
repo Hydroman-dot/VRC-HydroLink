@@ -17,6 +17,8 @@ public interface IUniversalHapticsBackend
     IReadOnlyList<HapticFeature> Features { get; }
     Task SetFeatureAsync(HapticFeature feature, double amount, bool clockwise, CancellationToken token);
     Task StopDeviceAsync(uint id, CancellationToken token);
+    Task SetPositionAsync(HapticFeature feature, double position, uint duration, CancellationToken token)
+        => throw new NotSupportedException("Zeitgesteuerte Position nicht angebunden.");
 }
 public sealed partial class ButtplugBackend : IUniversalHapticsBackend
 {
@@ -42,6 +44,15 @@ public sealed partial class ButtplugBackend : IUniversalHapticsBackend
             : (int)Math.Round(amount * feature.Maximum);
         uint? duration = feature.Type == OutputType.HwPositionWithDuration ? 500u : null;
         return d.RunOutputAsync(feature.FeatureId, new DeviceOutputCommand(feature.Type, PercentOrSteps.FromSteps(steps), duration), token);
+    }
+    public Task SetPositionAsync(HapticFeature feature, double position, uint duration, CancellationToken token)
+    {
+        if (!double.IsFinite(position) || position is < 0 or > 1 || feature.Type != OutputType.HwPositionWithDuration
+            || !Features.Contains(feature) || duration < feature.DurationMin || duration > feature.DurationMax)
+            throw new ArgumentException("Ungültige Position, Dauer oder geänderte Gerätefunktion.");
+        var device = client.Devices.Single(d => d.Index == feature.DeviceId);
+        var steps = (int)Math.Round(feature.Minimum + position * (feature.Maximum - feature.Minimum));
+        return device.RunOutputAsync(feature.FeatureId, new DeviceOutputCommand(feature.Type, PercentOrSteps.FromSteps(steps), duration), token);
     }
     public Task StopDeviceAsync(uint id, CancellationToken token)
         => client.Devices.FirstOrDefault(d => d.Index == id)?.StopAsync(token) ?? Task.CompletedTask;
