@@ -59,7 +59,13 @@ if (args.Contains("--network"))
     Check(true, "mDNS discovery + HOST_INFO resolve a random OSC port");
     Check(bridge.Monitor.Snapshot().Any(r => r.Address == "/avatar/parameters/ExplorerTest" && r.Type == "f"), "discovered OSCQuery tree populates explorer");
     bus.Publish("osc/send", new { address = "/test", arguments = new[] { 42 } }, "test");
-    var sent = await mockUdp.ReceiveAsync(timeout.Token); Check((int)OscCodec.Decode(sent.Buffer)[0].Arguments[0] == 42, "OSC routed to discovered port");
+    OscMessage? routed = null;
+    while (routed == null)
+    {
+        var sent = await mockUdp.ReceiveAsync(timeout.Token);
+        routed = OscCodec.Decode(sent.Buffer).FirstOrDefault(m => m.Address == "/test");
+    }
+    Check(routed.Arguments[0] is int routedValue && routedValue == 42, "OSC routed to discovered port, independent of a running VRChat client");
     using var http = new HttpClient();
     using var own = JsonDocument.Parse(await http.GetStringAsync($"http://127.0.0.1:{bridge.QueryPort}/?HOST_INFO", timeout.Token));
     Check(own.RootElement.GetProperty("OSC_PORT").GetInt32() == bridge.ReceivePort, "own receive port advertised by OSCQuery");

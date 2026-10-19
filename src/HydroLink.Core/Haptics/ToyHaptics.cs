@@ -15,6 +15,7 @@ public sealed class ToyHaptics : IAsyncDisposable
     private readonly Dictionary<ToyKind, uint> assigned = [];
     private readonly SemaphoreSlim gate = new(1, 1);
     private long epoch;
+    public event Action? SpsContactsRequested;
     public ToyHaptics(IUniversalHapticsBackend backend)
     {
         this.backend = backend;
@@ -91,6 +92,9 @@ public sealed class ToyHaptics : IAsyncDisposable
             if (ticket != Interlocked.Read(ref epoch)) { await engines[toy].StopAsync(); return; }
             assigned[toy] = id;
             engines[toy].SetSpsLevels(vibration, secondary, clockwise);
+            // VRCFury keeps its OSC contact receivers inactive until the receiving app opts in.
+            // Request only after an explicit, successful activation; never from query snapshots.
+            SpsContactsRequested?.Invoke();
         }
         finally { gate.Release(); }
     }

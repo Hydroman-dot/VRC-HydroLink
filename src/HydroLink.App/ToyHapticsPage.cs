@@ -115,8 +115,25 @@ public partial class MainWindow
             : expected.MatchesAvatar(avatar) ? "VRChat-Avatar: passt zur Unity-Einrichtung."
             : $"VRChat-Avatar: anderer Avatar erkannt. Bitte {expected.AvatarName} laden.";
         wizardSyncStatus!.Text = unityStatus + "\n" + avatarStatus;
-        var sources = SpsSource.Discover((host?.Osc?.Monitor.Snapshot() ?? []).Select(p => p.Address));
-        socketAutoStatus.Text = sources.Length > 0 ? $"{sources.Count(s => s.Kind == "Plug")} Plugs und {sources.Count(s => s.Kind == "Socket")} Sockets erkannt · stärkster Kontakt zählt" : "SPS-Automatik bereit · warte auf Plug- oder Socket-Signale aus VRChat";
+        var parameters = host?.Osc?.Monitor.Snapshot() ?? [];
+        var sources = SpsSource.Discover(parameters.Select(p => p.Address));
+        var contactFlag = parameters.FirstOrDefault(p => p.Address == "/avatar/parameters/OGB_ENABLED")?.QueryValue;
+        bool? contactsEnabled = null;
+        if (contactFlag is not null && contactFlag != "—")
+        {
+            try
+            {
+                using var flag = System.Text.Json.JsonDocument.Parse(contactFlag);
+                if (flag.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array && flag.RootElement.GetArrayLength() > 0)
+                    contactsEnabled = OscRouting.Number(flag.RootElement[0]) is { } number ? number >= .5 : null;
+            }
+            catch (System.Text.Json.JsonException) { }
+        }
+        var liveSources = SpsSource.Discover(parameters.Where(p => p.Received != "—").Select(p => p.Address)).Length;
+        socketAutoStatus.Text = (sources.Length > 0 ? $"Avatar-Parameter: {sources.Count(s => s.Kind == "Plug")} Plugs und {sources.Count(s => s.Kind == "Socket")} Sockets vorhanden." : "Avatar-Parameter: noch keine SPS-Plugs oder Sockets erkannt.")
+            + "\n" + (contactsEnabled == false ? "SPS-Kontakterkennung: im Avatar ausgeschaltet. Toy stoppen und erneut aktivieren; HydroLink schaltet die Empfänger dabei ein."
+            : contactsEnabled == true ? $"SPS-Kontakterkennung: eingeschaltet · seit Avatarwechsel Live-Signale von {liveSources} Quellen empfangen."
+            : "SPS-Kontakterkennung: Status noch nicht bestätigt. Toy aktivieren fordert die Kontaktfreigabe an.");
         foreach (var view in toyViews)
         {
             if (view.WizardRevision != wizardSync.Fingerprint && wizardSync.Profile != null)
@@ -172,7 +189,9 @@ public partial class MainWindow
                 : service?.Backend.Connected != true || selected == null ? "Ausgabe: aus · Geräteverbindung fehlt."
                 : snapshot?.Armed == true ? !snapshot.AvatarEnabled ? "Ausgabe: freigegeben · Haptik im Radialmenü einschalten."
                 : engine!.ManualToy ? "Ausgabe: manuell aktiv · ohne SPS-Kontakt."
-                : $"Ausgabe: SPS aktiv · {engine.SourceCount} Quellen · Kontakt {snapshot.SourceLevel:P0}"
+                : contactsEnabled == false ? "Ausgabe: wartet · SPS-Kontakterkennung im Avatar ist ausgeschaltet (siehe oben)."
+                : engine.SourceCount == 0 ? "Ausgabe: wartet auf frische SPS-Kontaktsignale · noch keine Live-Quelle seit Aktivierung."
+                : $"Ausgabe: SPS bereit · {engine.SourceCount} Live-Quellen · Kontakt {snapshot.SourceLevel:P0}"
                 : "Ausgabe: aus · zum Starten Toy aktivieren.";
             view.Status.Text = connectionStatus + "\n" + outputStatus;
         }

@@ -10,11 +10,16 @@ internal static class ToyChecks
         check(ToyHaptics.Matches(ToyKind.Max2, "Lovense Max 2") && ToyHaptics.Matches(ToyKind.Max2, "Lovense Max") && ToyHaptics.Matches(ToyKind.Ridge, "Lovense Ridge") && !ToyHaptics.Matches(ToyKind.Max2, "Maximum"), "toy auto matching uses complete model words");
         var backend = new UniversalMemory();
         await using var toys = new ToyHaptics(backend);
+        int contactRequests = 0;
+        toys.SpsContactsRequested += () => contactRequests++;
         async Task Drain() { for (var i=0;i<5;i++) { await toys[ToyKind.Max2].TickAsync(); await toys[ToyKind.Ridge].TickAsync(); await Task.Delay(60); } }
         string P(string id, string signal) => "/avatar/parameters/OGB/Orf/" + id + "/" + signal;
         toys.Receive([new(P("Before", "PenOthers"), 1)]);
+        check(contactRequests == 0, "incoming contacts never enable avatar contact receivers on their own");
         await toys.ActivateAsync(ToyKind.Max2, 1, .2, .3, true); toys.Receive([new("/avatar/parameters/HydroLink/Max2/Enabled",1)]);
+        check(contactRequests == 1, "explicit Max 2 activation requests VRCFury contact receivers");
         await toys.ActivateAsync(ToyKind.Ridge, 2, .4, .5, false); toys.Receive([new("/avatar/parameters/HydroLink/Ridge/Enabled",1)]);
+        check(contactRequests == 2, "explicit Ridge activation also requests VRCFury contact receivers");
         await Drain();
         check(backend.Values.Count == 0 && toys[ToyKind.Max2].SourceCount == 0, "toy activation never replays pre-activation contacts");
         toys.Receive([new(P("Hand", "PenOthers"), .6)]); await Drain();

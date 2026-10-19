@@ -30,6 +30,7 @@ public sealed class HapticsService : Worker
         Controller.Log += log; Backend.Log += log; Backend.ConnectionLost += Controller.Invalidate;
         Universal = new(Backend); Universal.Log += log;
         Toys = new(Backend);
+        Toys.SpsContactsRequested += () => bus.Publish("osc/send", new { address = "/avatar/parameters/OGB_ENABLED", arguments = new[] { true }, type = "T" }, Id);
         Backend.ConnectionLost += () => { Interlocked.Increment(ref toyActivationEpoch); Toys.ForgetDevices(); };
         Backend.DeviceLost += _ => { Interlocked.Increment(ref toyActivationEpoch); Toys.ForgetDevices(); };
         Backend.ConnectionLost += Universal.ForgetDevices;
