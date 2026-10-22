@@ -13,6 +13,9 @@ public sealed class HapticsService : Worker
     public ToyHaptics Toys { get; }
     private volatile bool toyActive;
     private long toyActivationEpoch;
+    private readonly object gateSync = new();
+    private readonly Dictionary<ToyKind, (long Epoch, string Avatar, DateTimeOffset After)> pendingGates = new();
+    private long liveGateRevision;
     private volatile bool universalActive;
     private volatile WizardSyncState wizardState = new(false, null, "missing", "");
     private volatile string currentAvatar = "";
@@ -48,7 +51,12 @@ public sealed class HapticsService : Worker
         await Universal.StopAsync(); await Controller.StopAsync();
         if (ticket != Interlocked.Read(ref toyActivationEpoch) || !WizardAllows(toy)) return;
         toyActive = true;
+        long revision;
+        lock (gateSync) revision = liveGateRevision;
         await Toys.ActivateAsync(toy, id, vibration, secondary, clockwise);
+        lock (gateSync)
+            if (revision == liveGateRevision && ticket == Interlocked.Read(ref toyActivationEpoch) && Toys[toy].Snapshot.Armed && currentAvatar.Length > 0)
+                pendingGates[toy] = (ticket, currentAvatar, DateTimeOffset.UtcNow);
     }
     public async Task ConfigureUniversalAsync(IEnumerable<FeatureRoute> routes, UniversalSourceMode mode, IEnumerable<SpsSource> sources)
     {
@@ -63,12 +71,29 @@ public sealed class HapticsService : Worker
         Toys.StartWorkers();
         using var subscription = bus.Subscribe("", e =>
         {
-            if (e.Topic.StartsWith("osc/receive/", StringComparison.Ordinal))
+            lock (gateSync)
+            {
+            if (e.Topic == "osc/avatar-gate")
+            {
+                var address = e.Value.GetProperty("address").GetString();
+                foreach (var toy in Enum.GetValues<ToyKind>())
+                    if (address == "/avatar/parameters/HydroLink/" + toy + "/Enabled" && pendingGates.TryGetValue(toy, out var pending)
+                        && pending.Epoch == Interlocked.Read(ref toyActivationEpoch) && pending.Avatar == currentAvatar
+                        && pending.Avatar == e.Value.GetProperty("avatar").GetString()
+                        && e.Value.GetProperty("queryStarted").GetDateTimeOffset() >= pending.After && WizardAllows(toy))
+                    {
+                        pendingGates.Remove(toy);
+                        if (Toys[toy].Snapshot.Armed) Toys.Receive([new(address, e.Value.GetProperty("enabled").GetDouble())]);
+                    }
+            }
+            else if (e.Topic.StartsWith("osc/receive/", StringComparison.Ordinal))
             {
                 var address = e.Value.GetProperty("address").GetString()!;
-                if (address is "/avatar/change" or "/avatar/parameters/OGB_ENABLED") Interlocked.Increment(ref toyActivationEpoch);
                 var args = e.Value.GetProperty("arguments");
                 var values = new OscValue[] { new(address, args.GetArrayLength() > 0 ? OscRouting.Number(args[0]) : null) };
+                if (address == "/avatar/change" || address == "/avatar/parameters/OGB_ENABLED" && values[0].Value < .5) Interlocked.Increment(ref toyActivationEpoch);
+                foreach (var toy in Enum.GetValues<ToyKind>())
+                    if (address == "/avatar/parameters/HydroLink/" + toy + "/Enabled") { liveGateRevision++; pendingGates.Remove(toy); }
                 if (address is "/avatar/parameters/HydroLink/Max2/Stop" or "/avatar/parameters/HydroLink/Ridge/Stop" or "/avatar/parameters/HydroLink/SolacePro/Stop" && values[0].Value >= .5)
                 {
                     Interlocked.Increment(ref toyActivationEpoch);
@@ -83,6 +108,7 @@ public sealed class HapticsService : Worker
             {
                 if (e.Topic == "osc/avatar-id") currentAvatar = e.Value.ValueKind == JsonValueKind.String ? e.Value.GetString() ?? "" : "";
                 Interlocked.Increment(ref toyActivationEpoch); Controller.Invalidate(); Universal.Invalidate(); Toys.Invalidate();
+            }
             }
         });
         try

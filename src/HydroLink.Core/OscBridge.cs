@@ -1,3 +1,4 @@
+using VrcHapticsBridge.Core;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -18,7 +19,7 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
     public string Target => Volatile.Read(ref target)?.ToString() ?? "VRChat wird gesucht …";
     protected override async Task Run(CancellationToken token)
     {
-        using var udp = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0));
+        using var udp = OpenReceiver();
         ReceivePort = ((IPEndPoint)udp.Client.LocalEndPoint!).Port;
         QueryPort = Extensions.GetAvailableTcpPort();
         using var service = new OSCQueryServiceBuilder().WithServiceName("VRC-HydroLink-" + Environment.ProcessId + "-" + Guid.NewGuid().ToString("N")[..8])
@@ -83,6 +84,13 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
         }
         finally { await session.CancelAsync(); try { await discovery; } catch (OperationCanceledException) { } target = null; bus.Publish("osc/target-changed", false, Id); }
     }
+    public static UdpClient OpenReceiver()
+    {
+        var udp = new UdpClient(AddressFamily.InterNetwork);
+        udp.ExclusiveAddressUse = true;
+        try { udp.Client.Bind(new IPEndPoint(IPAddress.Loopback, 9001)); return udp; }
+        catch (SocketException) { udp.Dispose(); return new UdpClient(new IPEndPoint(IPAddress.Loopback, 0)); }
+    }
     private static object ToOsc(JsonElement x) => x.ValueKind switch
     {
         JsonValueKind.True => true, JsonValueKind.False => false,
@@ -126,11 +134,21 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
                         try
                         {
                             var avatarAtStart = Monitor.Avatar;
+                            var queryStarted = DateTimeOffset.UtcNow;
                             using var tree = JsonDocument.Parse(await http.GetStringAsync(new UriBuilder("http", p.address.ToString(), p.port).Uri, token));
                             if (avatarAtStart == Monitor.Avatar)
                             {
                                 if (OscMonitor.FindAvatar(tree.RootElement) is { Length: > 0 } avatar && Monitor.SetAvatar(avatar)) bus.Publish("osc/avatar-id", avatar, Id);
                                 Monitor.Query(tree.RootElement);
+                                var queryAvatar = OscMonitor.FindAvatar(tree.RootElement);
+                                if (!string.IsNullOrEmpty(queryAvatar))
+                                    foreach (var item in OscMonitor.ParseTree(tree.RootElement).Where(x => Enum.GetValues<ToyKind>().Any(t => x.Address == "/avatar/parameters/HydroLink/" + t + "/Enabled")))
+                                    {
+                                        if (item.Value == "—") continue;
+                                        using var value = JsonDocument.Parse(item.Value);
+                                        if (value.RootElement.ValueKind == JsonValueKind.Array && value.RootElement.GetArrayLength() > 0 && OscRouting.Number(value.RootElement[0]) is { } enabled)
+                                            bus.Publish("osc/avatar-gate", new { avatar = queryAvatar, queryStarted, address = item.Address, enabled }, Id);
+                                    }
                             }
                             QueryStatus = "Parameter abgefragt · " + DateTimeOffset.Now.ToString("HH:mm:ss");
                         }

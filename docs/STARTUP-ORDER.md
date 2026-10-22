@@ -1,13 +1,9 @@
-# Startreihenfolge – HydroLink 0.12.1
+# Startreihenfolge – HydroLink 0.12.2
 
-HydroLink richtet zuerst seinen vollständigen OSC-Empfangsbaum ein und macht sich erst danach für VRChat sichtbar. Bisher konnte ein schon laufendes VRChat die App während ihrer Einrichtung entdecken und noch keine Avatar-Empfangsadressen vorfinden. Jede gestartete OSC-Sitzung erhält außerdem einen eigenen Dienstnamen, damit beim Neustart des Tools keine alte Anmeldung wiederverwendet wird.
+HydroLink bevorzugt den normalen VRChat-Empfangsport UDP 9001. Ist dieser bereits belegt, verwendet es einen freien Port mit OSCQuery-Anmeldung. Der vollständige Empfangsbaum steht vor der Anmeldung bereit.
 
-Geprüft mit einem OSCQuery-Gegenstück über lokale Netzwerkerkennung und UDP:
-- Gegenstück läuft zuerst, HydroLink startet danach.
-- HydroLink läuft zuerst, Gegenstück startet danach.
-- Die erste Abfrage nach Entdeckung enthält bereits die Avatar-Empfangsadressen.
-- Empfang und Erkennung des ausgehenden Ziels funktionieren in beiden Reihenfolgen.
+Nach einem ausdrücklichen Klick auf „Toy aktivieren“ fragt HydroLink den Haptik-Schalter des passenden Avatars frisch über OSCQuery ab. Ist er bereits eingeschaltet, muss er nicht mehr aus- und eingeschaltet werden. Die Abfrage erfolgt im normalen Drei-Sekunden-Takt. Eine ältere Abfrage oder ein anderer Avatar wird nicht übernommen. Ein neu eingehendes Ein-/Ausschalten im Radialmenü hat Vorrang. Kontaktwerte und manuelle Aktivierung werden nicht aus der Abfrage wiederhergestellt.
 
-Gegencheck in VRChat: OSC einschalten, VRChat geöffnet lassen, die alte HydroLink-App schließen und 0.12.1 öffnen. Haptics starten und die Avatar-Erkennung prüfen. Erst zum Gerätetest das Toy aktivieren und im Radialmenü Haptik einschalten; einen bereits eingeschalteten Haptik-Schalter gegebenenfalls einmal aus- und einschalten, damit eine neue Freigabe ankommt. Gespeicherte Kontakt- oder Freigabewerte starten keine Toy-Ausgabe.
+Zum Prüfen: Alte HydroLink-Version schließen, 0.12.2 öffnen, OSC in VRChat einschalten, passenden Avatar abwarten und das Toy in HydroLink aktivieren. Der bereits eingeschaltete Haptik-Schalter sollte nach wenigen Sekunden erkannt werden. Anschließend einen neuen Kontakt testen. Kein neuer Unity-Import oder Avatar-Upload ist für diese Korrektur erforderlich.
 
-Es ist kein neuer Unity-Import oder Avatar-Upload nötig. Der Startreihenfolgen-Fix wurde noch nicht vom Nutzer im echten VRChat bestätigt.
+212 automatische Prüfungen bestanden. Die Prüfung mit echtem Gerät und verschiedenen VRChat-Startreihenfolgen steht noch aus. Bei belegtem Standardport hängt der Empfang weiterhin von der OSCQuery-Anmeldung in VRChat ab.
