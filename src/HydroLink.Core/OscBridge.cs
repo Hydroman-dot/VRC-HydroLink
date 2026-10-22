@@ -21,8 +21,8 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
         using var udp = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0));
         ReceivePort = ((IPEndPoint)udp.Client.LocalEndPoint!).Port;
         QueryPort = Extensions.GetAvailableTcpPort();
-        using var service = new OSCQueryServiceBuilder().WithServiceName("VRC-HydroLink-" + Environment.ProcessId)
-            .WithTcpPort(QueryPort).WithUdpPort(ReceivePort).WithDefaults().Build();
+        using var service = new OSCQueryServiceBuilder().WithServiceName("VRC-HydroLink-" + Environment.ProcessId + "-" + Guid.NewGuid().ToString("N")[..8])
+            .WithTcpPort(QueryPort).WithUdpPort(ReceivePort).Build();
         service.AddEndpoint("/avatar", "", Attributes.AccessValues.WriteOnly);
         service.AddEndpoint("/avatar/change", "s", Attributes.AccessValues.WriteOnly);
         service.AddEndpoint("/avatar/parameters", "", Attributes.AccessValues.WriteOnly);
@@ -38,6 +38,12 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
             service.AddEndpoint("/avatar/parameters/" + parameter, "f", Attributes.AccessValues.WriteOnly);
         service.AddEndpoint("/avatar/parameters/InStation", "T", Attributes.AccessValues.WriteOnly);
         service.OnOscQueryServiceAdded += p => { if (p.name.StartsWith(discoveryPrefix, StringComparison.OrdinalIgnoreCase)) profiles[p.name] = p; };
+        // Publish only after the complete receive tree exists. A running VRChat may query
+        // immediately on discovery and otherwise cache an empty tree for this session.
+        service.StartHttpServer();
+        service.SetDiscovery(new MeaModDiscovery());
+        service.AdvertiseOSCQueryService(service.ServerName, QueryPort);
+        service.AdvertiseOSCService(service.ServerName, ReceivePort);
         foreach (var p in service.GetOSCQueryServices().ToArray())
             if (p.name.StartsWith(discoveryPrefix, StringComparison.OrdinalIgnoreCase)) profiles[p.name] = p;
         using var session = CancellationTokenSource.CreateLinkedTokenSource(token);

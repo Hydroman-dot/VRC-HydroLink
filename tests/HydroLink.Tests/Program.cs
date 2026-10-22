@@ -76,6 +76,7 @@ if (args.Contains("--network"))
     await mockUdp.SendAsync(OscCodec.Encode("/avatar/parameters/Test", .5f), new IPEndPoint(IPAddress.Loopback, bridge.ReceivePort), timeout.Token);
     Check(await incoming.Task.WaitAsync(timeout.Token), "received OSC reaches data bus");
 }
+if (args.Contains("--network")) await OscStartupChecks.Run(Check);
 Console.WriteLine($"{checks} checks passed.");
 var pluginArg = Array.IndexOf(args, "--plugin");
 if (pluginArg >= 0)
