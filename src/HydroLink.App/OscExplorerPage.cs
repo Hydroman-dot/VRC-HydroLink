@@ -15,6 +15,10 @@ public partial class MainWindow
     private readonly ObservableCollection<OscParameter> oscRows = [];
     private void BuildOscExplorer(StackPanel panel)
     {
+        var maintenance = new WrapPanel();
+        var restart = new Button { Content = "OSC neu starten", Tag = "osc" }; restart.Click += RestartModule_Click; maintenance.Children.Add(restart);
+        var clear = new Button { Content = "VRChat-OSC-Cache leeren …" }; clear.Click += ClearOscCache_Click; maintenance.Children.Add(clear);
+        panel.Children.Add(maintenance);
         oscExplorerStatus = new TextBlock { Margin = new Thickness(0, 10, 0, 10) }; panel.Children.Add(oscExplorerStatus);
         oscFilter = new TextBox { ToolTip = "Parametername suchen", Width = 420, Margin = new Thickness(0, 4, 12, 12) };
         panel.Children.Add(new TextBlock { Text = "Parameter suchen / Richtung filtern" }); var filters = new WrapPanel(); panel.Children.Add(filters); filters.Children.Add(oscFilter);

@@ -107,6 +107,13 @@ await using (var independent = new HydroHost(moduleSettings, Console.WriteLine, 
     await independent.SetModuleAsync("windforce", true);
     Check(ReferenceEquals(shared, components["VRTI"]) && shared.Starts == 1, "shared source is not restarted for second tool");
     Check(launcher.Count == 1, "dependency autostart occurs once while shared");
+    var oldWind = components["windforce"];
+    await independent.RestartModuleAsync("windforce");
+    Check(oldWind.Stops == 1 && !ReferenceEquals(oldWind, components["windforce"]) && shared.Stops == 0 && independent.ActiveModules.Contains("fitness"), "single module restart preserves other module and shared sources");
+    var oldOsc = components["osc"];
+    var resets = 0;
+    using (independent.Bus.Subscribe("routing/reset", _ => resets++)) await independent.RestartModuleAsync("osc");
+    Check(oldOsc.Stops == 1 && !ReferenceEquals(oldOsc, components["osc"]) && resets == 1 && shared.Stops == 0, "OSC restart replaces shared receiver and invalidates output without stopping other sources");
     await independent.SetModuleAsync("fitness", false);
     Check(shared.Stops == 0 && independent.ActiveModules.SetEquals(new[] { "windforce" }), "stopping Fitness leaves WindForce and shared source running");
     await independent.SetModuleAsync("osc", true);

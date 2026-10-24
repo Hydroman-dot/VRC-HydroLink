@@ -21,6 +21,24 @@ internal static class RobustnessChecks
             try { OscCodec.Decode(OscCodec.Encode("/bad", value)); } catch (FormatException) { rejected = true; }
             check(rejected, "non-finite OSC input rejected: " + value);
         }
+        var cacheRoot = Path.Combine(Path.GetTempPath(), "HydroLink-cache-test-" + Guid.NewGuid().ToString("N"));
+        var avatarDir = Path.Combine(cacheRoot, "OSC", "usr_" + Guid.NewGuid(), "Avatars");
+        Directory.CreateDirectory(avatarDir);
+        var avatarFile = Path.Combine(avatarDir, "avtr_" + Guid.NewGuid() + ".json");
+        var otherFile = Path.Combine(avatarDir, "custom.json");
+        File.WriteAllText(avatarFile, "original"); File.WriteAllText(otherFile, "keep");
+        var selected = VrchatOscCache.Inspect(Path.Combine(cacheRoot, "OSC"));
+        check(selected.SequenceEqual(new[] { avatarFile }), "cache reset selects only standard avatar JSON files");
+        bool rejectedPath = false;
+        try { VrchatOscCache.Clear(Path.Combine(cacheRoot, "OSC"), Path.Combine(cacheRoot, "backup"), [otherFile]); }
+        catch (IOException) { rejectedPath = true; }
+        check(rejectedPath && File.Exists(avatarFile), "cache reset rejects unapproved files before changes");
+        var backup = VrchatOscCache.Clear(Path.Combine(cacheRoot, "OSC"), Path.Combine(cacheRoot, "backup"), selected);
+        var saved = Path.Combine(backup, Path.GetRelativePath(Path.Combine(cacheRoot, "OSC"), avatarFile));
+        check(!File.Exists(avatarFile) && File.ReadAllText(saved) == "original" && File.ReadAllText(otherFile) == "keep", "cache reset preserves backup and unrelated files");
+        File.Delete(saved); File.Delete(otherFile);
+        foreach (var directory in Directory.EnumerateDirectories(cacheRoot, "*", SearchOption.AllDirectories).OrderByDescending(p => p.Length)) Directory.Delete(directory);
+        Directory.Delete(cacheRoot);
         var folder = Path.Combine(Path.GetTempPath(), "HydroLink-robustness-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(folder);
         var path = Path.Combine(folder, "settings.json");

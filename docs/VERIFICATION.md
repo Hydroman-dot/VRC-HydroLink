@@ -19,3 +19,5 @@ Real Max 2/Ridge hardware, clean-machine installer and a full live VRChat sessio
 0.12.3: 216 checks passed, including explicit desktop manual operation with radial gate off, stopping manual output, radial-off cancellation, and prevention of restarting a stopped device. WPF preview inspected. Plugin test now has its own timeout instead of inheriting the earlier network-test deadline. Real hardware test remains pending.
 
 0.12.4: 226 checks passed including concurrent worker starts/disposal/restart, non-finite OSC rejection, atomic settings replacement, recovery from damaged JSON with warning and preservation of backup, and concurrent saves. Build and publish completed without warnings/errors. Hardware longevity and power-loss tests remain pending.
+
+0.12.5: 231 checks passed. Added isolated module restart, shared OSC receiver replacement with output invalidation, cache selection, unapproved path rejection, and backup/unrelated-file preservation tests. Cache tests use temporary fixtures only; real VRChat files untouched. Module and OSC Hub WPF previews inspected; build/publish passed.

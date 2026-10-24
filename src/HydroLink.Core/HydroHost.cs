@@ -94,6 +94,30 @@ public sealed class HydroHost : IAsyncDisposable
             modules.Clear(); modules.UnionWith(desired);
             log(id + (enabled ? " gestartet" : " gestoppt"));
     }
+    public async Task RestartModuleAsync(string id)
+    {
+        if (id is not ("fitness" or "windforce" or "osc" or "haptics")) throw new ArgumentException("Unknown module");
+        await transition.WaitAsync();
+        try
+        {
+            if (id == "osc" && running.TryGetValue("osc", out var previous))
+            {
+                Bus.Publish("routing/reset", true, "restart");
+                await previous.DisposeAsync(); running.Remove("osc");
+                var replacement = factory?.Invoke("osc") ?? Create("osc");
+                try { await replacement.StartAsync(stop.Token); running.Add("osc", replacement); }
+                catch { await replacement.DisposeAsync(); throw; }
+                log("OSC neu gestartet; Haptics erneut aktivieren.");
+            }
+            else
+            {
+                await SetModuleCoreAsync(id, false);
+                await SetModuleCoreAsync(id, true);
+                log(id + " neu gestartet; gemeinsam genutzte Quellen bleiben aktiv.");
+            }
+        }
+        finally { transition.Release(); }
+    }
     public async Task ConfigureWindAsync(WindConfiguration configuration)
     {
         configuration.Validate();
