@@ -25,3 +25,5 @@ Real Max 2/Ridge hardware, clean-machine installer and a full live VRChat sessio
 0.12.6: Added persisted per-module hide-when-inactive settings. Active modules and shared active OSC remain visible; hidden selected tabs return to the module overview. Build/publish passed without warnings/errors and settings-page WPF preview inspected. No new hardware behavior; network suite was not rerun for this display-only change.
 
 0.13.0: 233 checks passed, including visible worker faults and unexpected completion. Build/publish passed; diagnosis page inspected through non-actuating WPF preview. Central diagnostics and module states added. Physical long-run testing remains pending.
+
+GitHub updater preparation: complete build/publish and 233 application checks passed. Ten updater checks passed on Windows PowerShell 5.1 and PowerShell 7, plus simulated GitHub check-only, download/install and no-op update. No executable fixture was launched. Package and SHA256 produced successfully. Public release retrieval remains pending actual publication; repository visibility and releases were not changed.

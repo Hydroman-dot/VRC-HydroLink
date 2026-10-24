@@ -72,3 +72,7 @@ Einstellungen und Sessions liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Tokens u
 Repository: `Hydroman-dot/VRC-HydroLink`. Entwicklungsvorschau; kein signierter Installer. Inno-Setup-Definition und CI-Workflow sind enthalten. .NET 8 wird nach Microsofts Supportplan bis 10. November 2026 unterstützt; vor einer späteren stabilen Veröffentlichung auf ein unterstütztes LTS aktualisieren.
 
 Solace Pro ist in der Windows-App vorbereitet: [Funktionsumfang und noch ausstehende Unity-Einrichtung](docs/SOLACE-PRO.md).
+
+## GitHub updater preparation
+
+The standalone Windows updater and draft-release workflow are prepared for future public releases. See [updater instructions](docs/UPDATER.md). The repository is not made public and no release is published by this change.
