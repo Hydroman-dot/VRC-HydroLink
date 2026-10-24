@@ -16,6 +16,7 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
     public string QueryStatus { get; private set; } = "Noch keine OSCQuery-Abfrage";
     public int ReceivePort { get; private set; }
     public int QueryPort { get; private set; }
+    public bool HasTarget => Volatile.Read(ref target) != null;
     public string Target => Volatile.Read(ref target)?.ToString() ?? "VRChat wird gesucht …";
     protected override async Task Run(CancellationToken token)
     {

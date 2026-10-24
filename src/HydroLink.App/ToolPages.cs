@@ -134,6 +134,7 @@ public partial class MainWindow
     private void BuildToolPages()
     {
         BuildVisibilitySettings();
+        BuildDiagnosticsPage();
         AddModulePage("fitness", "VR Fitness", "Eigene Live-Daten und Quellen. WindForce, OSC Hub und Haptics können unabhängig weiterlaufen.",
         [ ("Puls · bpm", "fitness/heart/bpm"), ("Geschwindigkeit · km/h", "fitness/speed-kmh"), ("Distanz gesamt · km", "fitness/distance-km"), ("Schritte gesamt", "fitness/steps"), ("Aktive Zeit · s", "fitness/active-seconds"), ("Zielgeschwindigkeit · km/h", "fitness/target-speed-kmh"), ("Geschwindigkeitslimit · km/h", "fitness/speed-limit-kmh"), ("AutoWalk", "fitness/autowalk-speed"), ("Laufband verbunden", "fitness/connected"), ("Laufband läuft", "fitness/running"), ("Health Schritte heute", "companion/steps_today"), ("SpO₂ · %", "companion/spo2_pct"), ("Gewicht · kg", "companion/weight_kg") ]);
         AddModulePage("windforce", "WindForce", "Quellenwahl und Prioritäten direkt einstellen. Steuerung, Gerätewerte und Eingänge auf einer Seite.",
@@ -194,11 +195,12 @@ public partial class MainWindow
     private void RefreshToolPages()
     {
         RefreshModuleVisibility();
+        RefreshDiagnostics();
         foreach (var (id, button) in moduleButtons)
         {
             bool active = host?.ActiveModules.Contains(id) == true;
             button.Content = active ? "Tool stoppen" : "Tool starten";
-            moduleStates[id].Text = active ? "Aktiv · Verbindungsstatus in Aktivität" : "Gestoppt";
+            moduleStates[id].Text = ModuleDiagnosis(id);
         }
         foreach (var (topic, controls) in metricViews)
             foreach (var control in controls)

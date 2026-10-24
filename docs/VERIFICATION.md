@@ -23,3 +23,5 @@ Real Max 2/Ridge hardware, clean-machine installer and a full live VRChat sessio
 0.12.5: 231 checks passed. Added isolated module restart, shared OSC receiver replacement with output invalidation, cache selection, unapproved path rejection, and backup/unrelated-file preservation tests. Cache tests use temporary fixtures only; real VRChat files untouched. Module and OSC Hub WPF previews inspected; build/publish passed.
 
 0.12.6: Added persisted per-module hide-when-inactive settings. Active modules and shared active OSC remain visible; hidden selected tabs return to the module overview. Build/publish passed without warnings/errors and settings-page WPF preview inspected. No new hardware behavior; network suite was not rerun for this display-only change.
+
+0.13.0: 233 checks passed, including visible worker faults and unexpected completion. Build/publish passed; diagnosis page inspected through non-actuating WPF preview. Central diagnostics and module states added. Physical long-run testing remains pending.

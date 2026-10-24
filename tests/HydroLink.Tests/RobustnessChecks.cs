@@ -21,6 +21,20 @@ internal static class RobustnessChecks
             try { OscCodec.Decode(OscCodec.Encode("/bad", value)); } catch (FormatException) { rejected = true; }
             check(rejected, "non-finite OSC input rejected: " + value);
         }
+        await using (var broken = new FailingWorker())
+        {
+            await broken.StartAsync(CancellationToken.None);
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            while (broken.Health.State != "Fehler") await Task.Delay(10, deadline.Token);
+            check(broken.Health.Detail.Contains("probe failure"), "worker failure remains visible in diagnostics instead of appearing active");
+        }
+        await using (var completed = new CompletedWorker())
+        {
+            await completed.StartAsync(CancellationToken.None);
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            while (completed.Health.State != "Fehler") await Task.Delay(10, deadline.Token);
+            check(completed.Health.Detail.Contains("unerwartet"), "unexpected worker exit is reported as a fault");
+        }
         var cacheRoot = Path.Combine(Path.GetTempPath(), "HydroLink-cache-test-" + Guid.NewGuid().ToString("N"));
         var avatarDir = Path.Combine(cacheRoot, "OSC", "usr_" + Guid.NewGuid(), "Avatars");
         Directory.CreateDirectory(avatarDir);
@@ -58,6 +72,10 @@ internal static class RobustnessChecks
         }
         finally { foreach (var file in Directory.EnumerateFiles(folder)) File.Delete(file); Directory.Delete(folder); }
     }
+    private sealed class FailingWorker() : Worker("failing", ComponentKind.Service, _ => { })
+    { protected override Task Run(CancellationToken token) => throw new InvalidOperationException("probe failure"); }
+    private sealed class CompletedWorker() : Worker("completed", ComponentKind.Service, _ => { })
+    { protected override Task Run(CancellationToken token) => Task.CompletedTask; }
     private sealed class ProbeWorker() : Worker("probe", ComponentKind.Service, _ => { })
     {
         public int Starts, Exits;

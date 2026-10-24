@@ -38,6 +38,15 @@ public sealed class HydroHost : IAsyncDisposable
         if (s.Haptics) result.Add("intiface");
         return result.ToArray();
     }
+    public IReadOnlyList<(string Id, string State, string Detail)> ServiceDiagnostics => running.Select(pair =>
+        pair.Value is Worker worker ? (pair.Key, worker.Health.State, worker.Health.Detail)
+        : (pair.Key, "Status unbekannt", "Plugin meldet keinen Dienstzustand")).ToArray();
+    public string[] ModuleSources(string id) => id switch
+    {
+        "fitness" => new[] { settings.MovementSource, settings.HeartSource }.Concat(settings.Companion ? new[] { "companion" } : []).Concat(settings.SendHeartToOsc ? new[] { "osc" } : []).Where(x => x != "None").Distinct().ToArray(),
+        "windforce" => new[] { "windforce", "osc", settings.WindMovementSource, settings.WindHeartSource }.Where(x => x != "None").Distinct().ToArray(),
+        "haptics" => ["intiface", "osc"], "osc" => ["osc"], _ => []
+    };
     public async Task StartAsync()
     {
         foreach (var (id, enabled) in new[] { ("fitness", settings.Fitness), ("windforce", settings.WindForce), ("osc", settings.OscHub), ("haptics", settings.Haptics) })
