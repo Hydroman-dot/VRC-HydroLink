@@ -9,11 +9,19 @@ public abstract class Worker(string id, ComponentKind kind, Action<string> log) 
     protected Action<string> Log => log;
     private CancellationTokenSource? stop;
     private Task? task;
-    public Task StartAsync(CancellationToken cancellationToken)
+    private readonly SemaphoreSlim lifecycle = new(1, 1);
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        stop = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        task = Task.Run(() => RunGuarded(stop.Token), CancellationToken.None);
-        return Task.CompletedTask;
+        await lifecycle.WaitAsync(cancellationToken);
+        try
+        {
+            if (task is { IsCompleted: false }) return;
+            stop?.Dispose();
+            stop = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var token = stop.Token;
+            task = Task.Run(() => RunGuarded(token), CancellationToken.None);
+        }
+        finally { lifecycle.Release(); }
     }
     private async Task RunGuarded(CancellationToken token)
     {
@@ -24,9 +32,14 @@ public abstract class Worker(string id, ComponentKind kind, Action<string> log) 
     protected abstract Task Run(CancellationToken token);
     public virtual async ValueTask DisposeAsync()
     {
-        if (stop is null) return;
-        await stop.CancelAsync();
-        if (task is not null) await task;
-        stop.Dispose(); stop = null;
+        await lifecycle.WaitAsync();
+        try
+        {
+            if (stop is null) return;
+            await stop.CancelAsync();
+            if (task is not null) await task;
+            stop.Dispose(); stop = null; task = null;
+        }
+        finally { lifecycle.Release(); }
     }
 }

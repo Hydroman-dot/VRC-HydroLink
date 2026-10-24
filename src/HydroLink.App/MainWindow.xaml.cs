@@ -26,7 +26,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent(); DataContext = this;
-        try { settings = Settings.Load(); } catch (Exception ex) { settings = new(); Log("Einstellungen konnten nicht geladen werden: " + ex.Message); }
+        try { settings = Settings.Load(warning: Log); } catch (Exception ex) { settings = new(); Log("Einstellungen konnten nicht geladen werden: " + ex.Message); }
         Fitness.IsChecked = settings.Fitness; Wind.IsChecked = settings.WindForce; Osc.IsChecked = settings.OscHub; Haptics.IsChecked = settings.Haptics;
         WindMovementSource.SelectedItem = settings.WindMovementSource; WindHeartSource.SelectedItem = settings.WindHeartSource;
         MovementSource.SelectedItem = settings.MovementSource; HeartSource.SelectedItem = settings.HeartSource;

@@ -45,9 +45,18 @@ public sealed class Settings
     public List<OscRoute> OscRoutes { get; set; } = [];
     public static string Folder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VRC HydroLink");
     public static string FilePath => Path.Combine(Folder, "settings.json");
-    public static Settings Load()
+    public static Settings Load(string? path = null, Action<string>? warning = null)
     {
-        var settings = File.Exists(FilePath) ? JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath)) ?? new() : new();
+        path ??= FilePath;
+        Settings Read(string file) => JsonSerializer.Deserialize<Settings>(File.ReadAllText(file)) ?? throw new JsonException("Leere Einstellungen");
+        Settings settings;
+        try { settings = File.Exists(path) ? Read(path) : File.Exists(path + ".bak") ? Read(path + ".bak") : new(); }
+        catch (Exception ex) when (ex is JsonException or IOException)
+        {
+            if (!File.Exists(path + ".bak")) throw;
+            settings = Read(path + ".bak");
+            warning?.Invoke("Einstellungen beschädigt oder nicht lesbar; letzte Sicherung geladen. Originaldatei bleibt erhalten.");
+        }
         settings.PulsoidToken = Unprotect(settings.PulsoidToken);
         settings.HypeRateKey = Unprotect(settings.HypeRateKey);
         settings.CompanionCode = Unprotect(settings.CompanionCode);
@@ -65,12 +74,34 @@ public sealed class Settings
         if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Credential storage requires Windows");
         return Encoding.UTF8.GetString(ProtectedData.Unprotect(Convert.FromBase64String(value[6..]), null, DataProtectionScope.CurrentUser));
     }
-    public void Save()
+    private static readonly object saveGate = new();
+    public void Save(string? path = null)
     {
-        Directory.CreateDirectory(Folder);
-        var copy = JsonSerializer.Deserialize<Settings>(JsonSerializer.Serialize(this))!;
-        copy.PulsoidToken = Protect(PulsoidToken); copy.HypeRateKey = Protect(HypeRateKey); copy.CompanionCode = Protect(CompanionCode);
-        File.WriteAllText(FilePath + ".tmp", JsonSerializer.Serialize(copy, new JsonSerializerOptions { WriteIndented = true }));
-        File.Move(FilePath + ".tmp", FilePath, true);
+        path ??= FilePath;
+        lock (saveGate)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+            var copy = JsonSerializer.Deserialize<Settings>(JsonSerializer.Serialize(this))!;
+            copy.PulsoidToken = Protect(PulsoidToken); copy.HypeRateKey = Protect(HypeRateKey); copy.CompanionCode = Protect(CompanionCode);
+            var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                using (var file = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    JsonSerializer.Serialize(file, copy, new JsonSerializerOptions { WriteIndented = true });
+                    file.Flush(true);
+                }
+                if (File.Exists(path))
+                {
+                    bool valid;
+                    try { valid = JsonSerializer.Deserialize<Settings>(File.ReadAllText(path)) != null; }
+                    catch (JsonException) { valid = false; }
+                    // Never replace the last good backup with damaged JSON.
+                    File.Replace(temporary, path, valid ? path + ".bak" : null);
+                }
+                else File.Move(temporary, path);
+            }
+            finally { if (File.Exists(temporary)) File.Delete(temporary); }
+        }
     }
 }

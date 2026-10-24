@@ -192,6 +192,7 @@ await using (var windHost = new HydroHost(windSettings, Console.WriteLine, new F
     bool rejected = false; try { await windHost.ConfigureWindAsync(invalid); } catch (ArgumentException) { rejected = true; }
     Check(rejected && windHost.ActiveModules.Contains("windforce"), "invalid WindForce calibration rejected before stopping active module");
 }
+await RobustnessChecks.Run(Check);
 Console.WriteLine($"FINAL: {checks} checks passed.");
 
 sealed class FakeLauncher : IProgramLauncher

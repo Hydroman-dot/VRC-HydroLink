@@ -60,7 +60,10 @@ public static class OscCodec
             switch (tag)
             {
                 case 'i': Need(4); args.Add(BinaryPrimitives.ReadInt32BigEndian(packet.AsSpan(offset))); offset += 4; break;
-                case 'f': Need(4); args.Add(BinaryPrimitives.ReadSingleBigEndian(packet.AsSpan(offset))); offset += 4; break;
+                case 'f':
+                    Need(4); var number = BinaryPrimitives.ReadSingleBigEndian(packet.AsSpan(offset));
+                    if (!float.IsFinite(number)) throw new FormatException("Non-finite OSC number");
+                    args.Add(number); offset += 4; break;
                 case 's': args.Add(Text()); break;
                 case 'T': args.Add(true); break;
                 case 'F': args.Add(false); break;
