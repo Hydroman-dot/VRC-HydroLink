@@ -7,6 +7,7 @@ namespace HydroLink.App;
 public partial class MainWindow
 {
     private readonly Dictionary<string, Button> moduleButtons = [];
+    private readonly Dictionary<string, TabItem> moduleTabs = [];
     private readonly Dictionary<string, List<TextBlock>> metricViews = [];
     private readonly Dictionary<string, TextBlock> moduleStates = [];
     private readonly List<FrameworkElement> launchEditors = [];
@@ -95,10 +96,44 @@ public partial class MainWindow
             cards.Children.Add(new Border { Child = cell, Padding = new Thickness(16), Width = 280, MinHeight = 94, Margin = new Thickness(0, 0, 12, 12), Background = Color("#203248"), CornerRadius = new CornerRadius(8) });
         }
         panel.Children.Add(cards);
-        Tabs.Items.Insert(2 + moduleButtons.Count - 1, new TabItem { Header = title, Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } });
+        var tab = new TabItem { Header = title, Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
+        moduleTabs[id] = tab;
+        Tabs.Items.Insert(2 + moduleButtons.Count - 1, tab);
+    }
+    private void BuildVisibilitySettings()
+    {
+        var panel = Page("Einstellungen", "Lege fest, welche Modul-Reiter bei Nichtbenutzung ausgeblendet werden.");
+        panel.Children.Add(new TextBlock { Text = "Ausblenden, wenn nicht aktiv", FontSize = 19, Margin = new Thickness(0, 0, 0, 12) });
+        foreach (var (id, title) in new[] { ("fitness", "VR Fitness"), ("windforce", "WindForce"), ("osc", "OSC Hub"), ("haptics", "Haptics") })
+        {
+            var box = new CheckBox { Content = title, IsChecked = settings.HideInactiveModules?.Contains(id) == true, Margin = new Thickness(0, 6, 0, 6) };
+            void SaveVisibility()
+            {
+                var previous = settings.HideInactiveModules ?? [];
+                settings.HideInactiveModules = previous.Where(x => x != id).ToList();
+                if (box.IsChecked == true) settings.HideInactiveModules.Add(id);
+                try { settings.Save(); RefreshModuleVisibility(); }
+                catch (Exception ex) { settings.HideInactiveModules = previous; MessageBox.Show(this, ex.Message, "Anzeige konnte nicht gespeichert werden"); }
+            }
+            box.Checked += (_, _) => SaveVisibility(); box.Unchecked += (_, _) => SaveVisibility();
+            panel.Children.Add(box);
+        }
+        panel.Children.Add(new TextBlock { Text = "Änderungen werden sofort gespeichert. Aktive Module erscheinen automatisch wieder. Unter Module kannst du ausgeblendete Tools jederzeit starten. Gemeinsam genutzte OSC-Verbindungen gelten ebenfalls als aktiv. Es werden nur Reiter ausgeblendet; keine Dienste gestoppt.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 18, 0, 0), MaxWidth = 700, HorizontalAlignment = HorizontalAlignment.Left });
+        Tabs.Items.Add(new TabItem { Header = "Einstellungen", Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } });
+    }
+    private void RefreshModuleVisibility()
+    {
+        foreach (var (id, tab) in moduleTabs)
+        {
+            var active = host?.ActiveModules.Contains(id) == true || id == "osc" && host?.Running.Contains("osc") == true;
+            var hidden = settings.HideInactiveModules?.Contains(id) == true && !active;
+            if (hidden && tab.IsSelected) Tabs.SelectedIndex = 1;
+            tab.Visibility = hidden ? Visibility.Collapsed : Visibility.Visible;
+        }
     }
     private void BuildToolPages()
     {
+        BuildVisibilitySettings();
         AddModulePage("fitness", "VR Fitness", "Eigene Live-Daten und Quellen. WindForce, OSC Hub und Haptics können unabhängig weiterlaufen.",
         [ ("Puls · bpm", "fitness/heart/bpm"), ("Geschwindigkeit · km/h", "fitness/speed-kmh"), ("Distanz gesamt · km", "fitness/distance-km"), ("Schritte gesamt", "fitness/steps"), ("Aktive Zeit · s", "fitness/active-seconds"), ("Zielgeschwindigkeit · km/h", "fitness/target-speed-kmh"), ("Geschwindigkeitslimit · km/h", "fitness/speed-limit-kmh"), ("AutoWalk", "fitness/autowalk-speed"), ("Laufband verbunden", "fitness/connected"), ("Laufband läuft", "fitness/running"), ("Health Schritte heute", "companion/steps_today"), ("SpO₂ · %", "companion/spo2_pct"), ("Gewicht · kg", "companion/weight_kg") ]);
         AddModulePage("windforce", "WindForce", "Quellenwahl und Prioritäten direkt einstellen. Steuerung, Gerätewerte und Eingänge auf einer Seite.",
@@ -158,6 +193,7 @@ public partial class MainWindow
     }
     private void RefreshToolPages()
     {
+        RefreshModuleVisibility();
         foreach (var (id, button) in moduleButtons)
         {
             bool active = host?.ActiveModules.Contains(id) == true;

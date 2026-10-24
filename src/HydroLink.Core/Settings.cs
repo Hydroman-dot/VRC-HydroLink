@@ -6,6 +6,7 @@ namespace HydroLink.Core;
 
 public sealed class Settings
 {
+    public List<string> HideInactiveModules { get; set; } = [];
     public bool Fitness { get; set; }
     public bool WindForce { get; set; }
     public bool OscHub { get; set; }

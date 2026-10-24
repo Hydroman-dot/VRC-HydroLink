@@ -16,4 +16,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: VRC-HydroLink-win-x64
-          path: artifacts/VRC-HydroLink-0.12.5-win-x64.zip
+          path: artifacts/VRC-HydroLink-0.12.6-win-x64.zip

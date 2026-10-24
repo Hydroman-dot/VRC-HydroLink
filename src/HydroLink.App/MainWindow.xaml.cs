@@ -103,7 +103,7 @@ public partial class MainWindow : Window
             IntifaceUrl = Url(IntifaceUrl.Text, "ws", "wss"), Companion = Companion.IsChecked == true, CompanionUrl = Url(CompanionUrl.Text, "http", "https"), CompanionCode = CompanionCode.Password,
             ManualOsc = ManualOsc.IsChecked == true, ManualOscHost = ManualHost.Text.Trim(), ManualOscPort = Port(ManualPort.Text),
             SendHeartToOsc = SendHeart.IsChecked == true, HeartOscAddress = HeartAddress.Text.Trim(),
-            Dashboard = settings.Dashboard, Programs = settings.Programs, StartModulesWithApp = startWithApp?.IsChecked == true,
+            HideInactiveModules = settings.HideInactiveModules, Dashboard = settings.Dashboard, Programs = settings.Programs, StartModulesWithApp = startWithApp?.IsChecked == true,
             WindRules = settings.WindRules, WindRiseMs = settings.WindRiseMs, WindMultiPwm = settings.WindMultiPwm, WindHeartMode = settings.WindHeartMode,
             FitnessOptions = settings.FitnessOptions,
             HapticsOptions = settings.HapticsOptions, OscRoutes = settings.OscRoutes,
