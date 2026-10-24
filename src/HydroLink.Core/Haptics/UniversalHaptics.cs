@@ -30,7 +30,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
     private DateTimeOffset lastSource;
     private int idleSeconds;
     private bool automaticSps;
-    private bool manualToy, requireToyEnable, manualClockwise = true;
+    private bool desktopManual, manualToy, requireToyEnable, manualClockwise = true;
     public bool ManualToy { get { lock (sync) return manualToy; } }
     public int SourceCount { get { lock (sync) return sources.Length; } }
     private Task? worker;
@@ -45,7 +45,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
         foreach (var r in routes) pendingStops.Add(r.Feature.DeviceId);
         controls.Clear(); sps.Clear(); sourceLevel = 0; clockwise = true; profile = 3; lastSource = default;
         if (automaticSps) sources = [];
-        manualToy = false; manualClockwise = true; ResetSolaceMovement();
+        desktopManual = false; manualToy = false; manualClockwise = true; ResetSolaceMovement();
     }
     public void Invalidate(string reason = "Verbindung oder Avatar geändert")
     { lock (sync) { Disarm(reason); } }
@@ -166,6 +166,18 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
             else SetSpsLevels(vibration, secondary, direction);
         }
     }
+    public void SetDesktopManual(bool enabled)
+    {
+        lock (sync)
+        {
+            if (!automaticSps || !armed) return;
+            generation++;
+            if (solaceControl) StopSolaceMovement();
+            foreach (var route in routes) pendingStops.Add(route.Feature.DeviceId);
+            desktopManual = enabled; manualToy = enabled;
+            sps.Clear(); sourceLevel = 0; lastSource = default;
+        }
+    }
     public void SetSpsChannel(string channel, double value)
     {
         if (!double.IsFinite(value)) return;
@@ -176,12 +188,13 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
             if (channel == "Enabled")
             {
                 var next = value >= .5;
-                if (avatarEnabled != next) { generation++; avatarEnabled = next; manualToy = false; sps.Clear(); sourceLevel = 0; lastSource = default;
+                if (avatarEnabled != next || !next && desktopManual) { generation++; avatarEnabled = next; desktopManual = false; manualToy = false; sps.Clear(); sourceLevel = 0; lastSource = default;
                     if (!next) foreach (var r in routes) pendingStops.Add(r.Feature.DeviceId);
                 }
             }
             else if (channel == "Manual")
             {
+                desktopManual = false;
                 var next = value >= .5 && avatarEnabled;
                 if (manualToy != next) { if (solaceControl) StopSolaceMovement(); manualToy = next; sps.Clear(); sourceLevel = 0; lastSource = default; }
             }
@@ -195,7 +208,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
     }
     private double Desired(FeatureRoute route)
     {
-        if (!avatarEnabled) return 0;
+        if (!avatarEnabled && !(desktopManual && manualToy)) return 0;
         var t = route.Feature.Type;
         // Profiles filter capabilities, never guess a model name.
         if (profile == 1 && t is not (OutputType.Vibrate or OutputType.Constrict)) return 0;

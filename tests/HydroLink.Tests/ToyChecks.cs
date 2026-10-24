@@ -101,6 +101,16 @@ internal static class ToyChecks
         check(toys[ToyKind.Ridge].ActiveToyLevels.Secondary==.7 && toys[ToyKind.Ridge].SpsLevels.Secondary==.4, "desktop manual slider never overwrites SPS strengths");
         await toys.StopAllAsync(); await toys.ActivateAsync(ToyKind.Ridge,2,.2,.4,true);
         check(!toys[ToyKind.Ridge].Snapshot.AvatarEnabled && !toys[ToyKind.Ridge].ManualToy, "stop and new desktop release reset radial enables");
+        toys[ToyKind.Ridge].SetDesktopManual(true); await Drain();
+        check(toys[ToyKind.Ridge].ManualToy && !toys[ToyKind.Ridge].Snapshot.AvatarEnabled && toys[ToyKind.Ridge].Snapshot.Sent.Values.Any(v => v > 0), "explicit desktop test works without radial gate and never enables SPS gate");
+        toys[ToyKind.Ridge].SetDesktopManual(false); await Drain();
+        check(!toys[ToyKind.Ridge].ManualToy && toys[ToyKind.Ridge].Snapshot.Sent.Values.All(v => v == 0), "ending desktop test stops output while radial gate remains off");
+        toys[ToyKind.Ridge].SetDesktopManual(true);
+        toys.Receive([new("/avatar/parameters/HydroLink/Ridge/Enabled",0)]); await Drain();
+        check(!toys[ToyKind.Ridge].ManualToy && toys[ToyKind.Ridge].Snapshot.Sent.Values.All(v => v == 0), "explicit radial off also cancels desktop test");
+        toys[ToyKind.Ridge].SetDesktopManual(true); await toys.StopAllAsync();
+        toys[ToyKind.Ridge].SetDesktopManual(true);
+        check(!toys[ToyKind.Ridge].ManualToy && !toys[ToyKind.Ridge].Snapshot.Armed, "desktop test cannot restart stopped device");
         var solaceBackend = new UniversalMemory([
             new(3, 7, "Lovense Solace Pro", "Stroker", OutputType.Oscillate, 0, 20, 0),
             new(3, 7, "Lovense Solace Pro", "Stroker", OutputType.HwPositionWithDuration, 0, 100, 0, 0, 100000)]);

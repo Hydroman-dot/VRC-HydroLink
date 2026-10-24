@@ -82,7 +82,7 @@ public sealed partial class UniversalHaptics
                 var signal = manualToy ? 1 : sourceLevel;
                 var speed = Desired(route);
                 var usable = positionFeature != null && settings.StrokeStart < settings.StrokeEnd;
-                var active = avatarEnabled && signal > 0 && (settings.PositionMode || speed > 0);
+                var active = (avatarEnabled || desktopManual && manualToy) && signal > 0 && (settings.PositionMode || speed > 0);
                 if (!usable || !active)
                 {
                     status = !usable ? "Position nicht verfügbar oder Hubgrenzen ungültig" : "Warte auf Freigabe oder Kontakt";

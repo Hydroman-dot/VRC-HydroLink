@@ -81,6 +81,7 @@ Console.WriteLine($"{checks} checks passed.");
 var pluginArg = Array.IndexOf(args, "--plugin");
 if (pluginArg >= 0)
 {
+    using var pluginTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
     var plugins = new PluginLoader(bus, Console.WriteLine);
     plugins.Load(args[pluginArg + 1], []);
     Check(plugins.Components.Count == 0 && plugins.Plugins.Count == 1, "disabled plugin does not start components");
@@ -89,8 +90,8 @@ if (pluginArg >= 0)
     var signal = new TaskCompletionSource<bool>();
     using var subscription = bus.Subscribe("example/counter", _ => signal.TrySetResult(true));
     Check(plugins.Components.Count == 1, "external SDK assembly loaded");
-    foreach (var component in plugins.Components) await component.StartAsync(timeout.Token);
-    Check(await signal.Task.WaitAsync(timeout.Token), "external source publishes arbitrary topic");
+    foreach (var component in plugins.Components) await component.StartAsync(pluginTimeout.Token);
+    Check(await signal.Task.WaitAsync(pluginTimeout.Token), "external source publishes arbitrary topic");
     foreach (var component in plugins.Components) await component.DisposeAsync();
     Console.WriteLine($"{checks} total checks passed.");
 }

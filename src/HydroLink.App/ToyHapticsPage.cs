@@ -63,7 +63,7 @@ public partial class MainWindow
             var activate = new Button { Content = title + " aktivieren" }; var stop = new Button { Content = title + " stoppen" };
             buttons.Children.Add(activate); buttons.Children.Add(stop);
             var status = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10) }; content.Children.Insert(4, status);
-            var manual = new CheckBox { Content = "Manuell ohne SPS", IsChecked = false, Margin = new Thickness(0, 4, 0, 10) };
+            var manual = new CheckBox { Content = "Manuellen Gerätetest starten (ohne Radialmenü / SPS)", IsChecked = false, Margin = new Thickness(0, 4, 0, 10) };
             content.Children.Insert(5, manual);
             var view = new ToyView { Kind = kind, Devices = devices, Vibration = vibration, Secondary = secondary, Clockwise = clockwise, Manual = manual, Activate = activate, Status = status, Channels = channels };
             toyViews.Add(view);
@@ -88,8 +88,8 @@ public partial class MainWindow
                 }
                 content.Children.Add(new TextBlock { Text = "Hubgrenzen gelten bei Positionssteuerung und begrenzten Hüben. Begrenzte Hübe werden von HydroLink über Positionsbefehle erzeugt. Bei vollem Hubweg nutzt der Hubmodus die native Geschwindigkeit. Fahrzeit gilt im Positionsmodus; im Hubmodus bestimmt die Geschwindigkeit die Taktung.", TextWrapping = TextWrapping.Wrap, Foreground = Color("#93ADC5"), Margin = new Thickness(0, 8, 0, 8) });
             }
-            manual.Checked += (_, _) => { if (!view.Updating) host?.Haptics?.Toys[kind].SetSpsChannel("Manual", 1); };
-            manual.Unchecked += (_, _) => { if (!view.Updating) host?.Haptics?.Toys[kind].SetSpsChannel("Manual", 0); };
+            manual.Checked += (_, _) => { if (!view.Updating) host?.Haptics?.SetDesktopManual(kind, true); };
+            manual.Unchecked += (_, _) => { if (!view.Updating) host?.Haptics?.SetDesktopManual(kind, false); };
             void Apply() { if (!view.Updating) host?.Haptics?.Toys[kind].SetActiveToyLevels(vibration.Value, secondary.Value, clockwise.IsChecked == true); }
             vibration.ValueChanged += (_, _) => Apply(); secondary.ValueChanged += (_, _) => Apply();
             clockwise.Checked += (_, _) => Apply(); clockwise.Unchecked += (_, _) => Apply();
@@ -110,7 +110,7 @@ public partial class MainWindow
                 try { await service.StopToyAsync(kind); } catch (Exception ex) { MessageBox.Show(this, ex.Message, title + " stoppen"); }
                 RefreshToyHaptics();
             };
-            content.Children.Add(new TextBlock { Text = "Erst im Radialmenü Haptik einschalten. SPS und Manuell haben getrennte Werte; hier gelten die Regler für den gewählten Modus. Nach Avatar- oder Verbindungswechsel erneut aktivieren.", TextWrapping = TextWrapping.Wrap, Foreground = Color("#93ADC5"), Margin = new Thickness(0, 12, 0, 0) });
+            content.Children.Add(new TextBlock { Text = "Für SPS im Radialmenü Haptik einschalten. Den manuellen Gerätetest hier nach Toy aktivieren starten. SPS und Manuell haben getrennte Werte; hier gelten die Regler für den gewählten Modus. Nach Avatar- oder Verbindungswechsel erneut aktivieren.", TextWrapping = TextWrapping.Wrap, Foreground = Color("#93ADC5"), Margin = new Thickness(0, 12, 0, 0) });
             toyTabs.Items.Add(new TabItem { Header = title, Content = content });
         }
         RefreshToyHaptics();
@@ -192,7 +192,8 @@ public partial class MainWindow
             if (!view.Clockwise.IsEnabled) view.Clockwise.IsChecked = true;
             var engine = service?.Toys[view.Kind]; var snapshot = engine?.Snapshot;
             view.Updating = true; view.Manual.IsChecked = engine?.ManualToy == true; view.Updating = false;
-            view.Manual.IsEnabled = snapshot?.Armed == true && snapshot.AvatarEnabled;
+            view.Manual.IsEnabled = !view.Busy && snapshot?.Armed == true;
+            view.Manual.ToolTip = snapshot?.Armed == true ? "Startet das Gerät mit den manuellen Reglerwerten. Zum Beenden Haken entfernen oder Toy stoppen." : "Zuerst das verbundene Toy aktivieren.";
             if (snapshot?.Armed == true)
             {
                 var levels = engine!.ActiveToyLevels;
@@ -232,8 +233,8 @@ public partial class MainWindow
                 : !wizardSync.Profile.Includes(view.Kind) ? "Ausgabe: Toy fehlt in der Unity-Einrichtung."
                 : "Ausgabe: gesperrt · VRChat-Avatar-Abgleich steht noch aus (siehe oben)."
                 : service?.Backend.Connected != true || selected == null ? "Ausgabe: aus · Geräteverbindung fehlt."
-                : snapshot?.Armed == true ? !snapshot.AvatarEnabled ? "Ausgabe: freigegeben · Haptik im Radialmenü einschalten."
-                : engine!.ManualToy ? "Ausgabe: manuell aktiv · ohne SPS-Kontakt."
+                : snapshot?.Armed == true ? engine!.ManualToy ? "Ausgabe: manuell aktiv · ohne SPS-Kontakt."
+                : !snapshot.AvatarEnabled ? "Ausgabe: freigegeben · manuellen Gerätetest starten oder für SPS Haptik im Radialmenü einschalten."
                 : contactsEnabled == false ? "Ausgabe: wartet · SPS-Kontakterkennung im Avatar ist ausgeschaltet (siehe oben)."
                 : engine.SourceCount == 0 ? "Ausgabe: wartet auf frische SPS-Kontaktsignale · noch keine Live-Quelle seit Aktivierung."
                 : $"Ausgabe: SPS bereit · {engine.SourceCount} Live-Quellen · Kontakt {snapshot.SourceLevel:P0}"

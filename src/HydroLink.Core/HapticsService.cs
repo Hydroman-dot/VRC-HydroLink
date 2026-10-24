@@ -58,6 +58,15 @@ public sealed class HapticsService : Worker
             if (revision == liveGateRevision && ticket == Interlocked.Read(ref toyActivationEpoch) && Toys[toy].Snapshot.Armed && currentAvatar.Length > 0)
                 pendingGates[toy] = (ticket, currentAvatar, DateTimeOffset.UtcNow);
     }
+    public void SetDesktopManual(ToyKind toy, bool enabled)
+    {
+        lock (gateSync)
+        {
+            pendingGates.Remove(toy);
+            if (enabled && !WizardAllows(toy)) return;
+            Toys[toy].SetDesktopManual(enabled);
+        }
+    }
     public async Task ConfigureUniversalAsync(IEnumerable<FeatureRoute> routes, UniversalSourceMode mode, IEnumerable<SpsSource> sources)
     {
         await StopDevicesAsync(); toyActive = false; universalActive = true;
