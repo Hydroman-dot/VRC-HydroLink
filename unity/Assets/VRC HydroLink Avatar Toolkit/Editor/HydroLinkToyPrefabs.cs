@@ -143,6 +143,7 @@ namespace HydroLink.AvatarToolkit.Editor
                     created.Add(instance); Undo.RegisterCreatedObjectUndo(instance, "HydroLink " + toy);
                     instance.transform.localPosition = Vector3.zero; instance.transform.localRotation = Quaternion.identity; instance.transform.localScale = Vector3.one;
                 }
+                GroupMenus(root);
                 var report = Validate(root);
                 if (created.Count > 0) EditorSceneManager.MarkSceneDirty(root.scene);
                 var syncPath = PublishToHydroLink(root);
@@ -150,6 +151,81 @@ namespace HydroLink.AvatarToolkit.Editor
                 return report + "\nPrefab-Dateien: " + Folder + "\nUnity-Einrichtung lokal gespeichert. VRChat-Avatar und Toy-Verbindung bitte in HydroLink pruefen.\nDatei: " + syncPath;
             }
             catch { foreach (var go in created) if (go) Undo.DestroyObjectImmediate(go); throw; }
+        }
+
+        // One empty shared target is populated by MA at build time. Each avatar only
+        // contributes the toy instances it contains; source menus remain untouched.
+        const string GroupName = "HydroLink Menu";
+        const string GroupFolder = Folder + "/CommonMenu";
+        public static string GroupMenus(GameObject root)
+        {
+            CheckRoot(root);
+            var installers = Toys.Select(t => Existing(root, t)).Where(go => go)
+                .Select(go => go.GetComponent<ModularAvatarMenuInstaller>()).ToArray();
+            if (installers.Length == 0) throw new InvalidOperationException("Zuerst mindestens ein Toy-Prefab anlegen.");
+            var topPath = GroupFolder + "/Menu.asset";
+            var contentsPath = GroupFolder + "/Toys.asset";
+            var top = AssetDatabase.LoadAssetAtPath<VRCExpressionsMenu>(topPath);
+            var contents = AssetDatabase.LoadAssetAtPath<VRCExpressionsMenu>(contentsPath);
+            var named = root.transform.Find(GroupName);
+            var groupInstaller = named ? named.GetComponent<ModularAvatarMenuInstaller>() : null;
+            if (named && (!groupInstaller || !top || groupInstaller.menuToAppend != top))
+                throw new InvalidOperationException("Fremdes Objekt HydroLink Menu wird nicht veraendert.");
+            if (top || contents || AssetDatabase.IsValidFolder(GroupFolder))
+            {
+                if (!top || !contents || contents.controls.Count != 0 || top.controls.Count != 1 ||
+                    top.controls[0].name != "HydroLink" || top.controls[0].type != VRCExpressionsMenu.Control.ControlType.SubMenu || top.controls[0].subMenu != contents)
+                    throw new InvalidOperationException("Gemeinsame HydroLink-Menueassets wurden veraendert; keine Dateien ueberschrieben.");
+            }
+            foreach (var installer in root.GetComponentsInChildren<ModularAvatarMenuInstaller>(true))
+                if (top && installer.menuToAppend == top && installer != groupInstaller)
+                    throw new InvalidOperationException("Doppeltes HydroLink-Hauptmenue; bitte Duplikat zuerst pruefen.");
+            // Object-based MA targets override installTargetMenu. Do not silently leave
+            // a toy in its old location or destroy someone else's menu configuration.
+            foreach (var target in root.GetComponentsInChildren<Component>(true).Where(c => c && c.GetType().Name == "ModularAvatarMenuInstallTarget"))
+            {
+                var reference = new SerializedObject(target).FindProperty("installer");
+                if (reference == null) throw new InvalidOperationException("MA Menu Install Target konnte nicht geprueft werden.");
+                var installer = reference.objectReferenceValue as ModularAvatarMenuInstaller;
+                if (installers.Contains(installer) || groupInstaller && installer == groupInstaller)
+                    throw new InvalidOperationException("Ein HydroLink-Menue besitzt ein separates MA Menu Install Target. Bitte dieses zuerst im Inspector pruefen.");
+            }
+            if (!top)
+            {
+                EnsureFolder(GroupFolder);
+                contents = Menu(contentsPath); top = Menu(topPath);
+                top.controls.Add(new VRCExpressionsMenu.Control { name = "HydroLink", type = VRCExpressionsMenu.Control.ControlType.SubMenu, subMenu = contents });
+                EditorUtility.SetDirty(top); AssetDatabase.SaveAssets();
+            }
+            Undo.IncrementCurrentGroup(); var undoGroup = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName("HydroLink-Menues zusammenfassen");
+            try
+            {
+                if (!groupInstaller)
+                {
+                    var go = new GameObject(GroupName);
+                    Undo.RegisterCreatedObjectUndo(go, "HydroLink-Hauptmenue");
+                    go.transform.SetParent(root.transform, false);
+                    groupInstaller = Undo.AddComponent<ModularAvatarMenuInstaller>(go);
+                }
+                Undo.RecordObject(groupInstaller, "HydroLink-Hauptmenue");
+                groupInstaller.menuToAppend = top; groupInstaller.installTargetMenu = null;
+                groupInstaller.enabled = true;
+                foreach (var installer in installers)
+                {
+                    Undo.RecordObject(installer, "Toy ins HydroLink-Untermenue");
+                    installer.installTargetMenu = contents;
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(installer);
+                    EditorUtility.SetDirty(installer);
+                }
+                EditorUtility.SetDirty(groupInstaller);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(groupInstaller);
+                EditorSceneManager.MarkSceneDirty(root.scene);
+                Undo.CollapseUndoOperations(undoGroup);
+                return "PASS: HydroLink > " + string.Join(", ", Toys.Where(t => Existing(root, t)).Select(Label)) +
+                    "\nNur vorhandene aktive Toy-Menues werden beim Avatar-Build eingebunden. Andere Avatar-Menues bleiben unveraendert.";
+            }
+            catch { Undo.RevertAllDownToGroup(undoGroup); throw; }
         }
 
         [Serializable] public sealed class SyncProfile
@@ -219,7 +295,7 @@ namespace HydroLink.AvatarToolkit.Editor
                 Preflight(root, toy);
                 lines.Add("PASS " + Label(toy) + ": eigene Prefab-Instanz, " + Channels(toy).Length + " lokale Parameter, eigenes Menue und FX-Ergaenzung.");
             }
-            return string.Join("\n", lines) + "\nDesktop 0.11 erforderlich fuer Toy-Menues. Alle SPS-Plugs und Sockets bleiben automatisch nutzbar.";
+            return string.Join("\n", lines) + "\nDesktop 0.14.0 erforderlich fuer alle acht Toy-Profile. Alle SPS-Plugs und Sockets bleiben automatisch nutzbar.";
         }
 
         static VRCExpressionsMenu.Control Control(string toy, string key)

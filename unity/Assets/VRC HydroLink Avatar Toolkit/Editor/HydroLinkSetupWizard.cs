@@ -97,6 +97,7 @@ namespace HydroLink.AvatarToolkit.Editor
             {
                 if (GUILayout.Button("1. Avatar und SPS pruefen")) Run(() => report = Inspect(avatar));
                 if (GUILayout.Button("2. Toy-Prefabs anlegen und automatisch uebergeben")) Run(() => { report = HydroLinkToyPrefabs.Install(avatar, installMax2, installRidge, installSolacePro, new[] { installDolce ? "Dolce" : null, installGemini ? "Gemini" : null, installNora ? "Nora" : null, installGravity ? "Gravity" : null, installLushMini ? "LushMini" : null }.Where(t => t != null).ToArray()); lastFolder = HydroLinkToyPrefabs.Folder; });
+                if (GUILayout.Button("Vorhandene Toy-Menues unter HydroLink zusammenfassen")) Run(() => report = HydroLinkToyPrefabs.GroupMenus(avatar));
                 if (GUILayout.Button("3. Toy-Prefabs pruefen")) Run(() => report = HydroLinkToyPrefabs.Validate(avatar));
                 if (GUILayout.Button("Vorhandene Einrichtung erneut an HydroLink uebergeben")) Run(() => report = "Unity-Einrichtung: lokal fuer HydroLink gespeichert.\nVRChat-Avatar: wird in der Desktop-App geprueft.\nToy / Intiface: wird in der Desktop-App geprueft.\n\nDatei: " + HydroLinkToyPrefabs.PublishToHydroLink(avatar));
                 legacyExpanded = EditorGUILayout.Foldout(legacyExpanded, "Erweitert: bisherige gemeinsame Menue-Einrichtung");
@@ -106,7 +107,7 @@ namespace HydroLink.AvatarToolkit.Editor
                     if (GUILayout.Button("Altes Plug-/Socket-Inventar aktualisieren")) Run(() => { RefreshInventory(avatar); report = Inspect(avatar); });
                 }
             }
-            EditorGUILayout.LabelField("Erneutes Anlegen ergaenzt nur fehlende Prefabs. Abgewaehlte Toys werden nicht entfernt.", EditorStyles.wordWrappedLabel);
+            EditorGUILayout.LabelField("Radialmenue: HydroLink > Toy > Haptik-Staerken / Manuell. Solace Pro ist enthalten. Erneutes Anlegen ergaenzt nur fehlende Prefabs. Abgewaehlte Toys werden nicht entfernt.", EditorStyles.wordWrappedLabel);
             scroll = EditorGUILayout.BeginScrollView(scroll);
             EditorGUILayout.TextArea(report, GUILayout.ExpandHeight(true));
             EditorGUILayout.EndScrollView();
