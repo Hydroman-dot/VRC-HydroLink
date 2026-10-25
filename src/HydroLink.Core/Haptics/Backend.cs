@@ -36,6 +36,7 @@ public sealed partial class ButtplugBackend : IHapticsBackend
         client.DeviceAdded += (_, e) => { Log?.Invoke($"Gerät gefunden: {e.Device.Name}"); Changed?.Invoke(); };
         client.DeviceRemoved += (_, e) =>
         {
+            batteries.TryRemove(e.Device, out var removedBattery);
             DeviceLost?.Invoke(e.Device.Index);
             if (selected?.Index == e.Device.Index) { selected = null; ConnectionLost?.Invoke(); }
             Log?.Invoke($"Gerät entfernt: #{e.Device.Index}");
@@ -43,7 +44,7 @@ public sealed partial class ButtplugBackend : IHapticsBackend
         };
         client.ServerDisconnect += (_, _) =>
         {
-            selected = null;
+            selected = null; batteries.Clear();
             ConnectionLost?.Invoke();
             Log?.Invoke("Intiface-Verbindung getrennt. Ausgänge deaktiviert.");
             Changed?.Invoke();

@@ -16,6 +16,7 @@ public partial class MainWindow
         public required CheckBox Manual;
         public required Button Activate;
         public required TextBlock Status, Channels;
+        public required TextBlock Battery;
         public string Signature = "unset";
         public string WizardRevision = "";
         public bool Updating, Busy;
@@ -65,8 +66,9 @@ public partial class MainWindow
             var status = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10) }; content.Children.Insert(4, status);
             var manual = new CheckBox { Content = "Manuellen Gerätetest starten (ohne Radialmenü / SPS)", IsChecked = false, Margin = new Thickness(0, 4, 0, 10) };
             content.Children.Insert(5, manual);
-            var view = new ToyView { Kind = kind, Devices = devices, Vibration = vibration, Secondary = secondary, Clockwise = clockwise, Manual = manual, Activate = activate, Status = status, Channels = channels };
+            var view = new ToyView { Kind = kind, Devices = devices, Vibration = vibration, Secondary = secondary, Clockwise = clockwise, Manual = manual, Activate = activate, Status = status, Channels = channels, Battery = new TextBlock { Text = "Akku: kein Gerät ausgewählt", Margin = new Thickness(0, 0, 0, 10), TextWrapping = TextWrapping.Wrap } };
             toyViews.Add(view);
+            content.Children.Insert(3, view.Battery);
             if (kind == ToyKind.SolacePro)
             {
                 view.PositionMode = new CheckBox { Content = "Zielposition steuern (statt wiederholter Hübe)", Margin = new Thickness(0, 8, 0, 8) };
@@ -181,6 +183,10 @@ public partial class MainWindow
                 view.Signature = signature; view.Updating = false;
             }
             var selected = view.Devices.SelectedItem as ToyDevice;
+            var battery = selected != null ? service?.Backend.Battery(selected.Id) : null;
+            view.Battery.Text = battery == null ? "Akku: kein Gerät ausgewählt"
+                : battery.Percent is { } percent ? $"Akku: {percent} %" + (percent <= 20 ? " · niedrig" : "") + (DateTimeOffset.UtcNow - battery.Updated > TimeSpan.FromSeconds(90) ? " · letzter bekannter Wert" : "")
+                : "Akku: " + battery.Status;
             var features = (service?.Backend.Features ?? []).Where(f => f.DeviceId == selected?.Id).ToArray();
             var vibration = features.Any(f => f.Supported && f.Type == (view.Kind == ToyKind.SolacePro ? OutputType.Oscillate : OutputType.Vibrate));
             var secondary = features.Any(f => f.Supported && f.Type == (view.Kind == ToyKind.Max2 ? OutputType.Constrict : OutputType.Rotate));

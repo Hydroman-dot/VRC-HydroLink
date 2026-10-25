@@ -8,6 +8,7 @@ using VRC.OSCQuery;
 
 int checks = 0;
 void Check(bool condition, string name) { if (!condition) throw new Exception("FAIL: " + name); Console.WriteLine("PASS: " + name); checks++; }
+if (args.Contains("--battery-only")) { await BatteryChecks.Run(Check); Console.WriteLine($"FINAL: {checks} battery checks passed."); return; }
 var bus = new DataBus(); int count = 0;
 using (bus.Subscribe("fitness", _ => count++)) { bus.Publish("fitness/bpm", 80, "test"); bus.Publish("fitnessExtra", 1, "test"); }
 bus.Publish("fitness/bpm", 81, "test"); Check(count == 1, "topic segment matching and unsubscribe");

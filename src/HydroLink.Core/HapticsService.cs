@@ -78,6 +78,8 @@ public sealed class HapticsService : Worker
         Controller.Start();
         Universal.Start();
         Toys.StartWorkers();
+        using var batteryStop = CancellationTokenSource.CreateLinkedTokenSource(token);
+        var batteryTask = Backend.MonitorBatteriesAsync(batteryStop.Token);
         using var subscription = bus.Subscribe("", e =>
         {
             lock (gateSync)
@@ -144,6 +146,7 @@ public sealed class HapticsService : Worker
                 await Task.Delay(3000, token);
             }
         }
-        finally { try { await Toys.DisposeAsync(); } finally { try { await Universal.DisposeAsync(); } finally { try { await Controller.DisposeAsync(); } finally { Backend.DisposeClient(); bus.Publish("haptics/devices", Array.Empty<DeviceInfo>(), Id); } } } }
+        finally { await batteryStop.CancelAsync(); try { await batteryTask; } catch (OperationCanceledException) { }
+            try { await Toys.DisposeAsync(); } finally { try { await Universal.DisposeAsync(); } finally { try { await Controller.DisposeAsync(); } finally { Backend.DisposeClient(); bus.Publish("haptics/devices", Array.Empty<DeviceInfo>(), Id); } } } }
     }
 }

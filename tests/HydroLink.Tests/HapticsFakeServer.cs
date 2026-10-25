@@ -23,6 +23,7 @@ internal sealed class FakeServer : IAsyncDisposable
     public int ProtocolMajor { get; set; } = 4;
     public bool FragmentReplies { get; set; }
     public bool UniversalDevices { get; set; }
+    public bool BatteryDevice { get; set; }
     public Task DropAsync() => socket!.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "simulated loss", CancellationToken.None);
 
     public FakeServer()
@@ -69,6 +70,7 @@ internal sealed class FakeServer : IAsyncDisposable
                     {
                         "RequestServerInfo" => new { ServerInfo = new { Id = id, ServerName = "Integration fixture", ProtocolVersionMajor = ProtocolMajor, ProtocolVersionMinor = 0, MaxPingTime = 0 } },
                         "RequestDeviceList" => DeviceList(id),
+                        "InputCmd" => new { InputReading = new { Id = id, DeviceIndex = 7, FeatureIndex = 30, Reading = new { Battery = new { Value = 73.0 } } } },
                         "OutputCmd" when RejectOutputs => new { Error = new { Id = id, ErrorCode = 3, ErrorMessage = "Injected output failure" } },
                         _ => new { Ok = new { Id = id } }
                     };
@@ -113,7 +115,7 @@ internal sealed class FakeServer : IAsyncDisposable
         };
     }
 
-    private static Dictionary<string, object> Features(bool pump)
+    private Dictionary<string, object> Features(bool pump)
     {
         var features = new Dictionary<string, object>
         {
@@ -121,6 +123,7 @@ internal sealed class FakeServer : IAsyncDisposable
         };
         // Nonconsecutive feature indices catch hard-coded motor-index assumptions.
         if (pump) features["9"] = new { FeatureIndex = 9, FeatureDescription = "Air Pump", Output = new { Constrict = new { Value = new[] { 0, 3 } } } };
+        if (pump && BatteryDevice) features["30"] = new { FeatureIndex = 30, FeatureDescription = "Battery", Input = new { Battery = new { Value = new[] { new[] { 0, 100 } }, Command = new[] { "Read" } } } };
         return features;
     }
 

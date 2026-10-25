@@ -137,6 +137,7 @@ internal static class ToyChecks
         check(WizardSyncReader.Parse(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(allProfile)).Includes(ToyKind.SolacePro),"wizard handoff accepts three independent toy profiles");
         await SolaceControlChecks.Run(check);
         if(!network) return;
+        await BatteryChecks.Run(check);
         await using var server=new FakeServer(); server.UniversalDevices=true; await server.StartAsync();
         var bus=new DataBus(); await using var service=new HapticsService(new(){IntifaceUrl=server.Url},bus,Console.WriteLine);
         using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(25)); await service.StartAsync(timeout.Token);

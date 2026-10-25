@@ -27,3 +27,5 @@ Real Max 2/Ridge hardware, clean-machine installer and a full live VRChat sessio
 0.13.0: 233 checks passed, including visible worker faults and unexpected completion. Build/publish passed; diagnosis page inspected through non-actuating WPF preview. Central diagnostics and module states added. Physical long-run testing remains pending.
 
 GitHub updater preparation: complete build/publish and 233 application checks passed. Ten updater checks passed on Windows PowerShell 5.1 and PowerShell 7, plus simulated GitHub check-only, download/install and no-op update. No executable fixture was launched. Package and SHA256 produced successfully. Public release retrieval remains pending actual publication; repository visibility and releases were not changed.
+
+0.13.1: 184 base checks passed. Battery feature compiled and published, WPF preview checked; four dedicated real-WebSocket fixture checks passed. Full optional network suite blocked by OSC receive timeout before battery tests; not reported as passing. Publish used cached dependencies with NU1900 vulnerability-feed availability warnings. No physical device output was sent.
