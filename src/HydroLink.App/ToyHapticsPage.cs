@@ -22,6 +22,7 @@ public partial class MainWindow
         public bool Updating, Busy;
         public CheckBox? PositionMode;
         public readonly Dictionary<string, Slider> SolaceControls = [];
+        public readonly Dictionary<string, Slider> ExtraControls = [];
     }
     private readonly List<ToyView> toyViews = [];
     private TextBlock? socketAutoStatus;
@@ -43,7 +44,7 @@ public partial class MainWindow
         toyTabs = new TabControl { Background = Color("#182638"), BorderBrush = Color("#294454"), Foreground = Color("#E5EDF7") }; panel.Children.Add(toyTabs);
         foreach (var kind in Enum.GetValues<ToyKind>())
         {
-            string title = kind == ToyKind.Max2 ? "Max 2" : kind == ToyKind.Ridge ? "Ridge" : "Solace Pro";
+            string title = ToyProfiles.Label(kind);
             var content = new StackPanel { Margin = new Thickness(12) };
             var devices = new ComboBox { MinWidth = 300, HorizontalAlignment = HorizontalAlignment.Stretch };
             content.Children.Add(new TextBlock { Text = "Gerät · wird bei eindeutigem Namen automatisch ausgewählt" }); content.Children.Add(devices);
@@ -58,7 +59,7 @@ public partial class MainWindow
             var vibration = Level(kind == ToyKind.SolacePro ? "Hubgeschwindigkeit maximal" : "Vibration maximal");
             var secondary = Level(kind == ToyKind.Max2 ? "Pump maximal" : "Rotation maximal");
             if (kind == ToyKind.SolacePro) { secondary.Visibility = Visibility.Collapsed; content.Children[content.Children.Count - 2].Visibility = Visibility.Collapsed; }
-            var clockwise = new CheckBox { Content = "Im Uhrzeigersinn", IsChecked = true, Visibility = kind == ToyKind.Ridge ? Visibility.Visible : Visibility.Collapsed };
+            var clockwise = new CheckBox { Content = "Im Uhrzeigersinn", IsChecked = true, Visibility = kind is ToyKind.Ridge or ToyKind.Nora ? Visibility.Visible : Visibility.Collapsed };
             content.Children.Add(clockwise);
             var buttons = new WrapPanel { Margin = new Thickness(0, 4, 0, 8) }; content.Children.Insert(3, buttons);
             var activate = new Button { Content = title + " aktivieren" }; var stop = new Button { Content = title + " stoppen" };
@@ -68,6 +69,16 @@ public partial class MainWindow
             content.Children.Insert(5, manual);
             var view = new ToyView { Kind = kind, Devices = devices, Vibration = vibration, Secondary = secondary, Clockwise = clockwise, Manual = manual, Activate = activate, Status = status, Channels = channels, Battery = new TextBlock { Text = "Akku: kein Gerät ausgewählt", Margin = new Thickness(0, 0, 0, 10), TextWrapping = TextWrapping.Wrap } };
             toyViews.Add(view);
+            if (ToyProfiles.Extended(kind))
+            {
+                vibration.Visibility = secondary.Visibility = Visibility.Collapsed;
+                content.Children[content.Children.IndexOf(vibration) - 1].Visibility = Visibility.Collapsed;
+                content.Children[content.Children.IndexOf(secondary) - 1].Visibility = Visibility.Collapsed;
+                foreach (var channel in ToyProfiles.Channels(kind)) {
+                    var control = Level(channel.Label); view.ExtraControls[channel.Key] = control;
+                    control.ValueChanged += (_, _) => { if (!view.Updating) host?.Haptics?.Toys[kind].SetActiveChannel(channel.Key, control.Value); };
+                }
+            }
             content.Children.Insert(3, view.Battery);
             if (kind == ToyKind.SolacePro)
             {
@@ -92,7 +103,10 @@ public partial class MainWindow
             }
             manual.Checked += (_, _) => { if (!view.Updating) host?.Haptics?.SetDesktopManual(kind, true); };
             manual.Unchecked += (_, _) => { if (!view.Updating) host?.Haptics?.SetDesktopManual(kind, false); };
-            void Apply() { if (!view.Updating) host?.Haptics?.Toys[kind].SetActiveToyLevels(vibration.Value, secondary.Value, clockwise.IsChecked == true); }
+            void Apply() { if (!view.Updating && host?.Haptics?.Toys[kind] is {} engine) {
+                if (ToyProfiles.Extended(kind)) engine.SetSpsChannel(engine.ManualToy ? "ManualClockwise" : "Clockwise", clockwise.IsChecked == true ? 1 : 0);
+                else engine.SetActiveToyLevels(vibration.Value, secondary.Value, clockwise.IsChecked == true);
+            } }
             vibration.ValueChanged += (_, _) => Apply(); secondary.ValueChanged += (_, _) => Apply();
             clockwise.Checked += (_, _) => Apply(); clockwise.Unchecked += (_, _) => Apply();
             devices.SelectionChanged += async (_, _) => {
@@ -169,8 +183,8 @@ public partial class MainWindow
             }
             var included = wizardSync.Profile?.Includes(view.Kind) ?? true;
             var tab = toyTabs!.Items.OfType<TabItem>().ElementAt((int)view.Kind);
-            tab.Visibility = included || view.Kind == ToyKind.SolacePro ? Visibility.Visible : Visibility.Collapsed;
-            if (!included && tab.IsSelected) toyTabs.SelectedItem = toyTabs.Items.OfType<TabItem>().FirstOrDefault(t => t != tab && t.Visibility == Visibility.Visible);
+            tab.Visibility = included || view.Kind == ToyKind.SolacePro || ToyProfiles.Extended(view.Kind) ? Visibility.Visible : Visibility.Collapsed;
+            if (tab.Visibility != Visibility.Visible && tab.IsSelected) toyTabs.SelectedItem = toyTabs.Items.OfType<TabItem>().FirstOrDefault(t => t != tab && t.Visibility == Visibility.Visible);
             var devices = service?.Toys.Devices(view.Kind) ?? [];
             var signature = wizardSync.Fingerprint + "|" + string.Join("|", devices.Select(d => $"{d.Id}:{d.Name}"));
             if (view.Signature != signature)
@@ -197,6 +211,13 @@ public partial class MainWindow
             view.Clockwise.IsEnabled = features.Any(f => f.Reversible);
             if (!view.Clockwise.IsEnabled) view.Clockwise.IsChecked = true;
             var engine = service?.Toys[view.Kind]; var snapshot = engine?.Snapshot;
+            if (ToyProfiles.Extended(view.Kind)) {
+                view.Channels.Text = string.Join(" · ", ToyProfiles.Channels(view.Kind).Select(c => c.Label + ": " + (ToyProfiles.Feature(c, features) is {} f ? f.Description : "nicht gemeldet")));
+                foreach(var channel in ToyProfiles.Channels(view.Kind)) {
+                    var slider = view.ExtraControls[channel.Key]; slider.IsEnabled = ToyProfiles.Feature(channel, features) != null && snapshot?.Armed == true;
+                    if (snapshot?.Armed == true) { view.Updating = true; slider.Value = engine!.ActiveChannel(channel.Key); view.Updating = false; }
+                }
+            }
             view.Updating = true; view.Manual.IsChecked = engine?.ManualToy == true; view.Updating = false;
             view.Manual.IsEnabled = !view.Busy && snapshot?.Armed == true;
             view.Manual.ToolTip = snapshot?.Armed == true ? "Startet das Gerät mit den manuellen Reglerwerten. Zum Beenden Haken entfernen oder Toy stoppen." : "Zuerst das verbundene Toy aktivieren.";

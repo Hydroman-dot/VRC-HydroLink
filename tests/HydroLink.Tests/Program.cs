@@ -173,6 +173,7 @@ using (var accepted = new HttpClient(new CompanionReply(true)) { BaseAddress = n
 await ExplorerChecks.Run(Check, args.Contains("--network"));
 await UniversalChecks.Run(Check, args.Contains("--network"));
 await ToyChecks.Run(Check, args.Contains("--network"));
+await AdditionalToyChecks.Run(Check);
 await WizardSyncChecks.Run(Check, args.Contains("--network"));
 if (args.Contains("--wizard-sync-live"))
 {

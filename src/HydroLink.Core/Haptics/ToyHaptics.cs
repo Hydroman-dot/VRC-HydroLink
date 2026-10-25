@@ -1,7 +1,7 @@
 using Buttplug.Core.Messages;
 namespace VrcHapticsBridge.Core;
 
-public enum ToyKind { Max2, Ridge, SolacePro }
+public enum ToyKind { Max2, Ridge, SolacePro, Dolce, Gemini, Nora, Gravity, LushMini }
 public sealed record ToyDevice(uint Id, string Name)
 {
     public override string ToString() => Name;
@@ -25,10 +25,14 @@ public sealed class ToyHaptics : IAsyncDisposable
     public static bool Matches(ToyKind toy, string name)
     {
         var words = System.Text.RegularExpressions.Regex.Replace(name.ToLowerInvariant(), "[^a-z0-9]+", " ").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (ToyProfiles.Extended(toy)) return toy switch {
+            ToyKind.Dolce => words.Contains("dolce") || words.Contains("quake"),
+            ToyKind.LushMini => words.Contains("lushmini") || words.Contains("lush") && words.Contains("mini"),
+            _ => words.Contains(toy.ToString().ToLowerInvariant()) };
         return toy == ToyKind.SolacePro ? words.Contains("solace") && words.Contains("pro") : toy == ToyKind.Ridge ? words.Contains("ridge") : words.Contains("max") || words.Contains("max2");
     }
     public static bool Compatible(ToyKind toy, HapticFeature feature) => feature.Supported &&
-        (toy == ToyKind.SolacePro ? feature.Type == OutputType.Oscillate : feature.Type == OutputType.Vibrate || feature.Type == (toy == ToyKind.Max2 ? OutputType.Constrict : OutputType.Rotate));
+        (ToyProfiles.Extended(toy) ? ToyProfiles.Channels(toy).Any(c => c.Type == feature.Type) : toy == ToyKind.SolacePro ? feature.Type == OutputType.Oscillate : feature.Type == OutputType.Vibrate || feature.Type == (toy == ToyKind.Max2 ? OutputType.Constrict : OutputType.Rotate));
     public ToyDevice[] Devices(ToyKind toy) => backend.Features.Where(f => Compatible(toy, f)).GroupBy(f => f.DeviceId)
         .Select(g => new ToyDevice(g.Key, g.First().DeviceName)).OrderBy(d => d.Name).ToArray();
     public void StartWorkers() { foreach (var engine in engines.Values) engine.Start(); }
@@ -59,7 +63,7 @@ public sealed class ToyHaptics : IAsyncDisposable
             {
                 var channel = value.Address[prefix.Length..];
                 if (value.Value is not { } number || !double.IsFinite(number)) continue;
-                if (channel is "Enabled" or "Manual" || toy != ToyKind.SolacePro && channel is "Vibration" or "ManualVibration" || toy == ToyKind.SolacePro && channel is "Motion" or "ManualMotion" or "StrokeStart" or "StrokeEnd" or "Position" or "TravelTime" or "PositionMode" or "ManualStrokeStart" or "ManualStrokeEnd" or "ManualPosition" or "ManualTravelTime" or "ManualPositionMode" || toy == ToyKind.Max2 && channel is "Pump" or "ManualPump" || toy == ToyKind.Ridge && channel is "Rotation" or "Clockwise" or "ManualRotation" or "ManualClockwise")
+                if (ToyProfiles.Extended(toy) ? ToyProfiles.Accepts(toy, channel) : channel is "Enabled" or "Manual" || toy != ToyKind.SolacePro && channel is "Vibration" or "ManualVibration" || toy == ToyKind.SolacePro && channel is "Motion" or "ManualMotion" or "StrokeStart" or "StrokeEnd" or "Position" or "TravelTime" or "PositionMode" or "ManualStrokeStart" or "ManualStrokeEnd" or "ManualPosition" or "ManualTravelTime" or "ManualPositionMode" || toy == ToyKind.Max2 && channel is "Pump" or "ManualPump" || toy == ToyKind.Ridge && channel is "Rotation" or "Clockwise" or "ManualRotation" or "ManualClockwise")
                     engines[toy].SetSpsChannel(channel, number);
             }
         }
@@ -85,8 +89,9 @@ public sealed class ToyHaptics : IAsyncDisposable
             if (assigned.Any(kv => kv.Key != toy && kv.Value == id && engines[kv.Key].Snapshot.Armed))
                 throw new InvalidOperationException("Dieses Gerät ist bereits im anderen Toy-Reiter aktiv.");
             var features = backend.Features.Where(f => f.DeviceId == id && Compatible(toy, f)).ToArray();
+            if (ToyProfiles.Extended(toy)) { var mapping = ToyProfiles.Bind(toy, features); features = features.Where(f => mapping.ContainsKey(f.Key)).ToArray(); }
             if (!backend.Connected || features.Length == 0) throw new InvalidOperationException("Toy noch nicht verbunden. Intiface starten und Geräte suchen lassen.");
-            await engines[toy].ConfigureAsync(features.Select(f => new FeatureRoute(f, 1)), UniversalSourceMode.Sps, [], allSps: true, toyGate: true, solace: toy == ToyKind.SolacePro);
+            await engines[toy].ConfigureAsync(features.Select(f => new FeatureRoute(f, 1)), UniversalSourceMode.Sps, [], allSps: true, toyGate: true, solace: toy == ToyKind.SolacePro, featureChannels: ToyProfiles.Bind(toy, features));
             if (ticket != Interlocked.Read(ref epoch)) return;
             await engines[toy].ArmAsync();
             if (ticket != Interlocked.Read(ref epoch)) { await engines[toy].StopAsync(); return; }

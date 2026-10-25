@@ -15,6 +15,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
     private readonly CancellationTokenSource lifetime = new();
     private readonly SpsInput sps = new();
     private FeatureRoute[] routes = [];
+    private Dictionary<string,string> featureChannels = new();
     private SpsSource[] sources = [];
     private readonly Dictionary<string, double> controls = new();
     private readonly Dictionary<string, double> sent = new();
@@ -52,7 +53,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
     public void ForgetDevices()
     { lock (sync) { Disarm("Geräte neu auswählen"); routes = []; } }
 
-    public async Task ConfigureAsync(IEnumerable<FeatureRoute> selected, UniversalSourceMode mode, IEnumerable<SpsSource> selectedSources, int idleTimeout = 0, bool allSps = false, bool toyGate = false, bool solace = false)
+    public async Task ConfigureAsync(IEnumerable<FeatureRoute> selected, UniversalSourceMode mode, IEnumerable<SpsSource> selectedSources, int idleTimeout = 0, bool allSps = false, bool toyGate = false, bool solace = false, IReadOnlyDictionary<string,string>? featureChannels = null)
     {
         var list = selected.ToArray(); var inputs = selectedSources.ToArray();
         if (!Enum.IsDefined(mode) || idleTimeout is < 0 or > 600) throw new ArgumentException("Ungültiger Eingangsmodus.");
@@ -71,7 +72,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
         {
             lock (sync) Disarm("Auswahl geändert");
             await FlushStops();
-            lock (sync) { routes = list; sources = inputs; sourceMode = mode; idleSeconds = idleTimeout; automaticSps = allSps; requireToyEnable = toyGate; solaceControl = solace; }
+            lock (sync) { routes = list; this.featureChannels = featureChannels == null ? new() : new(featureChannels); sources = inputs; sourceMode = mode; idleSeconds = idleTimeout; automaticSps = allSps; requireToyEnable = toyGate; solaceControl = solace; }
         }
         finally { gate.Release(); }
     }
@@ -89,6 +90,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
                 if (!backend.Connected || routes.Length == 0 || routes.Any(r => !backend.Features.Contains(r.Feature)))
                     throw new InvalidOperationException("Zuerst verfügbare Gerätefunktionen übernehmen.");
                 InitSolaceControls();
+                foreach (var channel in featureChannels.Values) { controls[channel] = .25; controls["Manual" + channel] = .25; }
                 armed = true; status = "Freigegeben; neue Avatar-Werte erforderlich";
                 if (automaticSps) { avatarEnabled = !requireToyEnable; controls["ManualMotion"] = controls["ManualVibration"] = controls["ManualPump"] = controls["ManualRotation"] = .25; status = "Freigegeben · Haptik im Radialmenü einschalten"; }
             }
@@ -166,6 +168,8 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
             else SetSpsLevels(vibration, secondary, direction);
         }
     }
+    public double ActiveChannel(string channel) { lock(sync) return controls.GetValueOrDefault((manualToy ? "Manual" : "") + channel, .25); }
+    public void SetActiveChannel(string channel, double value) { lock(sync) SetSpsChannel((manualToy ? "Manual" : "") + channel, value); }
     public void SetDesktopManual(bool enabled)
     {
         lock (sync)
@@ -184,6 +188,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
         lock (sync)
         {
             if (!automaticSps || !armed) return;
+            if (featureChannels.Values.Any(c => channel == c || channel == "Manual" + c)) { controls[channel] = Math.Clamp(value, 0, 1); return; }
             if (SetSolaceControl(channel, value)) return;
             if (channel == "Enabled")
             {
@@ -214,7 +219,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
         if (profile == 1 && t is not (OutputType.Vibrate or OutputType.Constrict)) return 0;
         if (profile == 2 && t is not (OutputType.Vibrate or OutputType.Rotate)) return 0;
         if (t == OutputType.Rotate && !(manualToy ? manualClockwise : clockwise) && !route.Feature.Reversible) return 0;
-        var channel = t switch { OutputType.Vibrate => "Vibration", OutputType.Constrict => "Pump", OutputType.Rotate => "Rotation", _ => "Motion" };
+        var channel = featureChannels.GetValueOrDefault(route.Feature.Key) ?? (t switch { OutputType.Vibrate => "Vibration", OutputType.Constrict => "Pump", OutputType.Rotate => "Rotation", _ => "Motion" });
         var signal = automaticSps && manualToy ? 1 : sourceMode switch {
             UniversalSourceMode.Menu => 1,
             UniversalSourceMode.Sps => sourceLevel,

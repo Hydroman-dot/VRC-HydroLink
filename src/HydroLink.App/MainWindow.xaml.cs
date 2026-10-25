@@ -53,6 +53,7 @@ public partial class MainWindow : Window
                 if (commandArgs.Contains("--preview-osc-fixture")) PreviewOscFixture();
                 if (commandArgs.Contains("--preview-ridge") && toyTabs != null) toyTabs.SelectedIndex = 1;
                 if (commandArgs.Contains("--preview-solace") && toyTabs != null) toyTabs.SelectedIndex = 2;
+                var toyIndex = Array.IndexOf(commandArgs, "--preview-toy"); if (toyIndex >= 0 && toyIndex + 1 < commandArgs.Length && Enum.TryParse<VrcHapticsBridge.Core.ToyKind>(commandArgs[toyIndex + 1], out var previewToy) && toyTabs != null) toyTabs.SelectedIndex = (int)previewToy;
                 if (commandArgs.Contains("--verify-expanders")) VerifyExpandableSections();
                 UpdateLayout();
                 if (commandArgs.Contains("--preview-scroll-end") && Tabs.SelectedItem is TabItem selectedPage && selectedPage.Content is ScrollViewer scroller) { scroller.ScrollToEnd(); UpdateLayout(); }

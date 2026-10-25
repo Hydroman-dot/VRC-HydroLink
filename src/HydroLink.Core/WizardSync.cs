@@ -56,7 +56,7 @@ public sealed class WizardSyncReader(string? path = null)
             ?? throw new InvalidDataException("Leere Wizard-Datei.");
         if (p.SchemaVersion != 1 || !Guid.TryParse(p.Revision, out _) || string.IsNullOrWhiteSpace(p.AvatarName) || p.AvatarName.Length > 256 || p.AvatarName.Any(char.IsControl)
             || p.AvatarId == null || p.AvatarId.Length > 64 || p.AvatarId.Length > 0 && !Regex.IsMatch(p.AvatarId, @"\Aavtr_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z")
-            || p.Toys == null || p.Toys.Length > 3 || p.Toys.Distinct().Count() != p.Toys.Length || p.Toys.Any(t => t is not ("Max2" or "Ridge" or "SolacePro"))
+            || p.Toys == null || p.Toys.Length > Enum.GetValues<ToyKind>().Length || p.Toys.Distinct().Count() != p.Toys.Length || p.Toys.Any(t => !Enum.TryParse<ToyKind>(t, out var kind) || !Enum.IsDefined(kind) || kind.ToString() != t)
             || p.Plugs is < 0 or > 10000 || p.Sockets is < 0 or > 10000)
             throw new InvalidDataException("Unbekanntes oder unvollständiges Wizard-Profil.");
         return p;

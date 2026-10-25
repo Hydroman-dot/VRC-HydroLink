@@ -105,7 +105,7 @@ public sealed class HapticsService : Worker
                 if (address == "/avatar/change" || address == "/avatar/parameters/OGB_ENABLED" && values[0].Value < .5) Interlocked.Increment(ref toyActivationEpoch);
                 foreach (var toy in Enum.GetValues<ToyKind>())
                     if (address == "/avatar/parameters/HydroLink/" + toy + "/Enabled") { liveGateRevision++; pendingGates.Remove(toy); }
-                if (address is "/avatar/parameters/HydroLink/Max2/Stop" or "/avatar/parameters/HydroLink/Ridge/Stop" or "/avatar/parameters/HydroLink/SolacePro/Stop" && values[0].Value >= .5)
+                if (Enum.GetValues<ToyKind>().Any(toy => address == "/avatar/parameters/HydroLink/" + toy + "/Stop") && values[0].Value >= .5)
                 {
                     Interlocked.Increment(ref toyActivationEpoch);
                     Toys.Receive(values);

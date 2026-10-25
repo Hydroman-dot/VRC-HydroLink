@@ -1,3 +1,8 @@
+## 0.14.0
+- Dolce, Gemini, Nora, Gravity und Lush Mini: eigene Toy-Profile, SPS/Manuell-Regler und Wizard-Auswahl.
+- Mehrmotor-Vibration getrennt nach gemeldeten Feature-IDs; fehlende Funktionen bleiben deaktiviert.
+- 226 automatisierte Tests bestanden. Neue Hardware und Unity-Editor-Praxistest stehen aus.
+
 # 0.3.0
 
 - OSC-Explorer: Parameterbaum, Typ/Zugriff, Suche, Richtungsfilter, getrennte Query-/Empfangs-/Sendewerte und Dashboard-Übernahme.
