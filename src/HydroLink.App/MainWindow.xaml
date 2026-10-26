@@ -25,7 +25,7 @@
     <TextBlock Text="Bewegungsquelle"/><ComboBox x:Name="MovementSource" ItemsSource="{Binding MovementSources}"/><TextBlock Text="VRTI WebSocket"/><TextBox x:Name="VrtiUrl"/><TextBlock Text="FitOSC WebSocket"/><TextBox x:Name="FitUrl"/>
     <TextBlock Text="Pulsquelle"/><ComboBox x:Name="HeartSource" ItemsSource="{Binding HeartSources}"/><TextBlock Text="VRCOSC HeartRate WebSocket"/><TextBox x:Name="HeartUrl"/><TextBlock Text="Pulsoid Access Token"/><PasswordBox x:Name="PulsoidToken"/><TextBlock Text="HypeRate Geräte-ID"/><TextBox x:Name="HypeId"/><TextBlock Text="HypeRate API-Key"/><PasswordBox x:Name="HypeKey"/>
     <TextBlock Text="VRC WindForce" FontSize="20" Margin="0,16,0,10"/><TextBlock Text="Eigene Bewegungsquelle (unabhängig von VR Fitness)"/><ComboBox x:Name="WindMovementSource" ItemsSource="{Binding MovementSources}"/><TextBlock Text="Eigene Pulsquelle"/><ComboBox x:Name="WindHeartSource" ItemsSource="{Binding HeartSources}"/><TextBlock Text="ESP32 IP-Adresse"/><TextBox x:Name="WindHost"/><TextBlock Text="UDP-Befehlsport"/><TextBox x:Name="WindPort"/><TextBlock Text="OSC-Eingang (Float 0–1 → 0–100 %; ohne neue Werte nach 2 s aus)"/><TextBox x:Name="WindAddress"/>
-    <TextBlock Text="Intiface" FontSize="20" Margin="0,16,0,10"/><TextBlock Text="Intiface Central WebSocket"/><TextBox x:Name="IntifaceUrl"/><TextBlock Text="Diese Preview verbindet Intiface und zeigt Geräte an. Aktuator-Routing folgt." Foreground="#93ADC5"/>
+    <TextBlock Text="Intiface" FontSize="20" Margin="0,16,0,10"/><TextBlock Text="Intiface Central WebSocket"/><TextBox x:Name="IntifaceUrl"/><TextBlock Text="Geräte und unterstützte Aktuatoren auf den Haptik-Seiten auswählen und ausdrücklich freigeben." Foreground="#93ADC5"/>
     <TextBlock Text="Android Health Companion" FontSize="20" Margin="0,16,0,10"/><CheckBox x:Name="Companion" Content="Companion-Status mit VR Fitness abrufen"/><TextBlock Text="HTTP-Basisadresse des Handys"/><TextBox x:Name="CompanionUrl"/><TextBlock Text="Pairing-Code"/><PasswordBox x:Name="CompanionCode"/>
    </StackPanel></ScrollViewer></TabItem>
    <TabItem Header="OSCQuery"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel x:Name="OscSettings" Margin="24" MaxWidth="740" HorizontalAlignment="Left">
@@ -36,7 +36,7 @@
    </StackPanel></ScrollViewer></TabItem>
    <TabItem Header="Plugins"><StackPanel Margin="24"><TextBlock Text="Offen für Erweiterungen" FontSize="25"/><TextBlock Text="Plugins können Quellen, Prozessoren, Outputs, Services und eigene WPF-Seiten mitbringen. Sie laufen mit den Rechten der App. Nur vertrauenswürdige Plugins aktivieren." Margin="0,12,0,16" Foreground="#93ADC5"/><TextBlock Text="Plugin-IDs aktivieren (durch Komma trennen; Neustart der Anwendung erforderlich)"/><TextBox x:Name="PluginIds"/><TextBlock Text="Ablage: plugins neben der EXE, pro Plugin ein Ordner mit plugin.json und DLLs."/><TextBlock x:Name="PluginStatus" Margin="0,20,0,0"/></StackPanel></TabItem>
   </TabControl>
-  <TextBlock Grid.Row="2" Text="LOCAL FIRST    ·    OSCQUERY    ·    MODULAR" Foreground="#6F8CA8" FontSize="10" Margin="0,16,0,0"/>
+  <TextBlock Grid.Row="2" Text="LOCAL FIRST    ·    OSCQUERY    ·    MODULAR    ·    Mit KI-Unterstützung entwickelt" Foreground="#6F8CA8" FontSize="10" Margin="0,16,0,0"/>
  </Grid>
 </Window>
 
