@@ -2,11 +2,23 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Version 0.13.1 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.14.0 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-## Avatar-Toolkit und Haptics (0.10)
+## Projekt und Entwicklungsstand
 
-- [Unity-Paket herunterladen](packages/VRC-HydroLink-Toy-Prefabs-0.10.0.unitypackage)
+HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
+
+Stand 26. Oktober 2026: Öffentlich veröffentlicht ist [0.13.1](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.13.1); 0.14.0 liegt als Release-Entwurf vor. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode. Ein Release-Entwurf ist noch kein öffentlicher Download.
+
+## KI-Hinweis / AI disclosure
+
+Dieses Projekt wird mit Unterstützung künstlicher Intelligenz entwickelt und dokumentiert. Der Hinweis beschreibt die Entstehung des Projekts und bedeutet nicht, dass die Anwendung selbst KI-Funktionen verwendet.
+
+This project is developed and documented with assistance from artificial intelligence. This disclosure concerns the development process; it does not imply that the application itself uses AI features.
+
+## Avatar-Toolkit und Haptics
+
+- [Unity-Paket herunterladen](packages/HydroLink-Wizard-0.14.1.unitypackage)
 - [Einrichtung und mehrere Avatare](docs/AVATAR-TOOLKIT.md)
 - [Unity-Quellcode und Prefabs](unity/Assets/VRC%20HydroLink%20Avatar%20Toolkit)
 
@@ -71,8 +83,8 @@ Einstellungen und Sessions liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Tokens u
 
 Repository: `Hydroman-dot/VRC-HydroLink`. Entwicklungsvorschau; kein signierter Installer. Inno-Setup-Definition und CI-Workflow sind enthalten. .NET 8 wird nach Microsofts Supportplan bis 10. November 2026 unterstützt; vor einer späteren stabilen Veröffentlichung auf ein unterstütztes LTS aktualisieren.
 
-Solace Pro ist in der Windows-App vorbereitet: [Funktionsumfang und noch ausstehende Unity-Einrichtung](docs/SOLACE-PRO.md).
+Solace Pro besitzt einen eigenen App-Reiter und ein Unity-Prefab: [Funktionsumfang und Gerätevoraussetzungen](docs/SOLACE-PRO.md).
 
-## GitHub updater preparation
+## Updates
 
-The standalone Windows updater and draft-release workflow are prepared for future public releases. See [updater instructions](docs/UPDATER.md). The repository is not made public and no release is published by this change.
+Der portable Windows-Updater lädt veröffentlichte Releases auf ausdrücklichen Start und prüft die SHA256-Prüfsumme. Er aktualisiert keine Unity-Projekte. Einrichtung und Rückkehr zur vorherigen Version: [Updater-Anleitung](docs/UPDATER.md). Release-Entwürfe sind noch nicht öffentlich verfügbar.
