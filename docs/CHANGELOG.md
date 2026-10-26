@@ -1,3 +1,7 @@
+## Windows 0.14.1
+- Eine Desktop-Verknüpfung HydroLink; beim App-Start Update-Abfrage mit Zustimmung.
+- Geordnetes Beenden vor Update, begrenztes Warten und Prüfung der bestätigten Version.
+
 ## 0.14.0
 - Dolce, Gemini, Nora, Gravity und Lush Mini: eigene Toy-Profile, SPS/Manuell-Regler und Wizard-Auswahl.
 - Mehrmotor-Vibration getrennt nach gemeldeten Feature-IDs; fehlende Funktionen bleiben deaktiviert.

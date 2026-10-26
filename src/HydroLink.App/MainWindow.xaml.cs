@@ -42,7 +42,7 @@ public partial class MainWindow : Window
         Closing += OnClosing;
         var commandArgs = Environment.GetCommandLineArgs();
         var renderIndex = Array.IndexOf(commandArgs, "--render-preview");
-        if (renderIndex < 0 && settings.StartModulesWithApp) Loaded += (_, _) => Start_Click(this, new RoutedEventArgs());
+        if (renderIndex < 0) Loaded += async (_, _) => { await CheckStartupUpdate(); if (!closing && !closed && settings.StartModulesWithApp) Start_Click(this, new RoutedEventArgs()); };
         if (renderIndex >= 0 && commandArgs.Length > renderIndex + 1)
             Loaded += (_, _) => Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
             {
@@ -145,6 +145,7 @@ public partial class MainWindow : Window
     }
     private void Refresh()
     {
+        if (closing || closed) return;
         string Metric(string topic, string unit) => latest.TryGetValue(topic, out var e) && DateTimeOffset.UtcNow - e.Timestamp < TimeSpan.FromSeconds(10) ? $"{e.Value.GetDouble():0.#} {unit}" : $"— {unit}";
         HeartValue.Text = Metric("fitness/heart/bpm", "bpm"); SpeedValue.Text = Metric("fitness/speed-kmh", "km/h"); WindValue.Text = Metric("windforce/output-percent", "%");
         OscCount.Text = Interlocked.Read(ref oscMessages).ToString();
@@ -165,7 +166,18 @@ public partial class MainWindow : Window
     private async void OnClosing(object? sender, CancelEventArgs e)
     {
         if (closed) return;
-        e.Cancel = true; IsEnabled = false; await Stop(); timer.Stop(); closed = true;
+        e.Cancel = true;
+        if (closing) return;
+        closing = true; IsEnabled = false;
+        try {
+            await Stop();
+            if (updateOnExit != null) System.Diagnostics.Process.Start(updateOnExit);
+            timer.Stop(); closed = true;
+        } catch (Exception ex) {
+            updateOnExit = null; closing = false; IsEnabled = true;
+            MessageBox.Show(this, "Beenden oder Update konnte nicht abgeschlossen werden: " + ex.Message, "HydroLink");
+            return;
+        }
         _ = Dispatcher.BeginInvoke(new Action(Close));
     }
 }

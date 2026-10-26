@@ -9,6 +9,12 @@ using VRC.OSCQuery;
 int checks = 0;
 void Check(bool condition, string name) { if (!condition) throw new Exception("FAIL: " + name); Console.WriteLine("PASS: " + name); checks++; }
 if (args.Contains("--battery-only")) { await BatteryChecks.Run(Check); Console.WriteLine($"FINAL: {checks} battery checks passed."); return; }
+foreach (var (tag, draft, pre, expected) in new[] { ("v0.14.2", false, false, "0.14.2"), ("v0.14.1", false, false, (string?)null), ("v0.13.0", false, false, (string?)null), ("v0.15.0", true, false, (string?)null), ("v0.15.0", false, true, (string?)null), ("v0.15.0-beta", false, false, (string?)null) }) {
+    var name = "VRC-HydroLink-" + tag[1..] + "-win-x64.zip";
+    using var doc = JsonDocument.Parse(JsonSerializer.Serialize(new { tag_name=tag, draft, prerelease=pre, assets=new[] {new {name, browser_download_url="https://github.com/Hydroman-dot/VRC-HydroLink/releases/download/"+tag+"/"+name},new {name=name+".sha256",browser_download_url="https://github.com/Hydroman-dot/VRC-HydroLink/releases/download/"+tag+"/"+name+".sha256"}} }));
+    Check(ReleaseUpdate.NewerVersion(doc.RootElement,new Version(0,14,1,0))==expected,"startup update version filter "+tag+" draft="+draft+" pre="+pre);
+}
+using (var missing = JsonDocument.Parse("{\"tag_name\":\"v0.15.0\",\"draft\":false,\"prerelease\":false,\"assets\":[]}")) Check(ReleaseUpdate.NewerVersion(missing.RootElement,new Version(0,14,1))==null,"incomplete release does not prompt an update");
 var bus = new DataBus(); int count = 0;
 using (bus.Subscribe("fitness", _ => count++)) { bus.Publish("fitness/bpm", 80, "test"); bus.Publish("fitnessExtra", 1, "test"); }
 bus.Publish("fitness/bpm", 81, "test"); Check(count == 1, "topic segment matching and unsubscribe");

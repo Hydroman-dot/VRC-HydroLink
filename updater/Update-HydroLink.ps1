@@ -1,11 +1,18 @@
 # Windows PowerShell 5.1 or PowerShell 7; public GitHub releases, no embedded credentials.
-param([switch]$Install, [switch]$Launch, [switch]$Rollback, [switch]$StartOnly)
+param([switch]$Install, [switch]$Launch, [switch]$Rollback, [switch]$StartOnly, [switch]$DesktopShortcut, [int]$WaitForPid = 0, [string]$ExpectedVersion = "")
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'HydroLink.Update.psm1') -Force
 $repo = 'Hydroman-dot/VRC-HydroLink'
 $root = Join-Path $env:LOCALAPPDATA 'VRC HydroLink Updates'
 $lock = $null
 try {
+    if ($WaitForPid -gt 0) {
+        $deadline = [DateTime]::UtcNow.AddSeconds(60)
+        while (Get-Process -Id $WaitForPid -ErrorAction SilentlyContinue) {
+            if ([DateTime]::UtcNow -ge $deadline) { throw 'HydroLink hat sich nicht rechtzeitig beendet. Update abgebrochen.' }
+            Start-Sleep -Milliseconds 250
+        }
+    }
     Assert-HydroPath $root
     $null = New-Item -ItemType Directory -Path $root -Force
     $lockPath = Join-Path $root 'update.lock'
@@ -25,6 +32,7 @@ try {
         if ($release.draft -or $release.prerelease) { throw 'Entwuerfe und Vorab-Releases werden nicht installiert.' }
         $version = $release.tag_name -replace '^v', ''
         $null = Get-HydroVersionFolder $root $version
+        if ($ExpectedVersion -and $version -cne $ExpectedVersion) { throw 'Das angebotene Release hat sich geaendert. Bitte HydroLink erneut starten und das Update bestaetigen.' }
         Write-Host ('GitHub-Version: ' + $version)
         if ($state -and [version]$version -le [version]$state.current) {
             Write-Host ('Installiert: ' + $state.current + ' - kein neueres Release.')
@@ -46,6 +54,19 @@ try {
             Write-Host ('Installiert: ' + $version + '. Vorherige Version bleibt erhalten.')
         } else { Write-Host 'Zum Installieren bitte Update starten.cmd verwenden.' }
     }
+    if ($DesktopShortcut -and $folder) {
+        $desktop = [Environment]::GetFolderPath('DesktopDirectory')
+        if (!$desktop) { throw 'Desktop-Ordner nicht gefunden.' }
+        $shortcutPath = Join-Path $desktop 'HydroLink.lnk'
+        Assert-HydroPath $shortcutPath
+        $shell = New-Object -ComObject WScript.Shell
+        $shortcut = $shell.CreateShortcut($shortcutPath)
+        $shortcut.TargetPath = Join-Path $folder 'VRC HydroLink.exe'
+        $shortcut.WorkingDirectory = $folder
+        $shortcut.IconLocation = $shortcut.TargetPath + ',0'
+        $shortcut.Description = 'HydroLink starten'
+        $shortcut.Save()
+    }
     if (($Launch -or $StartOnly) -and $folder) {
         Assert-HydroPath $folder
         $exe = Join-Path $folder 'VRC HydroLink.exe'
@@ -53,5 +74,10 @@ try {
         if (!(Test-Path -LiteralPath $exe -PathType Leaf)) { throw 'Installierte Anwendung fehlt.' }
         Start-Process -FilePath $exe -WorkingDirectory $folder -WindowStyle Hidden
     }
-} catch { Write-Host ('Update fehlgeschlagen: ' + $_.Exception.Message) -ForegroundColor Red; exit 1 }
+} catch {
+    $message = 'Update fehlgeschlagen: ' + $_.Exception.Message
+    Write-Host $message -ForegroundColor Red
+    if ($WaitForPid -gt 0) { Add-Type -AssemblyName PresentationFramework; [void][System.Windows.MessageBox]::Show($message + "`nDie bisherige Version bleibt im Installationsordner erhalten.", 'HydroLink Update') }
+    exit 1
+}
 finally { if ($lock) { $lock.Dispose() } }
