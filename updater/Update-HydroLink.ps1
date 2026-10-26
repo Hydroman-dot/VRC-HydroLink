@@ -58,7 +58,9 @@ try {
         $desktop = [Environment]::GetFolderPath('DesktopDirectory')
         if (!$desktop) { throw 'Desktop-Ordner nicht gefunden.' }
         $shortcutPath = Join-Path $desktop 'HydroLink.lnk'
-        Assert-HydroPath $shortcutPath
+        # Windows may redirect the known Desktop folder through OneDrive.
+        # Reject a redirected shortcut file, but allow the OS-selected Desktop.
+        if ((Test-Path -LiteralPath $shortcutPath) -and ((Get-Item -LiteralPath $shortcutPath -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Die Desktop-Verknuepfung selbst darf kein umgeleiteter Dateipfad sein.' }
         $shell = New-Object -ComObject WScript.Shell
         $shortcut = $shell.CreateShortcut($shortcutPath)
         $shortcut.TargetPath = Join-Path $folder 'VRC HydroLink.exe'

@@ -1,3 +1,7 @@
+## 0.14.2
+
+- Desktop-Verknuepfung auch bei OneDrive-Desktop erlauben; Installationspfade bleiben streng geprueft.
+
 ## Windows 0.14.1
 - Eine Desktop-Verknüpfung HydroLink; beim App-Start Update-Abfrage mit Zustimmung.
 - Geordnetes Beenden vor Update, begrenztes Warten und Prüfung der bestätigten Version.
