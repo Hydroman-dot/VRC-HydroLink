@@ -7,7 +7,7 @@ Windows 10/11 x64, .NET SDK 8 or newer with the .NET 8 Windows Desktop targeting
 ./build.ps1 -NetworkTests -Publish
 ```
 
-The first command restores, builds the solution in Release and runs protocol/lifecycle checks. The second additionally runs local multicast/OSCQuery integration checks and publishes a self-contained Windows x64 executable to `artifacts/v0.14.0-win-x64/VRC HydroLink.exe`. It creates `artifacts/VRC-HydroLink-0.14.0-win-x64.zip`. Network tests require local UDP/mDNS access and may need a firewall exception. They advertise a temporary mock service named VRChat-HydroLink-Test; run when the real VRChat client is closed.
+The first command restores, builds the solution in Release and runs protocol/lifecycle checks. The second additionally runs local multicast/OSCQuery integration checks and publishes a self-contained Windows x64 executable to `artifacts/v0.14.2-win-x64/VRC HydroLink.exe`. It creates `artifacts/VRC-HydroLink-0.14.2-win-x64.zip`. Network tests require local UDP/mDNS access and may need a firewall exception. They advertise a temporary mock service named VRChat-HydroLink-Test; run when the real VRChat client is closed.
 
 Equivalent commands:
 
@@ -15,7 +15,7 @@ Equivalent commands:
 dotnet restore VRC-HydroLink.sln
 dotnet build VRC-HydroLink.sln -c Release --no-restore
 dotnet run --project tests/HydroLink.Tests -c Release --no-build -- --network
-dotnet publish src/HydroLink.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -o artifacts/v0.14.0-win-x64
+dotnet publish src/HydroLink.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -o artifacts/v0.14.2-win-x64
 ```
 
 Trimming is disabled because WPF and third-party plugins use runtime reflection. Native runtime components may be extracted by the .NET single-file host. Keep notices and licenses with redistributed binaries.
@@ -27,7 +27,7 @@ After publishing, compile `installer/HydroLink.iss` with Inno Setup 6 (`ISCC.exe
 ## GUI smoke check
 
 ```powershell
-& './artifacts/v0.14.0-win-x64/VRC HydroLink.exe' --render-preview 'C:\path\preview.png'
+& './artifacts/v0.14.2-win-x64/VRC HydroLink.exe' --render-preview 'C:\path\preview.png'
 ```
 
 This starts the actual WPF window, renders its initial view, and exits without starting providers. It checks startup and layout rendering, not hardware functionality.
