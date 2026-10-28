@@ -1,3 +1,9 @@
+## 0.14.3
+
+- Fitness-Konfiguration direkt im Einstellungen-Reiter sichtbar; Aufzeichnungsstatus und Dateipfad im Fitness-Reiter.
+- Schreibfehler werden sichtbar gemeldet; CSV-Datei wird vor erfolgreichem Start angelegt.
+- Session-Liste beim Oeffnen und nach dem Speichern aktualisieren.
+
 ## 0.14.2
 
 - Desktop-Verknuepfung auch bei OneDrive-Desktop erlauben; Installationspfade bleiben streng geprueft.

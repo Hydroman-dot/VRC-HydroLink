@@ -14,7 +14,7 @@ public partial class MainWindow
         var options = settings.FitnessOptions;
         var panel = new StackPanel();
         var expander = new Expander { Header = "Profil, automatische Sessions, Ziele und Health-Synchronisierung", Foreground = Color("#E4EDF7"), Margin = new Thickness(0, 10, 0, 14) };
-        expander.IsExpanded = Environment.GetCommandLineArgs().Contains("--preview-profile");
+        expander.IsExpanded = true;
         var folder = new TextBox { Text = options.DataDirectory, IsReadOnly = true };
         panel.Children.Add(new TextBlock { Text = "Session-Datenordner" }); panel.Children.Add(folder);
         panel.Children.Add(ActionButton("Datenordner auswählen", () => { var dialog = new OpenFolderDialog(); if (dialog.ShowDialog(this) == true) { options.DataDirectory = dialog.FolderName; folder.Text = dialog.FolderName; } }));
@@ -85,7 +85,7 @@ public partial class MainWindow
                 movingSince ??= now; restingSince = null;
                 if (fitnessSession is null && now - movingSince >= TimeSpan.FromSeconds(options.AutoStartSeconds))
                 {
-                    fitnessSession = new FitnessSession(host.Bus, options.DataDirectory, settings); fitnessSession.Start(sessionName?.Text ?? "VR Training");
+                    var recording = new FitnessSession(host.Bus, options.DataDirectory, settings); recording.Start(sessionName?.Text ?? "VR Training"); fitnessSession = recording;
                     if (recordButton is not null) recordButton.Content = "Session stoppen und speichern"; Log("Automatische Session gestartet");
                 }
             }

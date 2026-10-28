@@ -136,6 +136,8 @@ public partial class MainWindow
         }));
         page.Children.Add(history); page.Children.Add(goals); page.Children.Add(actions); page.Children.Add(reportView); page.Children.Add(chart); page.Children.Add(new TextBlock { Text = "Session-Notiz (separate HydroLink-Datei)" }); page.Children.Add(note);
         page.Children.Add(ActionButton("Notiz speichern", () => { if (report is null) return; try { File.WriteAllText(report.FilePath + ".hydrolink-note.txt", note.Text); } catch (Exception ex) { MessageBox.Show(this, ex.Message); } }));
+        refreshSessionHistory = RefreshHistory;
+        page.IsVisibleChanged += (_, _) => { if (page.IsVisible) RefreshHistory(); };
         RefreshHistory();
         Tabs.Items.Insert(4, new TabItem { Header = "Sessions", Content = new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } });
     }

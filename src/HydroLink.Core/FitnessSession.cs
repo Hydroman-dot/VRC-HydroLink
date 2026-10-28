@@ -23,15 +23,25 @@ public sealed class FitnessSession(IDataBus bus, string directory, Settings? con
     public int Samples { get; private set; }
     public int ValidHeartSamples { get; private set; }
     public double? Calories { get; private set; }
+    public string? RecordingError { get; private set; }
     public bool Running => writer is { IsCompleted: false };
     public void Start(string name)
     {
         if (Running) throw new InvalidOperationException("Session läuft bereits");
+        if (stop is not null) throw new InvalidOperationException("Vorherige Session zuerst beenden");
         Name = name; Started = DateTimeOffset.Now;
+        values.Clear(); baselineDistance = baselineSteps = lastCleanHeart = null;
+        Distance = Steps = ActiveSeconds = 0; Samples = ValidHeartSamples = 0; Calories = null; RecordingError = null;
         Directory.CreateDirectory(directory);
         CsvPath = Path.Combine(directory, $"{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid():N}.csv");
+        // Open synchronously so permissions and disk errors reach the Start caller.
+        var file = new StreamWriter(new FileStream(CsvPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read), new UTF8Encoding(true));
         stop = new(); subscription = bus.Subscribe("", e => { if (e.Topic.StartsWith("fitness/") || (e.Topic.StartsWith("provider/") && e.Topic.EndsWith("/status"))) values[e.Topic] = e; });
-        writer = Task.Run(() => Record(stop.Token));
+        writer = Task.Run(async () =>
+        {
+            try { await Record(file, stop.Token); }
+            catch (Exception ex) { RecordingError = ex.Message; }
+        });
     }
     private double? Number(string topic)
     {
@@ -43,9 +53,9 @@ public sealed class FitnessSession(IDataBus bus, string directory, Settings? con
         var text = value is IFormattable f ? f.ToString(null, CultureInfo.InvariantCulture) : value?.ToString() ?? "";
         return "\"" + text.Replace("\"", "\"\"") + "\"";
     }
-    private async Task Record(CancellationToken token)
+    private async Task Record(StreamWriter output, CancellationToken token)
     {
-        using var file = new StreamWriter(CsvPath!, false, new UTF8Encoding(true));
+        using var file = output;
         await file.WriteLineAsync("timestamp;session_name;session_elapsed_s;pulse_source;movement_source;bpm;clean_bpm;bpm_anomaly;pulse_valid;pulse_age_s;pulse_zone;pulse_ws_connected;vrti_connected;treadmill_connected;treadmill_running;current_speed_kmh;clean_speed_kmh;speed_anomaly;target_speed_kmh;speed_limit_kmh;steps_total;distance_total_km;active_time_total_s;session_steps;session_distance_km;session_active_s;auto_walk_speed");
         var previous = DateTimeOffset.UtcNow;
         try

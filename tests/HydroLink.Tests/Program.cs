@@ -151,6 +151,21 @@ await using (var recording = new FitnessSession(bus, sessionFolder))
     await Task.Delay(1150); await recording.StopAsync("saved note");
     Check(Math.Abs(recording.Distance - .25) < .00001 && recording.Steps == 30 && File.Exists(Path.ChangeExtension(recording.CsvPath, ".json")), "session records relative totals and saves summary");
 }
+var invalidSessionFolder = Path.Combine(sessionFolder, "not-a-folder");
+File.WriteAllText(invalidSessionFolder, "occupied");
+await using (var invalidRecording = new FitnessSession(bus, invalidSessionFolder))
+{
+    bool rejected = false;
+    try { invalidRecording.Start("Must fail visibly"); } catch (IOException) { rejected = true; }
+    Check(rejected && !invalidRecording.Running, "recording reports unwritable location before announcing a start");
+}
+await using (var quickRecording = new FitnessSession(bus, Path.Combine(sessionFolder, "quick")))
+{
+    quickRecording.Start("Immediate stop");
+    Check(File.Exists(quickRecording.CsvPath), "recording file exists immediately after successful start");
+    await quickRecording.StopAsync();
+    Check(File.Exists(Path.ChangeExtension(quickRecording.CsvPath, ".json")) && quickRecording.RecordingError is null, "immediate stop flushes a readable recording and summary");
+}
 var legacyCsv = Path.Combine(sessionFolder, "legacy.csv");
 await File.WriteAllTextAsync(legacyCsv, "timestamp;session_name;bpm;current_speed_kmh;steps;distance_km;active_time_s;session_elapsed_s\n2026-10-06T10:00:00+02:00;Legacy;90;1;100;5;10;0\n2026-10-06T10:00:02+02:00;Legacy;110;2;130;5.25;12;2\n");
 var legacyReport = SessionAnalysis.Read(legacyCsv);

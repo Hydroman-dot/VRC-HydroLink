@@ -16,6 +16,8 @@ public partial class MainWindow
     private FitnessSession? fitnessSession;
     private TextBox? sessionName, sessionNote;
     private Button? recordButton;
+    private TextBlock? recordingStatus;
+    private Action? refreshSessionHistory;
     private Action? applyWindControls;
     private readonly SemaphoreSlim recordingStopGate = new(1, 1);
     private async Task StopRecording()
@@ -25,7 +27,9 @@ public partial class MainWindow
         {
             if (fitnessSession is null) return;
             waitForRest = true; movingSince = null;
-            await fitnessSession.StopAsync(sessionNote?.Text ?? ""); Log("Session gespeichert: " + fitnessSession.CsvPath); fitnessSession = null;
+            await fitnessSession.StopAsync(sessionNote?.Text ?? "");
+            Log((fitnessSession.RecordingError is null ? "Session gespeichert: " : "Aufzeichnung abgebrochen; vorhandene Daten gespeichert: ") + fitnessSession.CsvPath); fitnessSession = null;
+            refreshSessionHistory?.Invoke();
             if (recordButton is not null) recordButton.Content = "Session aufzeichnen";
         }
         finally { recordingStopGate.Release(); }
@@ -57,7 +61,7 @@ public partial class MainWindow
                     {
                         if (fitnessSession is not null) await StopRecording();
                         await EnsureHost(); await host!.SetModuleAsync("fitness", true);
-                        fitnessSession = new FitnessSession(host.Bus, settings.FitnessOptions.DataDirectory, settings); fitnessSession.Start(sessionName.Text);
+                        var recording = new FitnessSession(host.Bus, settings.FitnessOptions.DataDirectory, settings); recording.Start(sessionName.Text); fitnessSession = recording;
                         recordButton.Content = "Session stoppen und speichern";
                     }
                 }
@@ -65,8 +69,10 @@ public partial class MainWindow
                 finally { recordButton.IsEnabled = true; }
             };
             session.Children.Add(recordButton);
+            recordingStatus = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Color("#7CE8CF"), Margin = new Thickness(0, 8, 0, 8) };
+            session.Children.Add(recordingStatus);
             session.Children.Add(ActionButton("Gespeicherte Sessions öffnen", () => { var folder = settings.FitnessOptions.DataDirectory; System.IO.Directory.CreateDirectory(folder); System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(folder) { UseShellExecute = true }); }));
-            session.Children.Add(BuildFitnessOptions());
+            session.Children.Add(ActionButton("Fitness-Einstellungen: automatische Aufzeichnung und Datenordner", () => Tabs.SelectedItem = Tabs.Items.OfType<TabItem>().First(t => Equals(t.Header, "Einstellungen"))));
             panel.Children.Add(session);
         }
         if (id == "windforce")
@@ -102,7 +108,8 @@ public partial class MainWindow
     }
     private void BuildVisibilitySettings()
     {
-        var panel = Page("Einstellungen", "Lege fest, welche Modul-Reiter bei Nichtbenutzung ausgeblendet werden.");
+        var panel = Page("Einstellungen", "Fitness-Aufzeichnung, Datenordner, Profil und Modul-Anzeige.");
+        panel.Children.Add(BuildFitnessOptions());
         panel.Children.Add(new TextBlock { Text = "Ausblenden, wenn nicht aktiv", FontSize = 19, Margin = new Thickness(0, 0, 0, 12) });
         foreach (var (id, title) in new[] { ("fitness", "VR Fitness"), ("windforce", "WindForce"), ("osc", "OSC Hub"), ("haptics", "Haptics") })
         {
@@ -196,6 +203,12 @@ public partial class MainWindow
     {
         RefreshModuleVisibility();
         RefreshDiagnostics();
+        if (recordingStatus is not null)
+            recordingStatus.Text = fitnessSession?.RecordingError is { } error
+                ? "Aufzeichnung fehlgeschlagen: " + error + " · Vorhandene Datei: " + fitnessSession.CsvPath
+                : fitnessSession?.Running == true
+                    ? "Aufzeichnung läuft · " + fitnessSession.Samples + " Messpunkte\nDatei: " + fitnessSession.CsvPath
+                    : (settings.FitnessOptions.AutoSessions ? "Automatische Aufzeichnung bereit: startet bei Bewegung und aktivem Fitness-Modul." : "Keine Aufzeichnung. Für gespeicherte Daten bitte ‚Session aufzeichnen‘ starten oder automatische Sessions einschalten.") + "\nDatenordner: " + settings.FitnessOptions.DataDirectory;
         foreach (var (id, button) in moduleButtons)
         {
             bool active = host?.ActiveModules.Contains(id) == true;
