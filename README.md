@@ -2,13 +2,13 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.14.2 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.14.4 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
 HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-Stand 26. Oktober 2026: [Windows-Version 0.14.2](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.14.2) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
+Stand 28. Oktober 2026: [Windows-Version 0.14.4](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.14.4) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
 
 ## KI-Hinweis / AI disclosure
 
@@ -24,7 +24,20 @@ This project is developed and documented with assistance from artificial intelli
 
 Jeden Avatar einmal im Unity-Wizard einrichten und übergeben. HydroLink speichert die Profile getrennt nach Upload-ID und wählt beim Avatarwechsel automatisch das passende Profil. Am PC das Toy freigeben, anschließend im Radialmenü **Haptik einschalten**. **Haptik-Staerken** und **Manuell** besitzen separate Regler; das manuelle Untermenü hat einen eigenen Einschalter.
 
-Max 2: Vibration und Pump. Ridge: Vibration, Rotation und Richtung, soweit Intiface die Funktionen meldet. Physische Geräte sind noch nicht abschließend getestet. Avatar- und SPS-Dateien anderer Anbieter sind nicht enthalten; die benötigten Pakete separat installieren.
+Enthalten sind acht eigene Toy-Profile und Unity-Prefabs:
+
+| Toy | Regler, soweit vom Gerät/Backend gemeldet |
+| --- | --- |
+| Max 2 | Vibration, Pump |
+| Ridge | Vibration, Rotation, Richtung |
+| Solace Pro | Bewegungsgeschwindigkeit, Hubbereich, Position, Fahrzeit |
+| Dolce | Zwei getrennte Vibrationsmotoren |
+| Gemini | Zwei getrennte Vibrationsmotoren |
+| Nora | Vibration, Rotation, Richtung |
+| Gravity | Vibration, Hubgeschwindigkeit |
+| Lush Mini | Vibration |
+
+Im Radialmenü liegen die eingerichteten Toys gemeinsam unter **HydroLink**. Jedes Toy besitzt eigene SPS-Stärken, einen manuellen Modus und Stop. Nicht gemeldete Gerätefunktionen bleiben deaktiviert; Herstellerprogramme und LED-Farben sind nicht angebunden. Physische Geräte sind noch nicht abschließend getestet. Avatar- und SPS-Dateien anderer Anbieter sind nicht enthalten; die benötigten Pakete separat installieren.
 
 Windows-App aus Quellcode bauen: `./build.ps1 -Publish`. GitHub Actions stellt nach erfolgreichem Lauf ein Windows-ZIP als Build-Artefakt bereit.
 
@@ -48,13 +61,17 @@ Optional „Ausgewählte Module mit HydroLink starten“ aktivieren; die Auswahl
 - **Sessions:** neue und originale VR-Fitness-CSV-Dateien öffnen, Statistiken und Diagramme ansehen, Textbericht exportieren oder über den Windows-Druckdialog als PDF ausgeben.
 - **WindForce:** eigene Quellenwahl unabhängig von Fitness, manuelle Steuerung, Pause, Quellenpriorität, Kalibrierung, Ausklang, Geräte- und Fanwerte. Bewegungs-/Pulsquelle und Regeln direkt auf WindForce wählen, mit ↑/↓ priorisieren und „Speichern und anwenden“ drücken. Dabei wird nur WindForce neu gestartet; andere Tools laufen weiter. Die Regel `Direct OSC` ist aus Kompatibilitätsgründen standardmäßig aktiv; andere Regeln ausdrücklich aktivieren. Für FitOSC Walking gilt die eigene normalisierte 0–1-Regel, für VRTI AutoWalk km/h.
 - **OSC Hub:** Live-Parameterliste mit Suche, OSCQuery-Werten sowie getrennten Empfangs-/Sendewerten, Dashboard-Übernahme und Zuordnungen pro Avatar.
-- **Haptics:** eigene Max-2-/Ridge-Reiter, automatische SPS-Plug-/Socket-Erkennung, getrennte SPS- und manuelle Radialregler, Hauptschalter und Stop pro Toy sowie automatische Einrichtung für mehrere Avatare.
+- **Haptics:** eigene Reiter für die acht Toy-Profile, automatische SPS-Plug-/Socket-Erkennung, getrennte SPS- und manuelle Radialregler, Hauptschalter und Stop pro Toy sowie automatische Einrichtung für mehrere Avatare.
 
 Verbindungseinstellungen werden beim Erzeugen des Hosts übernommen. Für Änderungen derzeit **Alles stoppen**, speichern, Tools erneut starten. Externe Dienste verbinden sich bei Unterbrechungen erneut.
 
 ### Fitness-Profil und Session-Daten
 
-Auf **VR Fitness** lässt sich „Profil, automatische Sessions, Ziele und Health-Synchronisierung“ aufklappen. Dort stehen Datenordner, Alters-/Gewichtsprofil, Keytel-Kalorienschätzung, Signalbereinigung, Wochenziele und automatische Aufzeichnung zur Verfügung. Die Option SteamVR-Ende verhindert automatische Aufzeichnung, solange SteamVR nicht läuft. Nach einem manuellen Stop wartet die automatische Aufzeichnung zunächst auf Ruhe.
+Unter **Einstellungen** ist „Profil, automatische Sessions, Ziele und Health-Synchronisierung“ direkt aufgeklappt. Ein Button auf **VR Fitness** führt dorthin. Dort stehen Datenordner, Alters-/Gewichtsprofil, Keytel-Kalorienschätzung, Signalbereinigung, Wochenziele und automatische Aufzeichnung zur Verfügung. Die Option SteamVR-Ende verhindert automatische Aufzeichnung, solange SteamVR nicht läuft. Nach einem manuellen Stop wartet die automatische Aufzeichnung zunächst auf Ruhe.
+
+**Tool starten** aktiviert die Datenquellen, aber allein noch keine Aufzeichnung. Für gespeicherte Daten **Session aufzeichnen** drücken oder unter Einstellungen automatische Sessions einschalten. VR Fitness zeigt Aufzeichnungsstatus, Messpunktzahl, Dateipfad und Schreibfehler an. Die Laufband-Zeit erscheint als **Stunden:Minuten**, zum Beispiel **01:35**; CSV-Dateien speichern weiterhin Sekunden. Die Session-Liste aktualisiert sich beim Öffnen und nach dem Speichern.
+
+Fehlen ältere Aufzeichnungen, unter Einstellungen den bisherigen VR-Fitness-Datenordner auswählen. Bereits vorhandene CSV-Dateien können dort ausgewertet werden; ohne laufende Aufzeichnung fehlende Messwerte lassen sich nicht nachträglich rekonstruieren.
 
 Bei aktiviertem Companion werden beendete Sessions im Datenordner unter `health-queue` vorgemerkt. Übertragung erfolgt an dessen `/session`-Schnittstelle; nur ein bestätigter Empfang entfernt den Warteschlangeneintrag. Schritte und Kalorien sind einzeln auswählbar. CSV und Auswertung bleiben erhalten. Unter **Sessions** lassen sich Daten als ZIP sichern und in einen separaten Importordner zurückholen. Wochenziele berücksichtigen vorhandene Summary-Dateien; gleichnamige Sicherungskopien werden nicht doppelt gezählt.
 
@@ -68,7 +85,11 @@ HydroLink reserviert einen freien lokalen UDP-Empfangsport und veröffentlicht i
 
 VRTI: `ws://127.0.0.1:47126`, VRCOSC HeartRate: `ws://127.0.0.1:36210`, FitOSC: `ws://127.0.0.1:6547/`, Intiface: `ws://127.0.0.1:12345`. WindForce: Befehle UDP 4210, Discovery 4211; leere Geräte-IP verwendet das erste gefundene ESP32-Gerät. Cloudprovider benötigen gültige Zugangsdaten.
 
-Einstellungen und Sessions liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Tokens und Pairing-Code sind mit Windows DPAPI für das aktuelle Benutzerkonto verschlüsselt. Für Layout-Export werden keine Zugangsdaten exportiert. Beim Öffnen alter CSVs bleiben Originaldateien unverändert; neue Notizen werden in einer eigenen `.hydrolink-note.txt`-Datei gespeichert.
+Einstellungen liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Sessions werden im unter **Einstellungen** gewählten Datenordner gespeichert; standardmäßig ist dies dessen Unterordner `sessions`. Tokens und Pairing-Code sind mit Windows DPAPI für das aktuelle Benutzerkonto verschlüsselt. Für Layout-Export werden keine Zugangsdaten exportiert. Beim Öffnen alter CSVs bleiben Originaldateien unverändert; neue Notizen werden in einer eigenen `.hydrolink-note.txt`-Datei gespeichert.
+
+## Prüfstand
+
+Für Windows 0.14.4 sind 236 automatisierte App-Prüfungen, 10 Updater-Prüfungen und der GitHub-Windows-Build bestanden. Alle acht Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
 
 ## Dokumentation
 
