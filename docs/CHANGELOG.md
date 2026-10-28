@@ -1,3 +1,8 @@
+## 0.14.4
+
+- Laufband-Zeit in VR Fitness als Stunden:Minuten anzeigen (z. B. 01:35). CSV-Werte bleiben Sekunden.
+- Laufende CSV-Schreibvorgaenge beim Stoppen abschliessen, statt sie abzubrechen.
+
 ## 0.14.3
 
 - Fitness-Konfiguration direkt im Einstellungen-Reiter sichtbar; Aufzeichnungsstatus und Dateipfad im Fitness-Reiter.

@@ -143,7 +143,7 @@ public partial class MainWindow
         BuildVisibilitySettings();
         BuildDiagnosticsPage();
         AddModulePage("fitness", "VR Fitness", "Eigene Live-Daten und Quellen. WindForce, OSC Hub und Haptics können unabhängig weiterlaufen.",
-        [ ("Puls · bpm", "fitness/heart/bpm"), ("Geschwindigkeit · km/h", "fitness/speed-kmh"), ("Distanz gesamt · km", "fitness/distance-km"), ("Schritte gesamt", "fitness/steps"), ("Aktive Zeit · s", "fitness/active-seconds"), ("Zielgeschwindigkeit · km/h", "fitness/target-speed-kmh"), ("Geschwindigkeitslimit · km/h", "fitness/speed-limit-kmh"), ("AutoWalk", "fitness/autowalk-speed"), ("Laufband verbunden", "fitness/connected"), ("Laufband läuft", "fitness/running"), ("Health Schritte heute", "companion/steps_today"), ("SpO₂ · %", "companion/spo2_pct"), ("Gewicht · kg", "companion/weight_kg") ]);
+        [ ("Puls · bpm", "fitness/heart/bpm"), ("Geschwindigkeit · km/h", "fitness/speed-kmh"), ("Distanz gesamt · km", "fitness/distance-km"), ("Schritte gesamt", "fitness/steps"), ("Laufband-Zeit · Std:Min", "fitness/active-seconds"), ("Zielgeschwindigkeit · km/h", "fitness/target-speed-kmh"), ("Geschwindigkeitslimit · km/h", "fitness/speed-limit-kmh"), ("AutoWalk", "fitness/autowalk-speed"), ("Laufband verbunden", "fitness/connected"), ("Laufband läuft", "fitness/running"), ("Health Schritte heute", "companion/steps_today"), ("SpO₂ · %", "companion/spo2_pct"), ("Gewicht · kg", "companion/weight_kg") ]);
         AddModulePage("windforce", "WindForce", "Quellenwahl und Prioritäten direkt einstellen. Steuerung, Gerätewerte und Eingänge auf einer Seite.",
         [ ("Lüfterausgabe · %", "windforce/output-percent"), ("Aktive Quelle", "windforce/source"), ("Zielwert · %", "windforce/target-percent"), ("ESP32", "windforce/device/ip"), ("Fan 1 · %", "windforce/device/fan1"), ("Fan 2 · %", "windforce/device/fan2"), ("Fan 3 · %", "windforce/device/fan3"), ("Drehzahl · rpm", "windforce/device/rpm"), ("WLAN · dBm", "windforce/device/rssi"), ("PWM", "windforce/device/pwm"), ("Laufband · km/h", "windforce/input/speed"), ("Puls · bpm", "windforce/input/heart") ]);
         AddModulePage("osc", "OSC Hub", "OSCQuery findet den tatsächlichen OSC-Port. Die letzten Nachrichten erscheinen hier.", [("Letzte OSC-Nachricht", "hydrolink/osc-last"), ("Nachrichten", "hydrolink/osc-count")]);
@@ -199,6 +199,12 @@ public partial class MainWindow
         catch (Exception ex) { Log("Modul: " + ex.Message); MessageBox.Show(this, ex.Message, "Modul konnte nicht starten"); }
         finally { moduleButtons[id].IsEnabled = true; RefreshToolPages(); }
     }
+    private static string FormatFitnessClock(double seconds)
+    {
+        if (!double.IsFinite(seconds) || seconds < 0) return "—";
+        var minutes = Math.Floor(seconds / 60);
+        return $"{Math.Floor(minutes / 60):00}:{minutes % 60:00}";
+    }
     private void RefreshToolPages()
     {
         RefreshModuleVisibility();
@@ -220,7 +226,7 @@ public partial class MainWindow
             {
                 if (!latest.TryGetValue(topic, out var data)) { control.Text = "—"; continue; }
                 var stale = DateTimeOffset.UtcNow - data.Timestamp > TimeSpan.FromSeconds(10);
-                control.Text = data.Value.ValueKind == System.Text.Json.JsonValueKind.Number ? data.Value.GetDouble().ToString("0.##") : data.Value.ToString();
+                control.Text = data.Value.ValueKind == System.Text.Json.JsonValueKind.Number ? (topic == "fitness/active-seconds" ? FormatFitnessClock(data.Value.GetDouble()) : data.Value.GetDouble().ToString("0.##")) : data.Value.ToString();
                 if (control.Text.Length > 300) control.Text = control.Text[..300] + "…";
                 control.Opacity = stale ? .55 : 1; control.ToolTip = $"{data.Source} · {data.Timestamp.ToLocalTime():HH:mm:ss}" + (stale ? " · letzter Wert" : "");
             }

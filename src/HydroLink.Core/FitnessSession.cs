@@ -79,7 +79,8 @@ public sealed class FitnessSession(IDataBus bus, string directory, Settings? con
                 bool movementConnected = speedEvent is not null && values.TryGetValue("provider/" + speedEvent.Source + "/status", out var ms) && ms.Value.GetString() == "connected";
                 values.TryGetValue("fitness/connected", out var connected); values.TryGetValue("fitness/running", out var running);
                 await file.WriteLineAsync(string.Join(';', new object?[] { now.ToString("O"), Name, elapsed, heartEvent?.Source, speedEvent?.Source, bpm, cleanBpm, bpm.HasValue && !cleanBpm.HasValue, bpm.HasValue, heartEvent is null ? null : (now - heartEvent.Timestamp).TotalSeconds, SessionAnalysis.Zone(cleanBpm), pulseConnected, movementConnected, connected?.Value.ToString(), running?.Value.ToString(), speed, cleanSpeed, speed.HasValue && !cleanSpeed.HasValue, Number("target-speed-kmh"), Number("speed-limit-kmh"), steps, distance, Number("active-seconds"), Steps, Distance, ActiveSeconds, Number("autowalk-speed") }.Select(Cell)));
-                await file.FlushAsync(token);
+                // Complete the current write before stopping to preserve the CSV.
+                await file.FlushAsync();
                 bus.Publish("session/distance-km", Distance, "fitness-session"); bus.Publish("session/steps", Steps, "fitness-session"); bus.Publish("session/active-seconds", ActiveSeconds, "fitness-session"); bus.Publish("session/elapsed-seconds", elapsed, "fitness-session"); bus.Publish("session/heart-quality", 100d * ValidHeartSamples / Samples, "fitness-session");
                 if (Calories.HasValue) bus.Publish("session/calories-estimate", Calories.Value, "fitness-session");
                 await Task.Delay(1000, token);
