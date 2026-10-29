@@ -69,7 +69,7 @@ Verbindungseinstellungen werden beim Erzeugen des Hosts übernommen. Für Änder
 
 Unter **Einstellungen** ist „Profil, automatische Sessions, Ziele und Health-Synchronisierung“ direkt aufgeklappt. Ein Button auf **VR Fitness** führt dorthin. Dort stehen Datenordner, Alters-/Gewichtsprofil, Keytel-Kalorienschätzung, Signalbereinigung, Wochenziele und automatische Aufzeichnung zur Verfügung. Die Option SteamVR-Ende verhindert automatische Aufzeichnung, solange SteamVR nicht läuft. Nach einem manuellen Stop wartet die automatische Aufzeichnung zunächst auf Ruhe.
 
-**Tool starten** aktiviert die Datenquellen, aber allein noch keine Aufzeichnung. Für gespeicherte Daten **Session aufzeichnen** drücken oder unter Einstellungen automatische Sessions einschalten. VR Fitness zeigt Aufzeichnungsstatus, Messpunktzahl, Dateipfad und Schreibfehler an. Die Laufband-Zeit erscheint als **Stunden:Minuten**, zum Beispiel **01:35**; CSV-Dateien speichern weiterhin Sekunden. Die Session-Liste aktualisiert sich beim Öffnen und nach dem Speichern.
+**Tool starten** aktiviert die Datenquellen, aber allein noch keine Aufzeichnung. Für gespeicherte Daten **Session aufzeichnen** drücken oder unter Einstellungen automatische Sessions einschalten. VR Fitness zeigt Aufzeichnungsstatus, Messpunktzahl, Dateipfad und Schreibfehler an. Die Laufband-Zeit erscheint als **h:mm:ss**, zum Beispiel **1:35:00**; CSV-Dateien speichern weiterhin Sekunden. Die Session-Liste aktualisiert sich beim Öffnen und nach dem Speichern.
 
 Fehlen ältere Aufzeichnungen, unter Einstellungen den bisherigen VR-Fitness-Datenordner auswählen. Bereits vorhandene CSV-Dateien können dort ausgewertet werden; ohne laufende Aufzeichnung fehlende Messwerte lassen sich nicht nachträglich rekonstruieren.
 
@@ -79,7 +79,7 @@ Bei aktiviertem Companion werden beendete Sessions im Datenordner unter `health-
 
 OSC in VRChat einschalten. HydroLink sucht `_oscjson._tcp` über mDNS und liest `OSC_IP`/`OSC_PORT` aus `?HOST_INFO`. Der HTTP-Port wird nicht als UDP-Port verwendet. Es gibt keinen stillen Rückfall auf 9000. Ohne gefundenes Ziel pausiert die Ausgabe. Manuelle Ziele sind ausdrücklich auswählbar.
 
-Seit 0.15.0 lässt HydroLink UDP 9001 für VRCOSC frei und reserviert immer einen eigenen freien lokalen UDP-Empfangsport und veröffentlicht ihn mit seiner OSCQuery-Schnittstelle. VRChat kann es neben anderen OSC-Anwendungen finden. Das aktuelle Ziel wird regelmäßig geprüft. Die Firewall muss mDNS/OSCQuery zulassen. Diese Vorschau richtet sich an VRChat auf demselben Windows-PC.
+Seit 0.14.5 lässt HydroLink UDP 9001 für VRCOSC frei und reserviert immer einen eigenen freien lokalen UDP-Empfangsport und veröffentlicht ihn mit seiner OSCQuery-Schnittstelle. VRChat kann es neben anderen OSC-Anwendungen finden. Das aktuelle Ziel wird regelmäßig geprüft. Die Firewall muss mDNS/OSCQuery zulassen. Diese Vorschau richtet sich an VRChat auf demselben Windows-PC.
 
 ## Voreinstellungen und Daten
 
