@@ -171,7 +171,7 @@ public partial class MainWindow
     {
         if (host is not null) return;
         settings = ReadSettings(); settings.Save();
-        host = new HydroHost(settings, Log, programLauncher);
+        host = new HydroHost(settings, Log, programLauncher, id => id == "Bluetooth" ? new BluetoothHeartSource(settings, host!.Bus, Log) : null!);
         subscription = host.Bus.Subscribe("", item =>
         {
             if (item.Topic == "osc/avatar-id")
@@ -204,6 +204,7 @@ public partial class MainWindow
         RefreshModuleVisibility();
         RefreshDiagnostics();
         RefreshHomeAssistant();
+        RefreshBluetoothHeart();
         if (recordingStatus is not null)
             recordingStatus.Text = fitnessSession?.RecordingError is { } error
                 ? "Aufzeichnung fehlgeschlagen: " + error + " · Vorhandene Datei: " + fitnessSession.CsvPath

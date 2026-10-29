@@ -23,6 +23,7 @@ public sealed class Settings
     public int WindPort { get; set; } = 4210;
     public string WindOscAddress { get; set; } = "/avatar/parameters/WindForce";
     public string IntifaceUrl { get; set; } = "ws://127.0.0.1:12345";
+    public HeartrateOptions Heartrate { get; set; } = new();
     public HomeAssistantOptions HomeAssistant { get; set; } = new();
     public bool Companion { get; set; }
     public string CompanionUrl { get; set; } = "http://127.0.0.1:38491";

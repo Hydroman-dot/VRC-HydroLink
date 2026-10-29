@@ -22,7 +22,7 @@ public sealed class WindConfiguration
     }
     public void Validate()
     {
-        if (Movement is not ("None" or "VRTI" or "FitOSC") || Heart is not ("None" or "VRCOSC" or "Pulsoid" or "HypeRate") || HeartMode is not ("OFF" or "SOURCE" or "MINIMUM")) throw new ArgumentException("Ungültige Quellenwahl.");
+        if (Movement is not ("None" or "VRTI" or "FitOSC") || Heart is not ("None" or "Bluetooth" or "VRCOSC" or "Pulsoid" or "HypeRate") || HeartMode is not ("OFF" or "SOURCE" or "MINIMUM")) throw new ArgumentException("Ungültige Quellenwahl.");
         var names = WindRule.Defaults().Select(r => r.Source).ToHashSet();
         if (Rules.Count != names.Count || !Rules.Select(r => r.Source).ToHashSet().SetEquals(names)) throw new ArgumentException("Jede WindForce-Quelle muss genau einmal vorkommen.");
         foreach (var rule in Rules)

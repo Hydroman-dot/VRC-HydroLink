@@ -14,7 +14,7 @@ namespace HydroLink.App;
 public partial class MainWindow : Window
 {
     public string[] MovementSources { get; } = ["None", "VRTI", "FitOSC"];
-    public string[] HeartSources { get; } = ["None", "VRCOSC", "Pulsoid", "HypeRate"];
+    public string[] HeartSources { get; } = ["None", "Bluetooth", "VRCOSC", "Pulsoid", "HypeRate"];
     private Settings settings;
     private HydroHost? host;
     private IDisposable? subscription;
@@ -106,7 +106,7 @@ public partial class MainWindow : Window
             SendHeartToOsc = SendHeart.IsChecked == true, HeartOscAddress = HeartAddress.Text.Trim(),
             HideInactiveModules = settings.HideInactiveModules, Dashboard = settings.Dashboard, Programs = settings.Programs, StartModulesWithApp = startWithApp?.IsChecked == true,
             WindRules = settings.WindRules, WindRiseMs = settings.WindRiseMs, WindMultiPwm = settings.WindMultiPwm, WindHeartMode = settings.WindHeartMode,
-            FitnessOptions = settings.FitnessOptions, HomeAssistant = ReadHomeAssistant(),
+            FitnessOptions = settings.FitnessOptions, HomeAssistant = ReadHomeAssistant(), Heartrate = ReadHeartrate(),
             HapticsOptions = settings.HapticsOptions, OscRoutes = settings.OscRoutes,
             WindMovementSource = (string?)WindMovementSource.SelectedItem ?? "None", WindHeartSource = (string?)WindHeartSource.SelectedItem ?? "None",
             EnabledPlugins = PluginIds.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()

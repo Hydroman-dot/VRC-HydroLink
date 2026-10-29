@@ -16,6 +16,7 @@ public partial class MainWindow
             Tabs.Items.Remove(tab); settingsTabs.Items.Add(tab);
         }
         settingsTabs.Items.Insert(2, BuildHomeAssistantPage());
+        settingsTabs.Items.Insert(2, BuildBluetoothHeartPage());
         root.Content = settingsTabs;
     }
     private void SelectPage(string name)

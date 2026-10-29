@@ -31,8 +31,9 @@ public sealed class HydroHost : IAsyncDisposable
     public static IReadOnlyList<string> RequiredSources(Settings s)
     {
         var result = new HashSet<string>();
-        if (s.OscHub || s.Haptics || s.WindForce || (s.Fitness && s.SendHeartToOsc)) result.Add("osc");
+        if (s.OscHub || s.Haptics || s.WindForce || (s.Fitness && (s.SendHeartToOsc || s.Heartrate.VrcOscParameters))) result.Add("osc");
         void Add(string id) { if (id != "None") result.Add(id); }
+        if (s.Fitness && s.Heartrate.VrcOscParameters) result.Add("heartrate-output");
         if (s.Fitness) { Add(s.MovementSource); Add(s.HeartSource); if (s.Companion) result.Add("companion"); if (s.HomeAssistant.Enabled) result.Add("home-assistant"); }
         if (s.WindForce) { Add(s.WindMovementSource); Add(s.WindHeartSource); result.Add("windforce"); }
         if (s.Haptics) result.Add("intiface");
@@ -43,7 +44,7 @@ public sealed class HydroHost : IAsyncDisposable
         : (pair.Key, "Status unbekannt", "Plugin meldet keinen Dienstzustand")).ToArray();
     public string[] ModuleSources(string id) => id switch
     {
-        "fitness" => new[] { settings.MovementSource, settings.HeartSource }.Concat(settings.Companion ? new[] { "companion" } : []).Concat(settings.HomeAssistant.Enabled ? new[] { "home-assistant" } : []).Concat(settings.SendHeartToOsc ? new[] { "osc" } : []).Where(x => x != "None").Distinct().ToArray(),
+        "fitness" => new[] { settings.MovementSource, settings.HeartSource }.Concat(settings.Companion ? new[] { "companion" } : []).Concat(settings.HomeAssistant.Enabled ? new[] { "home-assistant" } : []).Concat(settings.SendHeartToOsc || settings.Heartrate.VrcOscParameters ? new[] { "osc" } : []).Concat(settings.Heartrate.VrcOscParameters ? new[] { "heartrate-output" } : []).Where(x => x != "None").Distinct().ToArray(),
         "windforce" => new[] { "windforce", "osc", settings.WindMovementSource, settings.WindHeartSource }.Where(x => x != "None").Distinct().ToArray(),
         "haptics" => ["intiface", "osc"], "osc" => ["osc"], _ => []
     };
@@ -98,7 +99,7 @@ public sealed class HydroHost : IAsyncDisposable
                 try { await running[key].DisposeAsync(); } catch (Exception ex) { log(key + " Stop: " + ex.Message); }
                 running.Remove(key);
             }
-            if (selection.Fitness && settings.SendHeartToOsc && heartOutput is null)
+            if (selection.Fitness && settings.SendHeartToOsc && !settings.Heartrate.VrcOscParameters && heartOutput is null)
                 heartOutput = Bus.Subscribe("fitness/heart/bpm", e => Bus.Publish("osc/send", new { address = settings.HeartOscAddress, arguments = new[] { (int)e.Value.GetDouble() } }, "fitness"));
             modules.Clear(); modules.UnionWith(desired);
             log(id + (enabled ? " gestartet" : " gestoppt"));
@@ -159,7 +160,7 @@ public sealed class HydroHost : IAsyncDisposable
     }
     private IComponent Create(string id) => id switch
     {
-        "home-assistant" => new HomeAssistantService(settings, Bus, log), "osc" => new OscBridge(settings, Bus, log), "windforce" => CreateWind(), "intiface" => new HapticsService(settings, Bus, log), "companion" => new CompanionSource(settings, Bus, log),
+        "heartrate-output" => new HeartrateOutput(settings, Bus, log), "home-assistant" => new HomeAssistantService(settings, Bus, log), "osc" => new OscBridge(settings, Bus, log), "windforce" => CreateWind(), "intiface" => new HapticsService(settings, Bus, log), "companion" => new CompanionSource(settings, Bus, log),
         "VRTI" => Socket(id, settings.VrtiUrl), "FitOSC" => Socket(id, settings.FitOscUrl), "VRCOSC" => Socket(id, settings.HeartUrl),
         "Pulsoid" when !string.IsNullOrWhiteSpace(settings.PulsoidToken) => Socket(id, "wss://dev.pulsoid.net/api/v1/data/real_time?access_token=" + Uri.EscapeDataString(settings.PulsoidToken)),
         "HypeRate" when !string.IsNullOrWhiteSpace(settings.HypeRateKey) && !string.IsNullOrWhiteSpace(settings.HypeRateId) => Socket(id, "wss://app.hyperate.io/socket/websocket?token=" + Uri.EscapeDataString(settings.HypeRateKey)),

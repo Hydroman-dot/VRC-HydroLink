@@ -2,13 +2,13 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.15.0 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.0 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
 HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-Stand 29. Oktober 2026: [Windows-Version 0.15.0](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.15.0) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
+Stand 29. Oktober 2026: [Windows-Version 0.16.0](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.0) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
 
 ## KI-Hinweis / AI disclosure
 
@@ -89,7 +89,7 @@ Einstellungen liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Sessions werden im un
 
 ## Prüfstand
 
-Für Windows 0.15.0 sind 247 automatisierte App-Prüfungen, 14 separate MQTT-Prüfungen und 10 Updater-Prüfungen lokal bestanden. Alle acht Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
+Für Windows 0.16.0 sind 270 automatisierte App-Prüfungen, 14 separate MQTT-Prüfungen und 10 Updater-Prüfungen lokal bestanden. Alle acht Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
 
 ## Dokumentation
 
@@ -115,3 +115,7 @@ Seit 0.14.1 prüft HydroLink beim Start auf eine neue öffentliche Version und f
 Verbindungen, OSCQuery, Programme und Plugins sind Unterreiter in **Einstellungen**. Allgemein & Fitness enthält Aufzeichnung, Profil, Datenordner und Modul-Anzeige. Dashboard und Fitness-/Session-Karten zeigen Zeitwerte als **h:mm:ss**, auch über 24 Stunden. Rohdaten und CSV bleiben in Sekunden; ungewöhnlich hohe Quellzähler werden nicht ohne gesicherte Einheit umgerechnet.
 
 **Einstellungen → Home Assistant**: MQTT mit automatischen Live-Sensoren, Wiederverbindung und dauerhaftem Session-Sendepuffer mit Empfangsbestätigung. Die VR-Fitness-v1-Session-Schnittstelle wird verwendet; deren Empfänger muss in Home Assistant vorhanden sein. [Einrichtung und Protokoll](docs/HOME-ASSISTANT.md). Standardmäßig aus; mit lokalem Test-Broker geprüft, echter HA-Praxistest steht aus.
+
+### Bluetooth-Puls (0.16.0, H9Z-Praxistest ausstehend)
+
+Direkte Windows-BLE-Pulsquelle unter **Einstellungen → Bluetooth-Puls**, vorbereitet für Coospo H9Z. Eigene Geräteauswahl, Wiederverbindung und alle neun VRCOSC-Pulsparameter einschließlich Legacy-Ziffern, Glättung, Mittelwert, Normalisierung und Beat-Modi. Standardmäßig nicht aktiviert; kein automatischer Unity-Import. [Einrichtung, Parameter und Testgrenzen](docs/BLUETOOTH-HEARTRATE.md). Windows 10 ab Version 2004 / Windows 11 erforderlich.

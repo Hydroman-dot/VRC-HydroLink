@@ -59,7 +59,7 @@ public partial class MainWindow
     }
     private string DiagnosisReport()
     {
-        var report = new StringBuilder("HydroLink 0.15.0 · " + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz") + "\n\n");
+        var report = new StringBuilder("HydroLink 0.16.0 · " + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz") + "\n\n");
         foreach (var (id, title) in new[] { ("fitness", "VR Fitness"), ("windforce", "WindForce"), ("osc", "OSC Hub"), ("haptics", "Haptics") }) report.AppendLine(title + ": " + ModuleDiagnosis(id));
         report.AppendLine("\nHintergrunddienste:");
         if (host == null || host.Running.Count == 0) report.AppendLine("Keine Dienste angefordert.");

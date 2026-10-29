@@ -30,6 +30,7 @@ using (var anotherReceiver = OscBridge.OpenReceiver())
 }
 foreach (var (seconds, expected) in new[] { (0d, "0:00:00"), (59d, "0:00:59"), (60d, "0:01:00"), (3661.9, "1:01:01"), (90061d, "25:01:01"), (730364761d, "202879:06:01"), (-1d, "—"), (double.NaN, "—"), (double.PositiveInfinity, "—") })
     Check(DurationDisplay.Format(seconds) == expected, "duration clock " + seconds);
+await HeartrateChecks.Run(Check);
 var bus = new DataBus(); int count = 0;
 using (bus.Subscribe("fitness", _ => count++)) { bus.Publish("fitness/bpm", 80, "test"); bus.Publish("fitnessExtra", 1, "test"); }
 bus.Publish("fitness/bpm", 81, "test"); Check(count == 1, "topic segment matching and unsubscribe");

@@ -1,5 +1,12 @@
 ## 0.14.5
 
+## 0.16.0 — 2026-10-29
+- Direkte Bluetooth-Heart-Rate-Quelle für Windows, für Coospo H9Z vorbereitet; manueller Gerätescan und gespeicherte Auswahl.
+- Alle neun VRCOSC-Heartrate-Parameter, einstellbare Adressen, Glättung, Mittelwert, Normalisierung und Beat-Modus.
+- Signalverlust setzt Avatar-Ausgaben zurück; automatische Neuverbindung. Kein Wechsel vorhandener Pulsquellen ohne Auswahl.
+- Windows 10 ab Version 2004 / Windows 11. Physischer H9Z-/Avatar-Praxistest ausstehend.
+
+
 ## 0.15.0 — 2026-10-29
 - Dashboard- und Fitness-/Session-Zeiten einheitlich als h:mm:ss ohne Stundenumbruch.
 - Verbindungen, OSCQuery, Programme und Plugins als Unterreiter in Einstellungen.
