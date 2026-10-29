@@ -10,7 +10,7 @@ internal static class OscStartupChecks
     {
         using (var first = OscBridge.OpenReceiver())
         using (var second = OscBridge.OpenReceiver())
-            check(((IPEndPoint)first.Client.LocalEndPoint!).Port != ((IPEndPoint)second.Client.LocalEndPoint!).Port, "occupied default OSC port falls back without sharing another receiver");
+            check(((IPEndPoint)first.Client.LocalEndPoint!).Port != ((IPEndPoint)second.Client.LocalEndPoint!).Port, "independent OSC receivers never share a port");
         foreach (var peerFirst in new[] { true, false })
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(35));

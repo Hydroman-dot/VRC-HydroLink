@@ -2,13 +2,13 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.14.4 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.14.5 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
 HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-Stand 28. Oktober 2026: [Windows-Version 0.14.4](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.14.4) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
+Stand 29. Oktober 2026: [Windows-Version 0.14.5](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.14.5) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
 
 ## KI-Hinweis / AI disclosure
 
@@ -79,7 +79,7 @@ Bei aktiviertem Companion werden beendete Sessions im Datenordner unter `health-
 
 OSC in VRChat einschalten. HydroLink sucht `_oscjson._tcp` über mDNS und liest `OSC_IP`/`OSC_PORT` aus `?HOST_INFO`. Der HTTP-Port wird nicht als UDP-Port verwendet. Es gibt keinen stillen Rückfall auf 9000. Ohne gefundenes Ziel pausiert die Ausgabe. Manuelle Ziele sind ausdrücklich auswählbar.
 
-HydroLink reserviert einen freien lokalen UDP-Empfangsport und veröffentlicht ihn mit seiner OSCQuery-Schnittstelle. VRChat kann es neben anderen OSC-Anwendungen finden. Das aktuelle Ziel wird regelmäßig geprüft. Die Firewall muss mDNS/OSCQuery zulassen. Diese Vorschau richtet sich an VRChat auf demselben Windows-PC.
+Seit 0.14.5 lässt HydroLink UDP 9001 für VRCOSC frei und reserviert immer einen eigenen freien lokalen UDP-Empfangsport und veröffentlicht ihn mit seiner OSCQuery-Schnittstelle. VRChat kann es neben anderen OSC-Anwendungen finden. Das aktuelle Ziel wird regelmäßig geprüft. Die Firewall muss mDNS/OSCQuery zulassen. Diese Vorschau richtet sich an VRChat auf demselben Windows-PC.
 
 ## Voreinstellungen und Daten
 
@@ -89,7 +89,7 @@ Einstellungen liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Sessions werden im un
 
 ## Prüfstand
 
-Für Windows 0.14.4 sind 236 automatisierte App-Prüfungen, 10 Updater-Prüfungen und der GitHub-Windows-Build bestanden. Alle acht Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
+Für Windows 0.14.5 sind 238 automatisierte App-Prüfungen, 10 Updater-Prüfungen und der GitHub-Windows-Build bestanden. Alle acht Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
 
 ## Dokumentation
 

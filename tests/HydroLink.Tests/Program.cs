@@ -15,6 +15,18 @@ foreach (var (tag, draft, pre, expected) in new[] { ("v0.14.2", false, false, "0
     Check(ReleaseUpdate.NewerVersion(doc.RootElement,new Version(0,14,1,0))==expected,"startup update version filter "+tag+" draft="+draft+" pre="+pre);
 }
 using (var missing = JsonDocument.Parse("{\"tag_name\":\"v0.15.0\",\"draft\":false,\"prerelease\":false,\"assets\":[]}")) Check(ReleaseUpdate.NewerVersion(missing.RootElement,new Version(0,14,1))==null,"incomplete release does not prompt an update");
+using (var ownReceiver = OscBridge.OpenReceiver())
+using (var anotherReceiver = OscBridge.OpenReceiver())
+{
+    var ownPort = ((IPEndPoint)ownReceiver.Client.LocalEndPoint!).Port;
+    var anotherPort = ((IPEndPoint)anotherReceiver.Client.LocalEndPoint!).Port;
+    Check(ownPort != 9001 && anotherPort != 9001 && ownPort != anotherPort, "HydroLink receivers reserve independent ports without occupying VRCOSC port 9001");
+    using var probe = new UdpClient();
+    await probe.SendAsync(OscCodec.Encode("/coexistence", 1), new IPEndPoint(IPAddress.Loopback, ownPort));
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+    var incoming = await ownReceiver.ReceiveAsync(deadline.Token);
+    Check(OscCodec.Decode(incoming.Buffer).Single().Address == "/coexistence", "dynamically allocated HydroLink port receives OSC packets");
+}
 var bus = new DataBus(); int count = 0;
 using (bus.Subscribe("fitness", _ => count++)) { bus.Publish("fitness/bpm", 80, "test"); bus.Publish("fitnessExtra", 1, "test"); }
 bus.Publish("fitness/bpm", 81, "test"); Check(count == 1, "topic segment matching and unsubscribe");

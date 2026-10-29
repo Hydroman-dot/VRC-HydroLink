@@ -1,9 +1,9 @@
-# Startreihenfolge – HydroLink 0.12.2
+# Startreihenfolge – HydroLink 0.14.5
 
-HydroLink bevorzugt den normalen VRChat-Empfangsport UDP 9001. Ist dieser bereits belegt, verwendet es einen freien Port mit OSCQuery-Anmeldung. Der vollständige Empfangsbaum steht vor der Anmeldung bereit.
+HydroLink reserviert immer einen eigenen freien lokalen UDP-Port und meldet ihn über OSCQuery an. UDP 9001 bleibt für VRCOSC oder andere OSC-Empfänger frei. Bis einschließlich 0.14.4 bevorzugte HydroLink selbst Port 9001; beim späteren Start von VRCOSC konnte dadurch SocketException 10048 auftreten.
 
-Nach einem ausdrücklichen Klick auf „Toy aktivieren“ fragt HydroLink den Haptik-Schalter des passenden Avatars frisch über OSCQuery ab. Ist er bereits eingeschaltet, muss er nicht mehr aus- und eingeschaltet werden. Die Abfrage erfolgt im normalen Drei-Sekunden-Takt. Eine ältere Abfrage oder ein anderer Avatar wird nicht übernommen. Ein neu eingehendes Ein-/Ausschalten im Radialmenü hat Vorrang. Kontaktwerte und manuelle Aktivierung werden nicht aus der Abfrage wiederhergestellt.
+Nach dem Update HydroLink und VRCOSC neu starten. OSC muss in VRChat eingeschaltet sein. Die tatsächliche HydroLink-Empfangsadresse steht im OSC-Status. Keine feste Weiterleitung an HydroLink auf Port 9001 verwenden. Der Heartbeat-WebSocket (standardmäßig Port 36210) ist eine separate Verbindung und bleibt unverändert.
 
-Zum Prüfen: Alte HydroLink-Version schließen, 0.12.2 öffnen, OSC in VRChat einschalten, passenden Avatar abwarten und das Toy in HydroLink aktivieren. Der bereits eingeschaltete Haptik-Schalter sollte nach wenigen Sekunden erkannt werden. Anschließend einen neuen Kontakt testen. Kein neuer Unity-Import oder Avatar-Upload ist für diese Korrektur erforderlich.
+Der vollständige Empfangsbaum steht vor der OSCQuery-Anmeldung bereit. Der Empfang hängt von der Erkennung durch VRChat ab. Ein neuer Unity-Import oder Avatar-Upload ist für diese Korrektur nicht erforderlich.
 
-212 automatische Prüfungen bestanden. Die Prüfung mit echtem Gerät und verschiedenen VRChat-Startreihenfolgen steht noch aus. Bei belegtem Standardport hängt der Empfang weiterhin von der OSCQuery-Anmeldung in VRChat ab.
+Nach „Toy aktivieren“ liest HydroLink den Haptik-Schalter des passenden Avatars frisch über OSCQuery. Kontaktwerte und manuelle Aktivierung werden nicht aus Abfragen wiederhergestellt. Ein neu eingehender Radialmenü-Schalter hat Vorrang.

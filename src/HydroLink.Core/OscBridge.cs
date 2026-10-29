@@ -89,8 +89,10 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
     {
         var udp = new UdpClient(AddressFamily.InterNetwork);
         udp.ExclusiveAddressUse = true;
-        try { udp.Client.Bind(new IPEndPoint(IPAddress.Loopback, 9001)); return udp; }
-        catch (SocketException) { udp.Dispose(); return new UdpClient(new IPEndPoint(IPAddress.Loopback, 0)); }
+        // Keep VRChat's conventional receive port free for VRCOSC and other tools.
+        // OSCQuery advertises the actual port allocated atomically by Windows.
+        try { udp.Client.Bind(new IPEndPoint(IPAddress.Loopback, 0)); return udp; }
+        catch { udp.Dispose(); throw; }
     }
     private static object ToOsc(JsonElement x) => x.ValueKind switch
     {

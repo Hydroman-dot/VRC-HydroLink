@@ -1,3 +1,7 @@
+## 0.14.5
+
+- Eigener dynamischer OSC-Empfangsport statt UDP 9001: VRCOSC kann auch nach HydroLink starten. OSCQuery meldet den tatsächlichen Empfangsport.
+
 ## 0.14.4
 
 - Laufband-Zeit in VR Fitness als Stunden:Minuten anzeigen (z. B. 01:35). CSV-Werte bleiben Sekunden.
