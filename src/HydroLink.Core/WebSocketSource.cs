@@ -48,7 +48,7 @@ public sealed class WebSocketSource(string name, Uri uri, Settings settings, IDa
                     } while (!result.EndOfMessage);
                     if (result.MessageType != WebSocketMessageType.Text) continue;
                     bus.Publish("provider/" + Id + "/status", "connected", Id);
-                    try { Telemetry.Parse(Id, Encoding.UTF8.GetString(message.ToArray()), bus, Id == settings.MovementSource || Id == settings.HeartSource); }
+                    try { Telemetry.Parse(Id, Encoding.UTF8.GetString(message.ToArray()), bus, Id == settings.MovementSource || Id == settings.HeartSource, settings.VrtiTimeMilliseconds); }
                     catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException) { Log(Id + ": ungültige Nachricht übersprungen"); }
                 }
             }

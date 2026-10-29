@@ -52,6 +52,12 @@ using var s2 = bus.Subscribe("fitness/distance-km", e => distance = e.Value.GetD
 using var s3 = bus.Subscribe("fitness/heart/bpm", e => bpm = e.Value.GetDouble());
 Telemetry.Parse("VRTI", "{\"event\":\"StatisticsUpdated\",\"payload\":\"{\\\"distance\\\":1250}\"}", bus);
 Check(distance == 1.25, "VRTI JSON-string payload and meters-to-km migration");
+double vrtiSeconds = 0;
+using var timeSubscription = bus.Subscribe("fitness/active-seconds", e => vrtiSeconds = e.Value.GetDouble());
+Telemetry.Parse("VRTI", "{\"event\":\"StatisticsUpdated\",\"payload\":{\"time\":730364761}}", bus);
+Check(DurationDisplay.Format(vrtiSeconds) == "202:52:44", "VRTI millisecond counter matches treadmill screenshot clock");
+Telemetry.Parse("VRTI", "{\"payload\":{\"time\":730364.761}}", bus, vrtiTimeMilliseconds: false);
+Check(DurationDisplay.Format(vrtiSeconds) == "202:52:44", "VRTI seconds mode remains available for documented API variants");
 Telemetry.Parse("FitOSC", "{\"type\":\"telemetry\",\"data\":{\"metrics\":{\"speed\":{\"value\":2,\"unit\":\"MPH\"}}}}", bus);
 Check(Math.Abs(speed - 3.218688) < .00001, "FitOSC mph-to-kmh migration");
 Telemetry.Parse("Pulsoid", "{\"data\":{\"heart_rate\":92}}", bus); Check(bpm == 92, "Pulsoid payload");

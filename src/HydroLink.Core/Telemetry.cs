@@ -17,7 +17,7 @@ public static class Telemetry
         if (value.ValueKind == JsonValueKind.Array) foreach (var item in value.EnumerateArray()) if (Heart(item) is { } heart) return heart;
         return null;
     }
-    public static void Parse(string source, string raw, IDataBus bus, bool publishFitness = true)
+    public static void Parse(string source, string raw, IDataBus bus, bool publishFitness = true, bool vrtiTimeMilliseconds = true)
     {
         void Emit(string topic, object value)
         {
@@ -38,7 +38,7 @@ public static class Telemetry
             using var nested = payload.ValueKind == JsonValueKind.String ? JsonDocument.Parse(payload.GetString()!) : null;
             var p = nested?.RootElement ?? payload;
             if (p.ValueKind != JsonValueKind.Object) return;
-            foreach (var (key, topic, factor) in new[] { ("currentSpeed", "speed-kmh", 1d), ("targetSpeed", "target-speed-kmh", 1d), ("userSpeedLimit", "speed-limit-kmh", 1d), ("speed", "autowalk-speed", 1d), ("distance", "distance-km", .001), ("steps", "steps", 1d), ("time", "active-seconds", 1d) })
+            foreach (var (key, topic, factor) in new[] { ("currentSpeed", "speed-kmh", 1d), ("targetSpeed", "target-speed-kmh", 1d), ("userSpeedLimit", "speed-limit-kmh", 1d), ("speed", "autowalk-speed", 1d), ("distance", "distance-km", .001), ("steps", "steps", 1d), ("time", "active-seconds", vrtiTimeMilliseconds ? .001 : 1d) })
                 if (p.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetDouble(out var number) && double.IsFinite(number)) Emit(topic, number * factor);
             foreach (var key in new[] { "connected", "running", "autoWalkEnabled" })
                 if (p.TryGetProperty(key, out var state)) Emit(key, state);

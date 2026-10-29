@@ -13,6 +13,7 @@ public sealed class Settings
     public bool Haptics { get; set; }
     public string MovementSource { get; set; } = "VRTI";
     public string HeartSource { get; set; } = "VRCOSC";
+    public bool VrtiTimeMilliseconds { get; set; } = true;
     public string VrtiUrl { get; set; } = "ws://127.0.0.1:47126";
     public string HeartUrl { get; set; } = "ws://127.0.0.1:36210";
     public string FitOscUrl { get; set; } = "ws://127.0.0.1:6547/";

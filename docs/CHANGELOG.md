@@ -1,5 +1,11 @@
 ## 0.14.5
 
+## 0.16.1 — 2026-10-29
+- VRTI-Millisekunden am Eingang in Sekunden umrechnen: 730364761 → 202:52:44 statt 202879:06:01.
+- Quelleinheit unter Einstellungen → Verbindungen auswählbar; historische CSVs bleiben unverändert.
+- Enthält Bluetooth-Pulsvorbereitung aus 0.16.0, Herkunfts-/Lizenzinventar und Praxistestliste.
+
+
 ## 0.16.0 — 2026-10-29
 - Direkte Bluetooth-Heart-Rate-Quelle für Windows, für Coospo H9Z vorbereitet; manueller Gerätescan und gespeicherte Auswahl.
 - Alle neun VRCOSC-Heartrate-Parameter, einstellbare Adressen, Glättung, Mittelwert, Normalisierung und Beat-Modus.

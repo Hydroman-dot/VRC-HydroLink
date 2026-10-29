@@ -1,0 +1,83 @@
+﻿Package,Version,Authors,License declaration,License type,Runtime assets in published deps,Project URL
+Buttplug,5.0.1,"Nonpolynomial Labs, LLC",LICENSE,file,True,https://buttplug.io/
+MQTTnet,4.3.7.1207,The contributors of MQTTnet,MIT,expression,True,https://github.com/dotnet/MQTTnet
+MeaMod.DNS,1.0.70,MeaMod Group,MIT,expression,True,https://github.com/meamod/MeaMod.DNS
+Microsoft.CSharp,4.7.0,Microsoft,MIT,expression,False,https://github.com/dotnet/corefx
+Microsoft.Extensions.Logging.Abstractions,6.0.2,Microsoft,MIT,expression,True,https://dot.net/
+Microsoft.NET.ILLink.Tasks,8.0.31,Microsoft,MIT,expression,False,https://dot.net/
+Microsoft.NETCore.Platforms,1.1.1,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+Microsoft.NETCore.Targets,1.1.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+Microsoft.Win32.Primitives,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+Newtonsoft.Json,13.0.4,James Newton-King,MIT,expression,True,https://www.newtonsoft.com/json
+System.Buffers,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Collections.Concurrent,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Collections,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Diagnostics.Debug,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Diagnostics.DiagnosticSource,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Diagnostics.Tracing,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Globalization.Calendars,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Globalization.Extensions,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Globalization,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.IO.FileSystem.Primitives,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.IO.FileSystem,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.IO,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Linq,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Net.Http,4.3.4,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Net.Primitives,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Private.Uri,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Reflection.Primitives,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Reflection,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Resources.ResourceManager,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Runtime.Extensions,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Runtime.Handles,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Runtime.InteropServices,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Runtime.Numerics,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Runtime,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Security.Cryptography.Algorithms,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Security.Cryptography.Cng,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Security.Cryptography.Csp,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Security.Cryptography.Encoding,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Security.Cryptography.OpenSsl,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Security.Cryptography.Primitives,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Security.Cryptography.ProtectedData,8.0.0,Microsoft,MIT,expression,False,https://dot.net/
+System.Security.Cryptography.X509Certificates,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Text.Encoding.Extensions,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Text.Encoding,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Threading.Overlapped,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Threading.Tasks,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+System.Threading,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+VRChat.OSCQuery,0.0.7,VRChat Developers,License.md,file,True,
+runtime.any.System.Collections,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Diagnostics.Tracing,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Globalization.Calendars,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Globalization,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.IO,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Reflection.Primitives,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Reflection,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Resources.ResourceManager,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Runtime.Handles,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Runtime.InteropServices,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Runtime,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Text.Encoding.Extensions,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Text.Encoding,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.any.System.Threading.Tasks,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.native.System.Net.Http,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.native.System.Security.Cryptography.Apple,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.native.System,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl,4.3.2,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.win.Microsoft.Win32.Primitives,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.win.System.Diagnostics.Debug,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.win.System.IO.FileSystem,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.win.System.Net.Primitives,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/
+runtime.win.System.Runtime.Extensions,4.3.0,Microsoft,http://go.microsoft.com/fwlink/?LinkId=329770,URL (not independently resolved),False,https://dot.net/

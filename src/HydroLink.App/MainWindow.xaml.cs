@@ -30,7 +30,7 @@ public partial class MainWindow : Window
         Fitness.IsChecked = settings.Fitness; Wind.IsChecked = settings.WindForce; Osc.IsChecked = settings.OscHub; Haptics.IsChecked = settings.Haptics;
         WindMovementSource.SelectedItem = settings.WindMovementSource; WindHeartSource.SelectedItem = settings.WindHeartSource;
         MovementSource.SelectedItem = settings.MovementSource; HeartSource.SelectedItem = settings.HeartSource;
-        VrtiUrl.Text = settings.VrtiUrl; FitUrl.Text = settings.FitOscUrl; HeartUrl.Text = settings.HeartUrl;
+        VrtiUrl.Text = settings.VrtiUrl; VrtiMilliseconds.IsChecked = settings.VrtiTimeMilliseconds; FitUrl.Text = settings.FitOscUrl; HeartUrl.Text = settings.HeartUrl;
         PulsoidToken.Password = settings.PulsoidToken; HypeId.Text = settings.HypeRateId; HypeKey.Password = settings.HypeRateKey;
         WindHost.Text = settings.WindHost; WindPort.Text = settings.WindPort.ToString(); WindAddress.Text = settings.WindOscAddress;
         IntifaceUrl.Text = settings.IntifaceUrl; Companion.IsChecked = settings.Companion; CompanionUrl.Text = settings.CompanionUrl; CompanionCode.Password = settings.CompanionCode;
@@ -98,7 +98,7 @@ public partial class MainWindow : Window
         {
             Fitness = Fitness.IsChecked == true, WindForce = Wind.IsChecked == true, OscHub = Osc.IsChecked == true, Haptics = Haptics.IsChecked == true,
             MovementSource = (string?)MovementSource.SelectedItem ?? "None", HeartSource = (string?)HeartSource.SelectedItem ?? "None",
-            VrtiUrl = Url(VrtiUrl.Text, "ws", "wss"), FitOscUrl = Url(FitUrl.Text, "ws", "wss"), HeartUrl = Url(HeartUrl.Text, "ws", "wss"),
+            VrtiUrl = Url(VrtiUrl.Text, "ws", "wss"), VrtiTimeMilliseconds = VrtiMilliseconds.IsChecked == true, FitOscUrl = Url(FitUrl.Text, "ws", "wss"), HeartUrl = Url(HeartUrl.Text, "ws", "wss"),
             PulsoidToken = PulsoidToken.Password, HypeRateId = HypeId.Text.Trim(), HypeRateKey = HypeKey.Password,
             WindHost = WindHost.Text.Trim(), WindPort = Port(WindPort.Text), WindOscAddress = WindAddress.Text.Trim(),
             IntifaceUrl = Url(IntifaceUrl.Text, "ws", "wss"), Companion = Companion.IsChecked == true, CompanionUrl = Url(CompanionUrl.Text, "http", "https"), CompanionCode = CompanionCode.Password,
