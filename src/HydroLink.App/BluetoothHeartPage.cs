@@ -43,7 +43,7 @@ public partial class MainWindow
             finally { scan.IsEnabled = true; }
         };
         controls.Children.Add(scan); controls.Children.Add(heartSensor);
-        controls.Children.Add(ActionButton("Bluetooth als Fitness-Pulsquelle auswählen", () => { HeartSource.SelectedItem = "Bluetooth"; bluetoothStatus.Text = "Quelle ausgewählt. Jetzt speichern und anschließend VR Fitness starten."; }));
+        controls.Children.Add(ActionButton("Bluetooth als Pulsquelle auswählen", () => { HeartSource.SelectedItem = "Bluetooth"; bluetoothStatus.Text = "Quelle ausgewählt. Jetzt speichern und anschließend Heartrate starten."; }));
         heartCompatibility = new CheckBox { Content = "Alle neun VRCOSC-Pulsparameter an den Avatar senden", IsChecked = cfg.VrcOscParameters };
         heartSmooth = new CheckBox { Content = "Pulswert glätten", IsChecked = cfg.SmoothValue };
         heartAverageSmooth = new CheckBox { Content = "Mittelwert glätten", IsChecked = cfg.SmoothAverage };
@@ -68,7 +68,7 @@ public partial class MainWindow
         controls.Children.Add(new Expander { Header = "Avatar-Parameteradressen (VRCOSC-Standard)", Content = mapping, Margin = new Thickness(0,12,0,12) });
         panel.Children.Add(controls); launchEditors.Add(controls);
         panel.Children.Add(ActionButton("Einstellungen speichern", () => Save_Click(this, new RoutedEventArgs())));
-        panel.Children.Add(new TextBlock { Text = "Konfiguration ändern: erst unter Module ‚Alles stoppen‘. Danach speichern und VR Fitness starten. Bei aktivierter VRCOSC-Ausgabe ersetzt dieses Profil die einzelne HeartRate-Ausgabe unter OSCQuery. Beat wird aus dem Puls berechnet und ist kein zeitgenaues EKG-Signal. Bei fehlendem Signal werden Connected/Enabled und die Werte zurückgesetzt.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,12,0,0) });
+        panel.Children.Add(new TextBlock { Text = "Konfiguration ändern: erst unter Module ‚Alles stoppen‘. Danach speichern und Heartrate starten. VR Fitness und WindForce können den Sensor zusätzlich nutzen. Bei aktivierter VRCOSC-Ausgabe ersetzt dieses Profil die einzelne HeartRate-Ausgabe unter OSCQuery. Beat wird aus dem Puls berechnet und ist kein zeitgenaues EKG-Signal. Bei fehlendem Signal werden Connected/Enabled und die Werte zurückgesetzt.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,12,0,0) });
         Closing += (_, _) => heartScan?.Cancel();
         return new TabItem { Header = "Bluetooth-Puls", Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
     }

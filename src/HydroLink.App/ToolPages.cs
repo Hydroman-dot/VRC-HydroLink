@@ -111,7 +111,7 @@ public partial class MainWindow
         var panel = Page("Einstellungen", "Fitness-Aufzeichnung, Datenordner, Profil und Modul-Anzeige.");
         panel.Children.Add(BuildFitnessOptions());
         panel.Children.Add(new TextBlock { Text = "Ausblenden, wenn nicht aktiv", FontSize = 19, Margin = new Thickness(0, 0, 0, 12) });
-        foreach (var (id, title) in new[] { ("fitness", "VR Fitness"), ("windforce", "WindForce"), ("osc", "OSC Hub"), ("haptics", "Haptics") })
+        foreach (var (id, title) in new[] { ("fitness", "VR Fitness"), ("heartrate", "Heartrate"), ("windforce", "WindForce"), ("osc", "OSC Hub"), ("haptics", "Haptics") })
         {
             var box = new CheckBox { Content = title, IsChecked = settings.HideInactiveModules?.Contains(id) == true, Margin = new Thickness(0, 6, 0, 6) };
             void SaveVisibility()
@@ -144,6 +144,7 @@ public partial class MainWindow
         BuildDiagnosticsPage();
         AddModulePage("fitness", "VR Fitness", "Eigene Live-Daten und Quellen. WindForce, OSC Hub und Haptics können unabhängig weiterlaufen.",
         [ ("Puls · bpm", "fitness/heart/bpm"), ("Geschwindigkeit · km/h", "fitness/speed-kmh"), ("Distanz gesamt · km", "fitness/distance-km"), ("Schritte gesamt", "fitness/steps"), ("Laufband-Zeit · h:mm:ss", "fitness/active-seconds"), ("Zielgeschwindigkeit · km/h", "fitness/target-speed-kmh"), ("Geschwindigkeitslimit · km/h", "fitness/speed-limit-kmh"), ("AutoWalk", "fitness/autowalk-speed"), ("Laufband verbunden", "fitness/connected"), ("Laufband läuft", "fitness/running"), ("Health Schritte heute", "companion/steps_today"), ("SpO₂ · %", "companion/spo2_pct"), ("Gewicht · kg", "companion/weight_kg") ]);
+        AddModulePage("heartrate", "Heartrate", "Puls und Avatar-Ausgabe unabhängig von VR Fitness. Sensor und Ausgabe unter Einstellungen → Bluetooth-Puls konfigurieren. Fitness und WindForce nutzen ihre Pulsquelle weiterhin gemeinsam.", [("Puls · bpm", "fitness/heart/bpm"), ("Bluetooth-Status", "bluetooth/status")]);
         AddModulePage("windforce", "WindForce", "Quellenwahl und Prioritäten direkt einstellen. Steuerung, Gerätewerte und Eingänge auf einer Seite.",
         [ ("Lüfterausgabe · %", "windforce/output-percent"), ("Aktive Quelle", "windforce/source"), ("Zielwert · %", "windforce/target-percent"), ("ESP32", "windforce/device/ip"), ("Fan 1 · %", "windforce/device/fan1"), ("Fan 2 · %", "windforce/device/fan2"), ("Fan 3 · %", "windforce/device/fan3"), ("Drehzahl · rpm", "windforce/device/rpm"), ("WLAN · dBm", "windforce/device/rssi"), ("PWM", "windforce/device/pwm"), ("Laufband · km/h", "windforce/input/speed"), ("Puls · bpm", "windforce/input/heart") ]);
         AddModulePage("osc", "OSC Hub", "OSCQuery findet den tatsächlichen OSC-Port. Die letzten Nachrichten erscheinen hier.", [("Letzte OSC-Nachricht", "hydrolink/osc-last"), ("Nachrichten", "hydrolink/osc-count")]);

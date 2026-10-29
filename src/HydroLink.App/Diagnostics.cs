@@ -28,7 +28,7 @@ public partial class MainWindow
             if (host.Haptics.Backend.Devices.Count == 0) return "Wartet auf Gerät · Toy mit Intiface verbinden";
             return "Bereit · Gerät verbunden; Ausgabe im Toy-Reiter prüfen";
         }
-        var prefix = id switch { "fitness" => "fitness/", "windforce" => "windforce/", _ => "osc/receive/" };
+        var prefix = id switch { "fitness" => "fitness/", "heartrate" => "fitness/heart/", "windforce" => "windforce/", _ => "osc/receive/" };
         var data = latest.Values.Where(x => x.Topic.StartsWith(prefix, StringComparison.Ordinal)).OrderByDescending(x => x.Timestamp).FirstOrDefault();
         if (data == null) return "Wartet auf Daten · bisher keine Werte empfangen";
         var age = DateTimeOffset.UtcNow - data.Timestamp;
@@ -38,7 +38,7 @@ public partial class MainWindow
     {
         var panel = Page("Diagnose", "Modulzustand, Verbindungen und Datenalter an einer Stelle. Bereit bedeutet nicht, dass ein Gerät eine Bewegung bestätigt hat.");
         var actions = new WrapPanel();
-        foreach (var (id, label) in new[] { ("fitness", "Fitness neu starten"), ("windforce", "WindForce neu starten"), ("osc", "OSC neu starten"), ("haptics", "Haptics neu starten") })
+        foreach (var (id, label) in new[] { ("fitness", "Fitness neu starten"), ("heartrate", "Heartrate neu starten"), ("windforce", "WindForce neu starten"), ("osc", "OSC neu starten"), ("haptics", "Haptics neu starten") })
         {
             var button = new Button { Content = label, Tag = id }; button.Click += RestartModule_Click; actions.Children.Add(button);
         }
@@ -59,8 +59,8 @@ public partial class MainWindow
     }
     private string DiagnosisReport()
     {
-        var report = new StringBuilder("HydroLink 0.16.1 · " + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz") + "\n\n");
-        foreach (var (id, title) in new[] { ("fitness", "VR Fitness"), ("windforce", "WindForce"), ("osc", "OSC Hub"), ("haptics", "Haptics") }) report.AppendLine(title + ": " + ModuleDiagnosis(id));
+        var report = new StringBuilder("HydroLink 0.16.2 · " + DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss zzz") + "\n\n");
+        foreach (var (id, title) in new[] { ("fitness", "VR Fitness"), ("heartrate", "Heartrate"), ("windforce", "WindForce"), ("osc", "OSC Hub"), ("haptics", "Haptics") }) report.AppendLine(title + ": " + ModuleDiagnosis(id));
         report.AppendLine("\nHintergrunddienste:");
         if (host == null || host.Running.Count == 0) report.AppendLine("Keine Dienste angefordert.");
         else foreach (var service in host.ServiceDiagnostics) report.AppendLine(service.Id + ": " + service.State + " · " + service.Detail);

@@ -1,4 +1,4 @@
-# HydroLink Praxistestliste — 0.16.1
+# HydroLink Praxistestliste — 0.16.2
 
 Je Test Datum, App-Version, Avatar/Gerät, Ergebnis (bestanden/fehlgeschlagen/offen) und Fehlerbeschreibung notieren. Automatisierte Tests ersetzen die folgenden realen Geräteprüfungen nicht. Vor jedem Toy-Test niedrige Stärke wählen und Stop erreichbar halten.
 
@@ -71,3 +71,9 @@ Je Test Datum, App-Version, Avatar/Gerät, Ergebnis (bestanden/fehlgeschlagen/of
 - [ ] 30–60 Minuten realer Betrieb: keine stetig wachsende Speichernutzung, keine Aussetzer, keine mehrfachen CSV-Sessions oder Hintergrundprozesse nach Beenden.
 
 Noch offen außerhalb des Praxistests: Hauptlizenz wählen, Icon-Herkunft dokumentieren und Windows-SDK-Weiterverteilung abschließend prüfen; siehe LICENSE-AUDIT.md.
+
+## Heartrate als eigenes Modul
+- [ ] Heartrate ohne Fitness starten: Puls und Avatar-Parameter kommen an; keine Fitness-Aufzeichnung wird gestartet.
+- [ ] Fitness starten und stoppen: Heartrate bleibt aktiv.
+- [ ] Heartrate stoppen: Avatar-Ausgabe wird zurückgesetzt; aktive Fitness/WindForce behalten ihren Sensor.
+- [ ] Heartrate neu starten und zuletzt alle Verbraucher stoppen: Sensor wird erst beim letzten Verbraucher freigegeben.

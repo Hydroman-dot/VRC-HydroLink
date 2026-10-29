@@ -31,9 +31,10 @@ public sealed class HydroHost : IAsyncDisposable
     public static IReadOnlyList<string> RequiredSources(Settings s)
     {
         var result = new HashSet<string>();
-        if (s.OscHub || s.Haptics || s.WindForce || (s.Fitness && (s.SendHeartToOsc || s.Heartrate.VrcOscParameters))) result.Add("osc");
+        if (s.OscHub || s.Haptics || s.WindForce || (s.HeartRate && (s.SendHeartToOsc || s.Heartrate.VrcOscParameters))) result.Add("osc");
         void Add(string id) { if (id != "None") result.Add(id); }
-        if (s.Fitness && s.Heartrate.VrcOscParameters) result.Add("heartrate-output");
+        if (s.HeartRate) Add(s.HeartSource);
+        if (s.HeartRate && s.Heartrate.VrcOscParameters) result.Add("heartrate-output");
         if (s.Fitness) { Add(s.MovementSource); Add(s.HeartSource); if (s.Companion) result.Add("companion"); if (s.HomeAssistant.Enabled) result.Add("home-assistant"); }
         if (s.WindForce) { Add(s.WindMovementSource); Add(s.WindHeartSource); result.Add("windforce"); }
         if (s.Haptics) result.Add("intiface");
@@ -44,13 +45,14 @@ public sealed class HydroHost : IAsyncDisposable
         : (pair.Key, "Status unbekannt", "Plugin meldet keinen Dienstzustand")).ToArray();
     public string[] ModuleSources(string id) => id switch
     {
-        "fitness" => new[] { settings.MovementSource, settings.HeartSource }.Concat(settings.Companion ? new[] { "companion" } : []).Concat(settings.HomeAssistant.Enabled ? new[] { "home-assistant" } : []).Concat(settings.SendHeartToOsc || settings.Heartrate.VrcOscParameters ? new[] { "osc" } : []).Concat(settings.Heartrate.VrcOscParameters ? new[] { "heartrate-output" } : []).Where(x => x != "None").Distinct().ToArray(),
+        "fitness" => new[] { settings.MovementSource, settings.HeartSource }.Concat(settings.Companion ? new[] { "companion" } : []).Concat(settings.HomeAssistant.Enabled ? new[] { "home-assistant" } : []).Where(x => x != "None").Distinct().ToArray(),
+        "heartrate" => new[] { settings.HeartSource }.Concat(settings.SendHeartToOsc || settings.Heartrate.VrcOscParameters ? new[] { "osc" } : []).Concat(settings.Heartrate.VrcOscParameters ? new[] { "heartrate-output" } : []).Where(x => x != "None").Distinct().ToArray(),
         "windforce" => new[] { "windforce", "osc", settings.WindMovementSource, settings.WindHeartSource }.Where(x => x != "None").Distinct().ToArray(),
         "haptics" => ["intiface", "osc"], "osc" => ["osc"], _ => []
     };
     public async Task StartAsync()
     {
-        foreach (var (id, enabled) in new[] { ("fitness", settings.Fitness), ("windforce", settings.WindForce), ("osc", settings.OscHub), ("haptics", settings.Haptics) })
+        foreach (var (id, enabled) in new[] { ("fitness", settings.Fitness), ("heartrate", settings.HeartRate), ("windforce", settings.WindForce), ("osc", settings.OscHub), ("haptics", settings.Haptics) })
             if (enabled) await SetModuleAsync(id, true);
         await StartPluginsAsync();
     }
@@ -68,7 +70,7 @@ public sealed class HydroHost : IAsyncDisposable
     }
     public async Task SetModuleAsync(string id, bool enabled)
     {
-        if (id is not ("fitness" or "windforce" or "osc" or "haptics")) throw new ArgumentException("Unknown module");
+        if (id is not ("fitness" or "heartrate" or "windforce" or "osc" or "haptics")) throw new ArgumentException("Unknown module");
         await transition.WaitAsync();
         try { await SetModuleCoreAsync(id, enabled); }
         finally { transition.Release(); }
@@ -78,7 +80,7 @@ public sealed class HydroHost : IAsyncDisposable
             var desired = new HashSet<string>(modules);
             if (enabled) desired.Add(id); else desired.Remove(id);
             var selection = JsonSerializer.Deserialize<Settings>(JsonSerializer.Serialize(settings))!;
-            selection.Fitness = desired.Contains("fitness"); selection.WindForce = desired.Contains("windforce"); selection.OscHub = desired.Contains("osc"); selection.Haptics = desired.Contains("haptics");
+            selection.Fitness = desired.Contains("fitness"); selection.HeartRate = desired.Contains("heartrate"); selection.WindForce = desired.Contains("windforce"); selection.OscHub = desired.Contains("osc"); selection.Haptics = desired.Contains("haptics");
             var required = RequiredSources(selection).ToHashSet();
             var additions = new List<IComponent>();
             try
@@ -93,20 +95,20 @@ public sealed class HydroHost : IAsyncDisposable
             }
             catch { foreach (var component in additions.AsEnumerable().Reverse()) await component.DisposeAsync(); throw; }
             foreach (var component in additions) running.Add(component.Id, component);
-            if (!selection.Fitness) { heartOutput?.Dispose(); heartOutput = null; }
+            if (!selection.HeartRate) { heartOutput?.Dispose(); heartOutput = null; }
             foreach (var key in running.Keys.Where(k => !required.Contains(k) && !(Plugins?.Components.Any(p => p.Id == k) ?? false)).Reverse().ToArray())
             {
                 try { await running[key].DisposeAsync(); } catch (Exception ex) { log(key + " Stop: " + ex.Message); }
                 running.Remove(key);
             }
-            if (selection.Fitness && settings.SendHeartToOsc && !settings.Heartrate.VrcOscParameters && heartOutput is null)
+            if (selection.HeartRate && settings.SendHeartToOsc && !settings.Heartrate.VrcOscParameters && heartOutput is null)
                 heartOutput = Bus.Subscribe("fitness/heart/bpm", e => Bus.Publish("osc/send", new { address = settings.HeartOscAddress, arguments = new[] { (int)e.Value.GetDouble() } }, "fitness"));
             modules.Clear(); modules.UnionWith(desired);
             log(id + (enabled ? " gestartet" : " gestoppt"));
     }
     public async Task RestartModuleAsync(string id)
     {
-        if (id is not ("fitness" or "windforce" or "osc" or "haptics")) throw new ArgumentException("Unknown module");
+        if (id is not ("fitness" or "heartrate" or "windforce" or "osc" or "haptics")) throw new ArgumentException("Unknown module");
         await transition.WaitAsync();
         try
         {

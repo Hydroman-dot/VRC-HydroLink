@@ -36,7 +36,7 @@ internal static class HeartrateChecks
         check(first > 0 && second > first && second < 100, "value smoothing converges instead of jumping");
         cfg.Parameters["Beat"] = cfg.Address("Value"); bool duplicate = false; try { cfg.Validate(); } catch (ArgumentException) { duplicate = true; }
         check(duplicate, "conflicting avatar parameter addresses rejected");
-        var settings = new Settings { Fitness = true, HeartSource = "Bluetooth", Heartrate = new() { VrcOscParameters = true, SmoothValue = false, SmoothAverage = false } };
+        var settings = new Settings { HeartRate = true, HeartSource = "Bluetooth", Heartrate = new() { VrcOscParameters = true, SmoothValue = false, SmoothAverage = false } };
         check(HydroHost.RequiredSources(settings).Contains("Bluetooth") && HydroHost.RequiredSources(settings).Contains("heartrate-output") && HydroHost.RequiredSources(settings).Contains("osc"), "Bluetooth source and compatibility output dependencies selected");
         var bus = new DataBus(); var packets = new System.Collections.Concurrent.ConcurrentQueue<JsonElement>();
         using var sub = bus.Subscribe("osc/send", e => packets.Enqueue(e.Value));

@@ -165,6 +165,29 @@ Check(roundtrip.Dashboard.Single().Topic == "custom/data" && roundtrip.Programs.
 double isolated = 0; using var isolatedSub = bus.Subscribe("sources/Pulsoid/heart/bpm", e => isolated = e.Value.GetDouble());
 var previousBpm = bpm; Telemetry.Parse("Pulsoid", "{\"data\":{\"heart_rate\":123}}", bus, false);
 Check(isolated == 123 && bpm == previousBpm, "independent tool source does not overwrite Fitness data");
+var pulseComponents = new Dictionary<string, FakeComponent>();
+var pulseSettings = new Settings { HeartSource = "Bluetooth", MovementSource = "None", WindHeartSource = "Bluetooth", WindMovementSource = "None", Heartrate = new() { VrcOscParameters = true } };
+await using (var pulseHost = new HydroHost(pulseSettings, _ => {}, new FakeLauncher(), id => pulseComponents[id] = new FakeComponent(id)))
+{
+    await pulseHost.SetModuleAsync("heartrate", true);
+    var sensor = pulseComponents["Bluetooth"]; var pulseOutput = pulseComponents["heartrate-output"];
+    Check(pulseHost.ActiveModules.SetEquals(new[] { "heartrate" }) && pulseHost.Running.Contains("osc") && !pulseHost.Running.Contains("VRTI"), "Heartrate alone starts sensor and avatar output without Fitness");
+    await pulseHost.SetModuleAsync("fitness", true);
+    await pulseHost.SetModuleAsync("fitness", false);
+    Check(sensor.Stops == 0 && pulseOutput.Stops == 0, "stopping Fitness preserves Heartrate sensor and avatar output");
+    await pulseHost.SetModuleAsync("fitness", true);
+    await pulseHost.SetModuleAsync("windforce", true);
+    await pulseHost.SetModuleAsync("heartrate", false);
+    Check(sensor.Stops == 0 && pulseOutput.Stops == 1 && !pulseHost.Running.Contains("heartrate-output"), "stopping Heartrate stops avatar output but preserves shared sensor");
+    await pulseHost.RestartModuleAsync("heartrate");
+    Check(ReferenceEquals(sensor, pulseComponents["Bluetooth"]) && pulseHost.Running.Contains("heartrate-output"), "Heartrate restart reuses Fitness and WindForce sensor");
+    await pulseHost.SetModuleAsync("heartrate", false);
+    await pulseHost.SetModuleAsync("fitness", false);
+    Check(sensor.Stops == 0, "WindForce keeps pulse sensor after other consumers stop");
+    await pulseHost.SetModuleAsync("windforce", false);
+    Check(sensor.Stops == 1 && pulseHost.Running.Count == 0, "last pulse consumer releases sensor and shared OSC");
+}
+Check(!HydroHost.RequiredSources(new() { Fitness = true, HeartSource = "Bluetooth", MovementSource = "None", Heartrate = new() { VrcOscParameters = true } }).Contains("heartrate-output"), "Fitness alone no longer enables avatar pulse output");
 var sessionFolder = Path.Combine(Path.GetTempPath(), "HydroLink-test-" + Guid.NewGuid().ToString("N"));
 await using (var recording = new FitnessSession(bus, sessionFolder))
 {

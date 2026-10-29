@@ -27,7 +27,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent(); DataContext = this;
         try { settings = Settings.Load(warning: Log); } catch (Exception ex) { settings = new(); Log("Einstellungen konnten nicht geladen werden: " + ex.Message); }
-        Fitness.IsChecked = settings.Fitness; Wind.IsChecked = settings.WindForce; Osc.IsChecked = settings.OscHub; Haptics.IsChecked = settings.Haptics;
+        Fitness.IsChecked = settings.Fitness; HeartRateModule.IsChecked = settings.HeartRate; Wind.IsChecked = settings.WindForce; Osc.IsChecked = settings.OscHub; Haptics.IsChecked = settings.Haptics;
         WindMovementSource.SelectedItem = settings.WindMovementSource; WindHeartSource.SelectedItem = settings.WindHeartSource;
         MovementSource.SelectedItem = settings.MovementSource; HeartSource.SelectedItem = settings.HeartSource;
         VrtiUrl.Text = settings.VrtiUrl; VrtiMilliseconds.IsChecked = settings.VrtiTimeMilliseconds; FitUrl.Text = settings.FitOscUrl; HeartUrl.Text = settings.HeartUrl;
@@ -96,7 +96,7 @@ public partial class MainWindow : Window
         if (!WindAddress.Text.StartsWith('/') || !HeartAddress.Text.StartsWith('/')) throw new InvalidOperationException("OSC-Adressen müssen mit / beginnen.");
         return new Settings
         {
-            Fitness = Fitness.IsChecked == true, WindForce = Wind.IsChecked == true, OscHub = Osc.IsChecked == true, Haptics = Haptics.IsChecked == true,
+            Fitness = Fitness.IsChecked == true, HeartRate = HeartRateModule.IsChecked == true, WindForce = Wind.IsChecked == true, OscHub = Osc.IsChecked == true, Haptics = Haptics.IsChecked == true,
             MovementSource = (string?)MovementSource.SelectedItem ?? "None", HeartSource = (string?)HeartSource.SelectedItem ?? "None",
             VrtiUrl = Url(VrtiUrl.Text, "ws", "wss"), VrtiTimeMilliseconds = VrtiMilliseconds.IsChecked == true, FitOscUrl = Url(FitUrl.Text, "ws", "wss"), HeartUrl = Url(HeartUrl.Text, "ws", "wss"),
             PulsoidToken = PulsoidToken.Password, HypeRateId = HypeId.Text.Trim(), HypeRateKey = HypeKey.Password,
@@ -122,7 +122,7 @@ public partial class MainWindow : Window
         try
         {
             await EnsureHost();
-            foreach (var (id, enabled) in new[] { ("fitness", Fitness.IsChecked == true), ("windforce", Wind.IsChecked == true), ("osc", Osc.IsChecked == true), ("haptics", Haptics.IsChecked == true) })
+            foreach (var (id, enabled) in new[] { ("fitness", Fitness.IsChecked == true), ("heartrate", HeartRateModule.IsChecked == true), ("windforce", Wind.IsChecked == true), ("osc", Osc.IsChecked == true), ("haptics", Haptics.IsChecked == true) })
                 if (enabled)
                     try { await host!.SetModuleAsync(id, true); if (id == "windforce") applyWindControls?.Invoke(); } catch (Exception ex) { Log(id + ": " + ex.Message); }
             RefreshToolPages();

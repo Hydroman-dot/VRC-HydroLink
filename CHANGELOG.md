@@ -1,3 +1,9 @@
+# 0.16.2
+
+- Eigenes Heartrate-Modul: Sensor und Avatar-Puls unabhängig von VR Fitness starten, stoppen und neu starten.
+- Fitness und WindForce behalten gemeinsam benötigte Pulsquellen; Avatar-Ausgabe gehört ausschließlich zu Heartrate.
+- Sieben Regressionstests für unabhängige Modulstarts und geteilte Sensoren.
+
 ## 0.14.5
 
 ## 0.16.1 — 2026-10-29

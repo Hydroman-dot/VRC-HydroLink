@@ -6,9 +6,9 @@ HydroLink 0.16.0 enthält eine vorbereitete direkte BLE-Pulsquelle für Windows 
 
 1. H9Z tragen, Windows-Bluetooth einschalten. Für den ersten Test VRCOSC/Bluetooth-Heartrate und andere Sensor-Verbindungen beenden.
 2. **Einstellungen → Bluetooth-Puls → Pulssensoren suchen**. Nach acht Sekunden den eigenen H9Z auswählen. Geräte werden nicht automatisch verbunden.
-3. **Bluetooth als Fitness-Pulsquelle auswählen**. Bei WindForce gegebenenfalls ebenfalls Bluetooth als Pulsquelle wählen, damit VRCOSC nicht wegen dieser Quelle weiter benötigt wird.
+3. **Bluetooth als Pulsquelle auswählen**. Bei WindForce gegebenenfalls ebenfalls Bluetooth als Pulsquelle wählen, damit VRCOSC nicht wegen dieser Quelle weiter benötigt wird.
 4. **Alle neun VRCOSC-Pulsparameter an den Avatar senden** aktivieren, wenn das Avatar-Prefab verwendet wird. Die Adressen können im aufklappbaren Abschnitt angepasst werden.
-5. Speichern, dann **VR Fitness → Tool starten**. OSC in VRChat einschalten. Das vorhandene Heartrate-Prefab benötigt die unten genannten Parameter mit passenden Typen. Ein automatischer Unity-Import ist nicht Teil dieses Windows-Updates.
+5. Speichern, dann **Heartrate → Tool starten**. OSC in VRChat einschalten. Das vorhandene Heartrate-Prefab benötigt die unten genannten Parameter mit passenden Typen. Ein automatischer Unity-Import ist nicht Teil dieses Windows-Updates.
 
 Zum Ändern einer laufenden Konfiguration zuerst **Module → Alles stoppen**. Mit aktivem VRCOSC-Profil ersetzt dessen Ausgabe die einzelne HeartRate-Ausgabe aus OSCQuery. Für andere Pulsquellen (Pulsoid/HypeRate/VRCOSC-WebSocket) kann dasselbe Profil ebenfalls genutzt werden.
 
@@ -45,3 +45,6 @@ Automatisiert geprüft: 8-/16-Bit-Bluetoothdaten, optionale Kontakt-/Energie-/RR
 Protokollabgleich: [VRCOSC HeartrateModule, Version 2026.807.0](https://github.com/VolcanicArts/VRCOSC/blob/2026.807.0/VRCOSC.App/SDK/Modules/Heartrate/HeartrateModule.cs). Eigene Implementierung; kein kopierter VRCOSC- oder Bluetooth-Heartrate-Modulcode und keine mitgelieferten Drittanbieter-Prefabs.
 
 [Coospo H9Z](https://www.coospo.com/products/h9z-chest-heart-rate-monitor) · [Microsoft GATT-Client](https://learn.microsoft.com/en-us/windows/apps/develop/devices-sensors/gatt-client)
+
+## Eigenes Modul ab 0.16.2
+Heartrate startet Sensor und Avatar-Ausgabe ohne VR Fitness oder Session-Aufzeichnung. Unter Module kann Heartrate für „Auswahl starten“ separat ausgewählt werden. Nach dem Update einmal einschalten. Fitness und WindForce beziehen ihren Puls weiterhin unabhängig; gemeinsam benötigte Sensoren bleiben beim Stoppen eines Moduls verbunden. Home Assistant und Session-Aufzeichnung bleiben Teil von VR Fitness.
