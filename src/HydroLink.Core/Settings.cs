@@ -23,6 +23,7 @@ public sealed class Settings
     public int WindPort { get; set; } = 4210;
     public string WindOscAddress { get; set; } = "/avatar/parameters/WindForce";
     public string IntifaceUrl { get; set; } = "ws://127.0.0.1:12345";
+    public HomeAssistantOptions HomeAssistant { get; set; } = new();
     public bool Companion { get; set; }
     public string CompanionUrl { get; set; } = "http://127.0.0.1:38491";
     public string CompanionCode { get; set; } = "";
@@ -61,6 +62,7 @@ public sealed class Settings
         settings.PulsoidToken = Unprotect(settings.PulsoidToken);
         settings.HypeRateKey = Unprotect(settings.HypeRateKey);
         settings.CompanionCode = Unprotect(settings.CompanionCode);
+        settings.HomeAssistant.Password = Unprotect(settings.HomeAssistant.Password);
         return settings;
     }
     private static string Protect(string value)
@@ -83,7 +85,7 @@ public sealed class Settings
         {
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
             var copy = JsonSerializer.Deserialize<Settings>(JsonSerializer.Serialize(this))!;
-            copy.PulsoidToken = Protect(PulsoidToken); copy.HypeRateKey = Protect(HypeRateKey); copy.CompanionCode = Protect(CompanionCode);
+            copy.PulsoidToken = Protect(PulsoidToken); copy.HypeRateKey = Protect(HypeRateKey); copy.CompanionCode = Protect(CompanionCode); copy.HomeAssistant.Password = Protect(HomeAssistant.Password);
             var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
             try
             {

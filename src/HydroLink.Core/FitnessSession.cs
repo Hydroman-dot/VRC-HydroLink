@@ -14,6 +14,26 @@ public sealed class FitnessSession(IDataBus bus, string directory, Settings? con
     private IDisposable? subscription;
     private double? baselineDistance, baselineSteps;
     private double? lastCleanHeart;
+    private HomeAssistantOutbox? mqttOutbox;
+    private string mqttSessionId = "";
+    private DateTimeOffset mqttLast;
+    private bool mqttStarted;
+    private void QueueMqtt(string kind, DateTimeOffset timestamp)
+    {
+        if (mqttOutbox == null) return;
+        try
+        {
+            if (!mqttStarted)
+            {
+                mqttOutbox.Append(mqttSessionId, "start", new(0, 0, 0, 0, 0, null), Started);
+                mqttStarted = true;
+            }
+            if (kind != "start") mqttOutbox.Append(mqttSessionId, kind, new(Steps, Distance, Calories ?? 0, Math.Max(0, Number("speed-kmh") ?? 0), Math.Max(0, (timestamp - Started).TotalSeconds), Number("heart/bpm")), timestamp);
+            bus.Publish("home-assistant/queue-error", "", "fitness-session");
+        }
+        catch (Exception ex) { bus.Publish("home-assistant/queue-error", "MQTT-Puffer konnte nicht geschrieben werden: " + ex.Message + " · CSV-Aufzeichnung läuft unabhängig weiter.", "fitness-session"); }
+        mqttLast = timestamp;
+    }
     public string? CsvPath { get; private set; }
     public string Name { get; private set; } = "";
     public DateTimeOffset Started { get; private set; }
@@ -37,6 +57,9 @@ public sealed class FitnessSession(IDataBus bus, string directory, Settings? con
         // Open synchronously so permissions and disk errors reach the Start caller.
         var file = new StreamWriter(new FileStream(CsvPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read), new UTF8Encoding(true));
         stop = new(); subscription = bus.Subscribe("", e => { if (e.Topic.StartsWith("fitness/") || (e.Topic.StartsWith("provider/") && e.Topic.EndsWith("/status"))) values[e.Topic] = e; });
+        mqttOutbox = config?.HomeAssistant.Enabled == true ? HomeAssistantOutbox.For(config) : null;
+        mqttStarted = false;
+        mqttSessionId = "hydrolink-" + Path.GetFileNameWithoutExtension(CsvPath);
         writer = Task.Run(async () =>
         {
             try { await Record(file, stop.Token); }
@@ -56,6 +79,7 @@ public sealed class FitnessSession(IDataBus bus, string directory, Settings? con
     private async Task Record(StreamWriter output, CancellationToken token)
     {
         using var file = output;
+        QueueMqtt("start", Started);
         await file.WriteLineAsync("timestamp;session_name;session_elapsed_s;pulse_source;movement_source;bpm;clean_bpm;bpm_anomaly;pulse_valid;pulse_age_s;pulse_zone;pulse_ws_connected;vrti_connected;treadmill_connected;treadmill_running;current_speed_kmh;clean_speed_kmh;speed_anomaly;target_speed_kmh;speed_limit_kmh;steps_total;distance_total_km;active_time_total_s;session_steps;session_distance_km;session_active_s;auto_walk_speed");
         var previous = DateTimeOffset.UtcNow;
         try
@@ -83,6 +107,7 @@ public sealed class FitnessSession(IDataBus bus, string directory, Settings? con
                 await file.FlushAsync();
                 bus.Publish("session/distance-km", Distance, "fitness-session"); bus.Publish("session/steps", Steps, "fitness-session"); bus.Publish("session/active-seconds", ActiveSeconds, "fitness-session"); bus.Publish("session/elapsed-seconds", elapsed, "fitness-session"); bus.Publish("session/heart-quality", 100d * ValidHeartSamples / Samples, "fitness-session");
                 if (Calories.HasValue) bus.Publish("session/calories-estimate", Calories.Value, "fitness-session");
+                if (now - mqttLast >= TimeSpan.FromSeconds(15)) QueueMqtt("update", now);
                 await Task.Delay(1000, token);
             }
         }
@@ -98,6 +123,7 @@ public sealed class FitnessSession(IDataBus bus, string directory, Settings? con
         summary["note"] = note; summary["active_calories_kcal"] = Calories;
         summary["calorie_estimate_method"] = Calories.HasValue ? "Keytel 2005 – Schätzung" : null;
         await File.WriteAllTextAsync(Path.ChangeExtension(CsvPath!, ".json"), JsonSerializer.Serialize(summary, new JsonSerializerOptions { WriteIndented = true }));
+        QueueMqtt("end", DateTimeOffset.UtcNow);
         if (config?.Companion == true) await HealthSync.QueueAsync(CsvPath!, config, Calories, note);
     }
     public async ValueTask DisposeAsync() => await StopAsync();

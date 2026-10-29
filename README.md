@@ -2,13 +2,13 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.14.5 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.15.0 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
 HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-Stand 29. Oktober 2026: [Windows-Version 0.14.5](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.14.5) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
+Stand 29. Oktober 2026: [Windows-Version 0.15.0](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.15.0) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
 
 ## KI-Hinweis / AI disclosure
 
@@ -51,7 +51,7 @@ Das portable ZIP entpacken und `VRC HydroLink.exe` öffnen. Windows x64; keine s
 
 ### Programme automatisch starten
 
-Unter **Programme** für VRTI, FitOSC, VRCOSC oder Intiface eine EXE auswählen, bei Bedarf Argumente eintragen und „Bei Bedarf automatisch starten“ aktivieren. VRTI kann auch über seine Steam-URI starten. Danach speichern. HydroLink startet das Programm erst, wenn eine aktivierte Quelle es benötigt. Bereits laufende EXEs werden über ihren Pfad erkannt; ein Steam-Start wird pro HydroLink-Lauf nur einmal angefordert. Externe Programme werden beim Stoppen eines Tools nicht beendet.
+Unter **Einstellungen → Programme** für VRTI, FitOSC, VRCOSC oder Intiface eine EXE auswählen, bei Bedarf Argumente eintragen und „Bei Bedarf automatisch starten“ aktivieren. VRTI kann auch über seine Steam-URI starten. Danach speichern. HydroLink startet das Programm erst, wenn eine aktivierte Quelle es benötigt. Bereits laufende EXEs werden über ihren Pfad erkannt; ein Steam-Start wird pro HydroLink-Lauf nur einmal angefordert. Externe Programme werden beim Stoppen eines Tools nicht beendet.
 
 Optional „Ausgewählte Module mit HydroLink starten“ aktivieren; die Auswahl erfolgt auf **Module**. Das ist kein Windows-/SteamVR-Autostarteintrag.
 
@@ -79,7 +79,7 @@ Bei aktiviertem Companion werden beendete Sessions im Datenordner unter `health-
 
 OSC in VRChat einschalten. HydroLink sucht `_oscjson._tcp` über mDNS und liest `OSC_IP`/`OSC_PORT` aus `?HOST_INFO`. Der HTTP-Port wird nicht als UDP-Port verwendet. Es gibt keinen stillen Rückfall auf 9000. Ohne gefundenes Ziel pausiert die Ausgabe. Manuelle Ziele sind ausdrücklich auswählbar.
 
-Seit 0.14.5 lässt HydroLink UDP 9001 für VRCOSC frei und reserviert immer einen eigenen freien lokalen UDP-Empfangsport und veröffentlicht ihn mit seiner OSCQuery-Schnittstelle. VRChat kann es neben anderen OSC-Anwendungen finden. Das aktuelle Ziel wird regelmäßig geprüft. Die Firewall muss mDNS/OSCQuery zulassen. Diese Vorschau richtet sich an VRChat auf demselben Windows-PC.
+Seit 0.15.0 lässt HydroLink UDP 9001 für VRCOSC frei und reserviert immer einen eigenen freien lokalen UDP-Empfangsport und veröffentlicht ihn mit seiner OSCQuery-Schnittstelle. VRChat kann es neben anderen OSC-Anwendungen finden. Das aktuelle Ziel wird regelmäßig geprüft. Die Firewall muss mDNS/OSCQuery zulassen. Diese Vorschau richtet sich an VRChat auf demselben Windows-PC.
 
 ## Voreinstellungen und Daten
 
@@ -89,7 +89,7 @@ Einstellungen liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Sessions werden im un
 
 ## Prüfstand
 
-Für Windows 0.14.5 sind 238 automatisierte App-Prüfungen, 10 Updater-Prüfungen und der GitHub-Windows-Build bestanden. Alle acht Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
+Für Windows 0.15.0 sind 247 automatisierte App-Prüfungen, 14 separate MQTT-Prüfungen und 10 Updater-Prüfungen lokal bestanden. Alle acht Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
 
 ## Dokumentation
 
@@ -109,3 +109,9 @@ Solace Pro besitzt einen eigenen App-Reiter und ein Unity-Prefab: [Funktionsumfa
 ## Updates
 
 Seit 0.14.1 prüft HydroLink beim Start auf eine neue öffentliche Version und fragt vor der Installation nach Zustimmung. Der portable Windows-Updater prüft die SHA256-Prüfsumme und pflegt eine einzelne Desktop-Verknüpfung; 0.14.2 korrigiert deren Erstellung auf OneDrive-Desktops. Er aktualisiert keine Unity-Projekte. Einrichtung und Rückkehr zur vorherigen Version: [Updater-Anleitung](docs/UPDATER.md). Release-Entwürfe sind noch nicht öffentlich verfügbar.
+
+### Oberfläche und Home Assistant (0.15.0)
+
+Verbindungen, OSCQuery, Programme und Plugins sind Unterreiter in **Einstellungen**. Allgemein & Fitness enthält Aufzeichnung, Profil, Datenordner und Modul-Anzeige. Dashboard und Fitness-/Session-Karten zeigen Zeitwerte als **h:mm:ss**, auch über 24 Stunden. Rohdaten und CSV bleiben in Sekunden; ungewöhnlich hohe Quellzähler werden nicht ohne gesicherte Einheit umgerechnet.
+
+**Einstellungen → Home Assistant**: MQTT mit automatischen Live-Sensoren, Wiederverbindung und dauerhaftem Session-Sendepuffer mit Empfangsbestätigung. Die VR-Fitness-v1-Session-Schnittstelle wird verwendet; deren Empfänger muss in Home Assistant vorhanden sein. [Einrichtung und Protokoll](docs/HOME-ASSISTANT.md). Standardmäßig aus; mit lokalem Test-Broker geprüft, echter HA-Praxistest steht aus.

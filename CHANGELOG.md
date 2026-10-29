@@ -1,5 +1,12 @@
 ## 0.14.5
 
+## 0.15.0 — 2026-10-29
+- Dashboard- und Fitness-/Session-Zeiten einheitlich als h:mm:ss ohne Stundenumbruch.
+- Verbindungen, OSCQuery, Programme und Plugins als Unterreiter in Einstellungen.
+- Home-Assistant-MQTT: Live-Discovery, Windows-geschütztes Passwort, Session-Puffer mit v1-Bestätigung, automatische Wiederverbindung und Wiederherstellung nach Abbruch.
+- Alte VR-Fitness-SQLite-Warteschlange bleibt unverändert; echter HA-Praxistest steht aus.
+
+
 - Eigener dynamischer OSC-Empfangsport statt UDP 9001: VRCOSC kann auch nach HydroLink starten. OSCQuery meldet den tatsächlichen Empfangsport.
 
 ## 0.14.4

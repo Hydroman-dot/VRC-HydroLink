@@ -8,6 +8,7 @@ using VRC.OSCQuery;
 
 int checks = 0;
 void Check(bool condition, string name) { if (!condition) throw new Exception("FAIL: " + name); Console.WriteLine("PASS: " + name); checks++; }
+if (args.Contains("--mqtt-only")) { await HomeAssistantChecks.Run(Check); Console.WriteLine($"FINAL: {checks} MQTT checks passed."); return; }
 if (args.Contains("--battery-only")) { await BatteryChecks.Run(Check); Console.WriteLine($"FINAL: {checks} battery checks passed."); return; }
 foreach (var (tag, draft, pre, expected) in new[] { ("v0.14.2", false, false, "0.14.2"), ("v0.14.1", false, false, (string?)null), ("v0.13.0", false, false, (string?)null), ("v0.15.0", true, false, (string?)null), ("v0.15.0", false, true, (string?)null), ("v0.15.0-beta", false, false, (string?)null) }) {
     var name = "VRC-HydroLink-" + tag[1..] + "-win-x64.zip";
@@ -27,6 +28,8 @@ using (var anotherReceiver = OscBridge.OpenReceiver())
     var incoming = await ownReceiver.ReceiveAsync(deadline.Token);
     Check(OscCodec.Decode(incoming.Buffer).Single().Address == "/coexistence", "dynamically allocated HydroLink port receives OSC packets");
 }
+foreach (var (seconds, expected) in new[] { (0d, "0:00:00"), (59d, "0:00:59"), (60d, "0:01:00"), (3661.9, "1:01:01"), (90061d, "25:01:01"), (730364761d, "202879:06:01"), (-1d, "—"), (double.NaN, "—"), (double.PositiveInfinity, "—") })
+    Check(DurationDisplay.Format(seconds) == expected, "duration clock " + seconds);
 var bus = new DataBus(); int count = 0;
 using (bus.Subscribe("fitness", _ => count++)) { bus.Publish("fitness/bpm", 80, "test"); bus.Publish("fitnessExtra", 1, "test"); }
 bus.Publish("fitness/bpm", 81, "test"); Check(count == 1, "topic segment matching and unsubscribe");

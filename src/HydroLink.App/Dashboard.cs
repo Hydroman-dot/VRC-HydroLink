@@ -53,7 +53,7 @@ public partial class MainWindow
             var panel = new StackPanel();
             var title = new TextBlock { Text = card.Title, Foreground = Color("#AAC3D9"), FontSize = 15 };
             panel.Children.Add(title);
-            var value = new TextBlock { Text = "— " + card.Unit, FontSize = card.Kind == "Text" ? 15 : 30, Margin = new Thickness(0, 16, 0, 8), MaxHeight = 100 };
+            var value = new TextBlock { Text = DurationDisplay.IsDuration(card.Topic) ? "—" : "— " + card.Unit, FontSize = card.Kind == "Text" ? 15 : 30, Margin = new Thickness(0, 16, 0, 8), MaxHeight = 100 };
             panel.Children.Add(value);
             var age = new TextBlock { Text = "Noch keine Daten", Foreground = Color("#93ADC5"), FontSize = 11 }; panel.Children.Add(age);
             ProgressBar? bar = null; Polyline? line = null;
@@ -94,11 +94,11 @@ public partial class MainWindow
         foreach (var card in settings.Dashboard)
         {
             if (!cardViews.TryGetValue(card.Id, out var view)) continue;
-            if (!latest.TryGetValue(card.Topic, out var data)) { view.Value.Text = "— " + card.Unit; view.Age.Text = "Noch keine Daten"; if (view.Bar is { } b) b.Value = 0; continue; }
+            if (!latest.TryGetValue(card.Topic, out var data)) { view.Value.Text = DurationDisplay.IsDuration(card.Topic) ? "—" : "— " + card.Unit; view.Age.Text = "Noch keine Daten"; if (view.Bar is { } b) b.Value = 0; continue; }
             var age = DateTimeOffset.UtcNow - data.Timestamp;
             bool numeric = data.Value.ValueKind == JsonValueKind.Number && data.Value.TryGetDouble(out _);
             double number = numeric ? data.Value.GetDouble() : 0;
-            view.Value.Text = (numeric ? number.ToString("0.##") : data.Value.ToString()) + " " + card.Unit;
+            view.Value.Text = numeric && DurationDisplay.IsDuration(card.Topic) ? DurationDisplay.Format(number) : (numeric ? number.ToString("0.##") : data.Value.ToString()) + " " + card.Unit;
             view.Age.Text = $"{data.Source} · vor {age.TotalSeconds:0} s" + (age.TotalSeconds > 10 ? " · letzter Wert" : "");
             view.Value.Opacity = age.TotalSeconds > 10 ? .55 : 1;
             if (view.Bar is { } bar) bar.Value = numeric && age.TotalSeconds <= 10 ? Math.Clamp(number, 0, 100) : 0;

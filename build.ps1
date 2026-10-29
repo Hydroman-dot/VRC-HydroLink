@@ -11,6 +11,8 @@ try {
     if ($NetworkTests) { $testArguments += '--network' }
     & dotnet @testArguments
     if ($LASTEXITCODE) { throw 'Tests failed' }
+    dotnet run --project tests/HydroLink.Tests -c Release --no-build -- --mqtt-only
+    if ($LASTEXITCODE) { throw 'MQTT tests failed' }
     & (Join-Path $PSScriptRoot 'updater/Test-Updater.ps1')
     & (Join-Path $PSScriptRoot 'updater/Test-Download.ps1') -UpdaterFolder (Join-Path $PSScriptRoot 'updater')
     if ($Publish) {

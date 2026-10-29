@@ -12,3 +12,5 @@ Upstream locations:
 - https://github.com/buttplugio/buttplug-csharp
 
 VRChat and Intiface are separate products. HydroLink is not an official VRChat application.
+
+MQTTnet 4.3.7.1207 (MIT), https://github.com/dotnet/MQTTnet, is used for Home Assistant MQTT. License included in licenses/MQTTnet.txt.

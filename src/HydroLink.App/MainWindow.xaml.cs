@@ -37,7 +37,7 @@ public partial class MainWindow : Window
         ManualOsc.IsChecked = settings.ManualOsc; ManualHost.Text = settings.ManualOscHost; ManualPort.Text = settings.ManualOscPort.ToString();
         SendHeart.IsChecked = settings.SendHeartToOsc; HeartAddress.Text = settings.HeartOscAddress; PluginIds.Text = string.Join(", ", settings.EnabledPlugins);
         programLauncher = new ProgramLauncher(Log);
-        BuildToolPages(); BuildHistoryPage(); UiReady = true; BuildDashboard();
+        BuildToolPages(); BuildHistoryPage(); OrganizeSettings(); UiReady = true; BuildDashboard();
         timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) }; timer.Tick += (_, _) => Refresh(); timer.Start();
         Closing += OnClosing;
         var commandArgs = Environment.GetCommandLineArgs();
@@ -48,7 +48,7 @@ public partial class MainWindow : Window
             {
                 var pageIndex = Array.IndexOf(commandArgs, "--preview-page");
                 if (pageIndex >= 0 && commandArgs.Length > pageIndex + 1)
-                    Tabs.SelectedItem = Tabs.Items.OfType<TabItem>().FirstOrDefault(t => Equals(t.Header, commandArgs[pageIndex + 1])) ?? Tabs.Items[0];
+                    SelectPage(commandArgs[pageIndex + 1]);
                 if (commandArgs.Contains("--preview-edit")) EditDashboard.IsChecked = true;
                 if (commandArgs.Contains("--preview-osc-fixture")) PreviewOscFixture();
                 if (commandArgs.Contains("--preview-ridge") && toyTabs != null) toyTabs.SelectedIndex = 1;
@@ -63,7 +63,7 @@ public partial class MainWindow : Window
                 using (var file = File.Create(commandArgs[renderIndex + 1])) encoder.Save(file);
                 if (commandArgs.Contains("--preview-dropdown"))
                 {
-                    Tabs.SelectedItem = Tabs.Items.OfType<TabItem>().First(t => Equals(t.Header, "Verbindungen")); UpdateLayout();
+                    SelectPage("Verbindungen"); UpdateLayout();
                     MovementSource.IsDropDownOpen = true;
                     _ = Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
                     {
@@ -106,7 +106,7 @@ public partial class MainWindow : Window
             SendHeartToOsc = SendHeart.IsChecked == true, HeartOscAddress = HeartAddress.Text.Trim(),
             HideInactiveModules = settings.HideInactiveModules, Dashboard = settings.Dashboard, Programs = settings.Programs, StartModulesWithApp = startWithApp?.IsChecked == true,
             WindRules = settings.WindRules, WindRiseMs = settings.WindRiseMs, WindMultiPwm = settings.WindMultiPwm, WindHeartMode = settings.WindHeartMode,
-            FitnessOptions = settings.FitnessOptions,
+            FitnessOptions = settings.FitnessOptions, HomeAssistant = ReadHomeAssistant(),
             HapticsOptions = settings.HapticsOptions, OscRoutes = settings.OscRoutes,
             WindMovementSource = (string?)WindMovementSource.SelectedItem ?? "None", WindHeartSource = (string?)WindHeartSource.SelectedItem ?? "None",
             EnabledPlugins = PluginIds.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
