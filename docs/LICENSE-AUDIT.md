@@ -1,4 +1,4 @@
-# Herkunft und Lizenzen — Bestandsprüfung 29.10.2026
+# Herkunft und Lizenzen — aktualisiert 31.10.2026
 
 Geprüft: Projektverweise, aufgelöste NuGet-Metadaten, veröffentlichte Windows-Abhängigkeiten, mitgelieferte Lizenztexte, vorhandene Migrationsdokumentation und Pfade aller drei Unity-Pakete. Quellbasis 47b412c (Bluetooth-Vorbereitung), ergänzt um Zeitkorrektur 0.16.1. Dies ist ein technisches Inventar, keine vollständige juristische Freigabe oder forensischer Ähnlichkeitsvergleich sämtlicher historischer Quellen.
 
@@ -38,10 +38,14 @@ Die drei geprüften .unitypackage-Dateien enthalten ausschließlich Pfade unter 
 
 ## Pflichten und offene Punkte
 
-1. **HydroLink fehlt eine Hauptlizenz für den eigenen Repository-Code.** Öffentlich auf GitHub bedeutet nicht automatisch eine allgemeine Erlaubnis zum Weiterverwenden. Es wurde keine Lizenz ohne Entscheidung des Projektinhabers ergänzt. MIT wäre eine mögliche bewusste Wahl; die Rechte an allen eigenen Beiträgen müssen dazu geklärt sein.
+1. **Erledigt: MIT als Hauptlizenz.** Der Projektinhaber hat am 31.10.2026 MIT für den eigenen HydroLink-Code gewählt. Der vollständige Text steht in [LICENSE](../LICENSE). Fremde Bestandteile behalten ihre eigenen Copyright- und Lizenzhinweise.
 2. MIT erfordert insbesondere die Beibehaltung der Copyright- und Lizenzhinweise bei Weitergabe. BSD-3-Clause verlangt ebenfalls Hinweise und Haftungsausschluss; die Urhebernamen dürfen nicht ohne Erlaubnis als Empfehlung/Werbung verwendet werden. Bestehende Lizenztexte werden im Windows-Paket mitgeliefert.
 3. Windows SDK hat eigene Bedingungen, insbesondere Regeln zu weiterverteilbarem Code. Die Paketlizenz wurde ergänzt; eine vollständige Prüfung aller konkreten Weiterverteilungsbedingungen des SDK-Packs ist noch offen. Keine Aussage „alles ist MIT“ oder „rechtlich vollständig freigegeben“.
-4. Herkunft/Rechte von Logo/Icon sind in den bisherigen Unterlagen nicht gesondert belegt. Diese Dokumentation sollte vor einer abgeschlossenen öffentlichen Produktfreigabe ergänzt werden.
+4. **Herkunft des App-Icons dokumentiert:** Der Projektinhaber bestätigte am 31.10.2026, dass das Icon vom KI-Assistenten für das Projekt generiert wurde. Dateizuordnung und Grenzen dieses Nachweises: [ASSET-PROVENANCE.md](ASSET-PROVENANCE.md).
 5. Für einen belastbaren Prozentanteil übernommenen Codes wäre ein zusätzlicher datei-/abschnittsweiser Vergleich mit den ursprünglichen Quellständen erforderlich.
 
 Quellen: [MIT](https://opensource.org/license/mit), [BSD-3-Clause](https://opensource.org/license/bsd-3-clause), [GitHub zur Repository-Lizenz](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository), [Windows-SDK-Lizenz](https://aka.ms/WinSDKLicenseURL), [C#/WinRT-Lizenz](https://github.com/microsoft/CsWinRT/blob/master/LICENSE).
+
+## Nachprüfung 31.10.2026
+
+Ausgangsstand: Commit `21baf10`, Windows 0.16.4. Die vier direkten Core-Paketverweise sind gegenüber dem bisherigen Inventar unverändert. Die Zahlen oben bleiben ausdrücklich historische Messwerte; es wurde kein neuer vollständiger Ähnlichkeitsvergleich durchgeführt. Hauptlizenz und Icon-Herkunft wurden ergänzt. Der Build prüft erforderliche Lizenzdateien und übernimmt LICENSE sowie Drittanbieterhinweise in neue Windows-Pakete. Bereits veröffentlichte ZIP-Dateien werden dadurch nicht nachträglich verändert.

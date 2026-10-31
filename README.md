@@ -8,7 +8,7 @@ Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.4 ist eine Entwickl
 
 HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-Stand 29. Oktober 2026: [Windows-Version 0.16.4](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.4) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
+Stand 31. Oktober 2026: [Windows-Version 0.16.4](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.4) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
 
 ## KI-Hinweis / AI disclosure
 
@@ -134,3 +134,11 @@ Unter **Module** die gewünschten Module markieren. **Ausgewählte Module beim �
 
 ### Fitness-Berichte
 Unter **Sessions** eine Aufnahme auswählen. Die Auswertung zeigt Kennzahlenkarten und Puls-/Tempo-Graphen mit Zeitachsen; technische Rohwerte bleiben aufklappbar. **Bericht drucken / PDF** enthält beide Graphen und die aktuelle Session-Notiz. Fehlende Messwerte bleiben als Lücken sichtbar. Die CSV-Dateien werden nicht verändert.
+
+## Lizenz und Herkunft
+
+Der eigene HydroLink-Code steht unter der [MIT-Lizenz](LICENSE). Drittanbieter behalten ihre jeweiligen Lizenzen; insbesondere ist nicht jeder ausgelieferte Bestandteil MIT-lizenziert. Siehe [Drittanbieterhinweise](THIRD-PARTY-NOTICES.md), [Lizenzprüfung und offene Punkte](docs/LICENSE-AUDIT.md) und [Icon-Herkunft](docs/ASSET-PROVENANCE.md).
+
+## Rückmeldungen und offene Abnahme
+
+Im bisherigen Praxiseinsatz wurden VR Fitness/Aufzeichnungen, Coospo H9Z sowie das Zusammenspiel im Dauerbetrieb positiv zurückgemeldet. Das ersetzt keine vollständige Abnahme aller Fehler- und Wiederverbindungsfälle. Offen bleiben insbesondere Geräteprüfungen aller Toy-Profile, Update-Abfrage mit neuerer Version und die vollständige MQTT-Session-Bestätigung. Die [Praxistestliste](docs/ACCEPTANCE-CHECKLIST.md) trennt diese Rückmeldungen von noch ausstehenden Einzelprüfungen.

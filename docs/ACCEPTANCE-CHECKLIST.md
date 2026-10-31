@@ -1,6 +1,10 @@
-# HydroLink Praxistestliste — 0.16.2
+# HydroLink Praxistestliste — 0.16.4
 
 Je Test Datum, App-Version, Avatar/Gerät, Ergebnis (bestanden/fehlgeschlagen/offen) und Fehlerbeschreibung notieren. Automatisierte Tests ersetzen die folgenden realen Geräteprüfungen nicht. Vor jedem Toy-Test niedrige Stärke wählen und Stop erreichbar halten.
+
+## Rückmeldungsstand 31.10.2026
+
+Positiv vom Projektinhaber zurückgemeldet: VR Fitness und Aufzeichnungen, Coospo H9Z (vergleichbar mit VRCOSC), Zusammenspiel und Dauerbetrieb. Die folgenden Einzeltests bleiben ohne eigenen Nachweis offen; ein allgemeiner Praxisbericht bestätigt nicht automatisch jeden Ausfalltest. Update-Abfrage bisher nicht beobachtet; Rückmeldungen für weitere Toys stehen aus.
 
 ## 1. Zeitkorrektur — zuerst
 
@@ -10,7 +14,7 @@ Je Test Datum, App-Version, Avatar/Gerät, Ergebnis (bestanden/fehlgeschlagen/of
 - [ ] Dashboard und VR-Fitness-Karte stimmen überein. Neue CSV-Spalte active_time_total_s enthält Sekunden. Historische CSVs bleiben unverändert.
 - [ ] Distanz und Schritte zusätzlich mit VRTI vergleichen; die Zeitkorrektur ändert deren bisherige Umrechnung nicht.
 
-## 2. Bluetooth-Puls / Coospo H9Z — neu, noch nicht hardwaregeprüft
+## 2. Bluetooth-Puls / Coospo H9Z — positiver Praxisbericht
 
 - [ ] H9Z tragen; Windows-Bluetooth aktiv; VRCOSC-Bluetooth-Modul für den Test beenden.
 - [ ] Einstellungen → Bluetooth-Puls: suchen, eigenen H9Z auswählen, Bluetooth als Pulsquelle wählen, speichern.

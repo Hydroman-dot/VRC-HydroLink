@@ -15,6 +15,6 @@ VRChat and Intiface are separate products. HydroLink is not an official VRChat a
 
 MQTTnet 4.3.7.1207 (MIT), https://github.com/dotnet/MQTTnet, is used for Home Assistant MQTT. License included in licenses/MQTTnet.txt.
 
-## Inventory update 0.16.1
+## Inventory and licensing update — 2026-10-31
 
-See docs/LICENSE-AUDIT.md and docs/DEPENDENCY-INVENTORY.csv for scope, versions, provenance and remaining checks. Microsoft.Extensions.Logging.Abstractions (MIT) and C#/WinRT (MIT) texts have been added. The Windows SDK .NET targeting pack points to separate Microsoft Windows SDK terms, included as licenses/Windows-SDK-License.rtf; it is not labelled MIT here. HydroLink itself has no selected top-level source license yet. VRCOSC's public heartrate parameter contract was inspected; its GPL implementation and prefabs are not bundled.
+See docs/LICENSE-AUDIT.md and docs/DEPENDENCY-INVENTORY.csv for scope, versions, provenance and remaining checks. Microsoft.Extensions.Logging.Abstractions (MIT) and C#/WinRT (MIT) texts have been added. The Windows SDK .NET targeting pack points to separate Microsoft Windows SDK terms, included as licenses/Windows-SDK-License.rtf; it is not labelled MIT here. HydroLink-owned code is licensed under MIT; see LICENSE. Third-party components retain their respective licenses. VRCOSC's public heartrate parameter contract was inspected; its GPL implementation and prefabs are not bundled.

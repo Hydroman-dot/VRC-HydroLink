@@ -2,6 +2,7 @@ param([switch]$Publish, [switch]$NetworkTests)
 $ErrorActionPreference = 'Stop'
 Push-Location $PSScriptRoot
 try {
+    & (Join-Path $PSScriptRoot 'Verify-Licenses.ps1')
     dotnet restore VRC-HydroLink.sln
     if ($LASTEXITCODE) { throw 'Restore failed' }
     dotnet build VRC-HydroLink.sln -c Release --no-restore
@@ -22,7 +23,7 @@ try {
         $archivePath = "artifacts/VRC-HydroLink-$version-win-x64.zip"
         dotnet publish src/HydroLink.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -o $publishFolder
         if ($LASTEXITCODE) { throw 'Publish failed' }
-        Copy-Item README.md,THIRD-PARTY-NOTICES.md -Destination $publishFolder
+        Copy-Item LICENSE,README.md,THIRD-PARTY-NOTICES.md -Destination $publishFolder
         Copy-Item licenses -Destination $publishFolder -Recurse -Force
         Copy-Item docs -Destination $publishFolder -Recurse -Force
         Copy-Item updater -Destination $publishFolder -Recurse -Force
