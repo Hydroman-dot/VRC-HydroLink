@@ -12,7 +12,6 @@ public partial class MainWindow
     private readonly Dictionary<string, TextBlock> moduleStates = [];
     private readonly List<FrameworkElement> launchEditors = [];
     private ProgramLauncher? programLauncher;
-    private CheckBox? startWithApp;
     private FitnessSession? fitnessSession;
     private TextBox? sessionName, sessionNote;
     private Button? recordButton;
@@ -150,7 +149,6 @@ public partial class MainWindow
         AddModulePage("osc", "OSC Hub", "OSCQuery findet den tatsächlichen OSC-Port. Die letzten Nachrichten erscheinen hier.", [("Letzte OSC-Nachricht", "hydrolink/osc-last"), ("Nachrichten", "hydrolink/osc-count")]);
         AddModulePage("haptics", "Haptics", "Acht Toy-Profile · getrennte Regler · SPS-Plugs, Sockets und manueller Gerätetest.", []);
         var programs = Page("Programme automatisch starten", "Nur aktivierte Programme starten, wenn ein Tool ihre Quelle benötigt. Bereits laufende EXEs werden nicht doppelt gestartet. Beim Stoppen eines Tools bleiben externe Programme geöffnet.");
-        startWithApp = new CheckBox { Content = "Ausgewählte Module mit HydroLink starten", IsChecked = settings.StartModulesWithApp }; programs.Children.Add(startWithApp);
         foreach (var program in settings.Programs)
         {
             programs.Children.Add(new TextBlock { Text = program.Name, FontSize = 19, Margin = new Thickness(0, 20, 0, 6) });

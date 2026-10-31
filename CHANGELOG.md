@@ -1,3 +1,8 @@
+# 0.16.3
+
+- Autostart-Auswahl direkt unter Module sichtbar: gewünschte Module markieren, Autostart ein-/ausschalten und speichern.
+- Bestehende Startauswahl bleibt erhalten; gemeinsam benötigte Dienste starten weiterhin automatisch mit.
+
 # 0.16.2
 
 - Eigenes Heartrate-Modul: Sensor und Avatar-Puls unabhängig von VR Fitness starten, stoppen und neu starten.

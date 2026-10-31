@@ -27,6 +27,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent(); DataContext = this;
         try { settings = Settings.Load(warning: Log); } catch (Exception ex) { settings = new(); Log("Einstellungen konnten nicht geladen werden: " + ex.Message); }
+        StartWithApp.IsChecked = settings.StartModulesWithApp;
         Fitness.IsChecked = settings.Fitness; HeartRateModule.IsChecked = settings.HeartRate; Wind.IsChecked = settings.WindForce; Osc.IsChecked = settings.OscHub; Haptics.IsChecked = settings.Haptics;
         WindMovementSource.SelectedItem = settings.WindMovementSource; WindHeartSource.SelectedItem = settings.WindHeartSource;
         MovementSource.SelectedItem = settings.MovementSource; HeartSource.SelectedItem = settings.HeartSource;
@@ -104,7 +105,7 @@ public partial class MainWindow : Window
             IntifaceUrl = Url(IntifaceUrl.Text, "ws", "wss"), Companion = Companion.IsChecked == true, CompanionUrl = Url(CompanionUrl.Text, "http", "https"), CompanionCode = CompanionCode.Password,
             ManualOsc = ManualOsc.IsChecked == true, ManualOscHost = ManualHost.Text.Trim(), ManualOscPort = Port(ManualPort.Text),
             SendHeartToOsc = SendHeart.IsChecked == true, HeartOscAddress = HeartAddress.Text.Trim(),
-            HideInactiveModules = settings.HideInactiveModules, Dashboard = settings.Dashboard, Programs = settings.Programs, StartModulesWithApp = startWithApp?.IsChecked == true,
+            HideInactiveModules = settings.HideInactiveModules, Dashboard = settings.Dashboard, Programs = settings.Programs, StartModulesWithApp = StartWithApp.IsChecked == true,
             WindRules = settings.WindRules, WindRiseMs = settings.WindRiseMs, WindMultiPwm = settings.WindMultiPwm, WindHeartMode = settings.WindHeartMode,
             FitnessOptions = settings.FitnessOptions, HomeAssistant = ReadHomeAssistant(), Heartrate = ReadHeartrate(),
             HapticsOptions = settings.HapticsOptions, OscRoutes = settings.OscRoutes,
