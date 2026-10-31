@@ -18,7 +18,7 @@ public partial class MainWindow
         var history = new ComboBox { MinWidth = 360, MaxWidth = 800, HorizontalAlignment = HorizontalAlignment.Left, DisplayMemberPath = "Name" };
         var actions = new WrapPanel();
         var reportView = new TextBox { IsReadOnly = true, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Consolas"), MinHeight = 160, MaxHeight = 430, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-        var chart = new StackPanel(); var note = new TextBox { AcceptsReturn = true, MinHeight = 60 };
+        var overview = new StackPanel(); var chart = new StackPanel(); var note = new TextBox { AcceptsReturn = true, MinHeight = 60 };
         SessionReport? report = null;
         var goals = new TextBlock { Margin = new Thickness(0, 12, 0, 16), Foreground = Color("#7CE8CF") };
         void RefreshHistory()
@@ -63,21 +63,10 @@ public partial class MainWindow
             {
                 report = SessionAnalysis.Read(path); reportView.Text = report.Text;
                 note.Text = File.Exists(path + ".hydrolink-note.txt") ? File.ReadAllText(path + ".hydrolink-note.txt") : report.Summary["note"]?.ToString() ?? "";
+                overview.Children.Clear(); overview.Children.Add(SessionReportView.Overview(report));
                 chart.Children.Clear();
-                foreach (var (key, title) in new[] { ("clean_bpm", "Herzfrequenz · bpm"), ("clean_speed_kmh", "Geschwindigkeit · km/h") })
-                {
-                    var points = report.Rows.Select((r, i) => (Index: i, Value: SessionAnalysis.Number(r, key))).Where(p => p.Value.HasValue).ToArray();
-                    chart.Children.Add(new TextBlock { Text = title, Margin = new Thickness(0, 12, 0, 8) });
-                    var canvas = new Canvas { Width = 850, Height = 150, Background = Color("#0E1724"), HorizontalAlignment = HorizontalAlignment.Left };
-                    if (points.Length > 1)
-                    {
-                        double min = points.Min(p => p.Value!.Value), max = points.Max(p => p.Value!.Value), range = Math.Max(1, max - min);
-                        var step = Math.Max(1, points.Length / 3000);
-                        var polyline = new Polyline { Stroke = Color("#64DAC0"), StrokeThickness = 1.5, Points = new PointCollection(points.Where((_, i) => i % step == 0).Select(p => new Point(18 + p.Index * 810d / Math.Max(1, report.Rows.Count - 1), 125 - (p.Value!.Value - min) / range * 105))) };
-                        canvas.Children.Add(polyline); chart.Children.Add(new TextBlock { Text = $"Minimum {min:0.##} · Maximum {max:0.##} · {points.Length} gültige Messpunkte", Foreground = Color("#93ADC5") });
-                    }
-                    chart.Children.Add(new Viewbox { Child = canvas, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Left, MaxWidth = 900 });
-                }
+                chart.Children.Add(SessionReportView.Chart(report, "clean_bpm", "Herzfrequenz · bpm"));
+                chart.Children.Add(SessionReportView.Chart(report, "clean_speed_kmh", "Geschwindigkeit · km/h"));
             }
             catch (Exception ex) { MessageBox.Show(this, ex.Message, "Analyse fehlgeschlagen"); }
         }
@@ -129,16 +118,18 @@ public partial class MainWindow
             try
             {
                 var print = new PrintDialog(); if (print.ShowDialog() != true) return;
-                var document = new FlowDocument(new Paragraph(new Run("VRC HydroLink – Fitness\n\n" + report.Text + "\n\n" + note.Text))) { FontFamily = new FontFamily("Segoe UI"), FontSize = 12, Foreground = Brushes.Black, Background = Brushes.White, PagePadding = new Thickness(40), ColumnWidth = double.PositiveInfinity };
+                var document = SessionReportView.Print(report, note.Text, print.PrintableAreaWidth, print.PrintableAreaHeight);
                 print.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "VRC HydroLink Fitness");
             }
             catch (Exception ex) { MessageBox.Show(this, ex.Message, "Drucken fehlgeschlagen"); }
         }));
-        page.Children.Add(history); page.Children.Add(goals); page.Children.Add(actions); page.Children.Add(reportView); page.Children.Add(chart); page.Children.Add(new TextBlock { Text = "Session-Notiz (separate HydroLink-Datei)" }); page.Children.Add(note);
+        page.Children.Add(history); page.Children.Add(goals); page.Children.Add(actions); page.Children.Add(overview); page.Children.Add(chart); page.Children.Add(new Expander { Header = "Technische Details", Content = reportView }); page.Children.Add(new TextBlock { Text = "Session-Notiz (separate HydroLink-Datei)" }); page.Children.Add(note);
         page.Children.Add(ActionButton("Notiz speichern", () => { if (report is null) return; try { File.WriteAllText(report.FilePath + ".hydrolink-note.txt", note.Text); } catch (Exception ex) { MessageBox.Show(this, ex.Message); } }));
         refreshSessionHistory = RefreshHistory;
         page.IsVisibleChanged += (_, _) => { if (page.IsVisible) RefreshHistory(); };
         RefreshHistory();
+        var args = Environment.GetCommandLineArgs(); var preview = Array.IndexOf(args, "--preview-session");
+        if (args.Contains("--render-preview") && preview >= 0 && preview + 1 < args.Length) Load(args[preview + 1]);
         Tabs.Items.Insert(4, new TabItem { Header = "Sessions", Content = new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } });
     }
 }

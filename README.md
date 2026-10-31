@@ -2,13 +2,13 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.3 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.4 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
 HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-Stand 29. Oktober 2026: [Windows-Version 0.16.3](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.3) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
+Stand 29. Oktober 2026: [Windows-Version 0.16.4](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.4) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
 
 ## KI-Hinweis / AI disclosure
 
@@ -89,7 +89,7 @@ Einstellungen liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Sessions werden im un
 
 ## Prüfstand
 
-Für Windows 0.16.3 sind 279 automatisierte App-Prüfungen, 14 separate MQTT-Prüfungen und 10 Updater-Prüfungen lokal bestanden. Alle acht Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
+Für Windows 0.16.4 sind 283 automatisierte App-Prüfungen, 14 separate MQTT-Prüfungen und 10 Updater-Prüfungen lokal bestanden. Alle acht Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
 
 ## Dokumentation
 
@@ -120,14 +120,17 @@ Verbindungen, OSCQuery, Programme und Plugins sind Unterreiter in **Einstellunge
 
 Direkte Windows-BLE-Pulsquelle unter **Einstellungen → Bluetooth-Puls**, vorbereitet für Coospo H9Z. Eigene Geräteauswahl, Wiederverbindung und alle neun VRCOSC-Pulsparameter einschließlich Legacy-Ziffern, Glättung, Mittelwert, Normalisierung und Beat-Modi. Standardmäßig nicht aktiviert; kein automatischer Unity-Import. [Einrichtung, Parameter und Testgrenzen](docs/BLUETOOTH-HEARTRATE.md). Windows 10 ab Version 2004 / Windows 11 erforderlich.
 
-### VRTI-Zeiteinheit (0.16.3)
+### VRTI-Zeiteinheit (0.16.4)
 
 Die aktive Zeit wird beim Empfang von Millisekunden in Sekunden umgerechnet: `730364761` ergibt **202:52:44**. Unter **Einstellungen → Verbindungen** ist die Einheit auswählbar, weil die öffentliche VRTI-Dokumentation Sekunden beschreibt. Für die beobachtete Installation ist „VRTI liefert die aktive Zeit in Millisekunden“ voreingestellt. Historische CSVs werden nicht verändert; ihre alten Gesamtzeit-Spalten können noch um Faktor 1000 zu groß sein. Unabhängig gemessene Session-Dauer bleibt davon getrennt.
 
 [Lizenz- und Herkunftsinventar](docs/LICENSE-AUDIT.md) · [Praxistestliste](docs/ACCEPTANCE-CHECKLIST.md)
 
-### Eigenes Heartrate-Modul (0.16.3)
+### Eigenes Heartrate-Modul (0.16.4)
 Puls und Avatar-Ausgabe lassen sich im Reiter **Heartrate** unabhängig von VR Fitness starten und stoppen. Unter **Module** kann Heartrate für den gemeinsamen Start ausgewählt werden; nach dem Update einmal aktivieren. Fitness und WindForce verwenden weiterhin ihre eingestellte Pulsquelle und teilen dieselbe Sensorverbindung. Das Stoppen von Fitness beendet die Avatar-Pulsausgabe nicht mehr.
 
 ### Module automatisch starten
 Unter **Module** die gewünschten Module markieren. **Ausgewählte Module beim Öffnen von HydroLink starten** ein- oder ausschalten und **Einstellungen speichern** drücken. Ohne diesen Schalter startet HydroLink die Module erst auf Knopfdruck. Gemeinsam benötigte Quellen werden automatisch mitgestartet. Die separate Toy-Freigabe bleibt erforderlich.
+
+### Fitness-Berichte
+Unter **Sessions** eine Aufnahme auswählen. Die Auswertung zeigt Kennzahlenkarten und Puls-/Tempo-Graphen mit Zeitachsen; technische Rohwerte bleiben aufklappbar. **Bericht drucken / PDF** enthält beide Graphen und die aktuelle Session-Notiz. Fehlende Messwerte bleiben als Lücken sichtbar. Die CSV-Dateien werden nicht verändert.

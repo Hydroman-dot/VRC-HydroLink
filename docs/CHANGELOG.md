@@ -1,3 +1,9 @@
+# 0.16.4
+
+- Fitness-Berichte mit Kennzahlenkarten und beschrifteten Puls-/Tempo-Zeitverläufen; Graphen auch beim Drucken/PDF.
+- Echte Zeitabstände, sichtbare Messlücken und Spitzenerhalt bei verdichteten Graphen; Rohdaten unter technischen Details.
+- Nutzer bestätigt Fitness-Aufzeichnung und H9Z-Betrieb; fremde Toy-Tests und Update-Abfrage weiterhin offen.
+
 # 0.16.3
 
 - Autostart-Auswahl direkt unter Module sichtbar: gewünschte Module markieren, Autostart ein-/ausschalten und speichern.

@@ -218,6 +218,15 @@ Check(Convert.ToDouble(legacyReport.Summary["distance_km"]) == .25 && Convert.To
 Check(Convert.ToDouble(legacyReport.Summary["pulse_speed_correlation"]) == 1, "original pulse-speed correlation analysis");
 var recorded = Directory.GetFiles(sessionFolder, "*.csv").First(p => p != legacyCsv);
 Check(SessionAnalysis.Read(recorded).Summary["session_name"]?.ToString() == "Test, \"session\"", "new session CSV quoting roundtrip through analysis");
+var chartReport = new SessionReport("test", new(), [
+    new() { ["timestamp"]="2026-01-01T10:00:00Z", ["clean_bpm"]="80" },
+    new() { ["timestamp"]="2026-01-01T10:00:02Z", ["clean_bpm"]="90", ["pulse_valid"]="false" },
+    new() { ["timestamp"]="2026-01-01T10:00:12Z", ["clean_bpm"]="100" }]);
+var chartPoints = SessionCharts.Points(chartReport,"clean_bpm");
+Check(chartPoints.Select(p=>p.Seconds).SequenceEqual(new double[] {0,2,12}), "report chart uses elapsed timestamps rather than sample index");
+Check(chartPoints[1].Value == null && chartPoints[2].Value == 100, "report chart preserves invalid-pulse gaps");
+Check(SessionCharts.Points(new("test",new(),[new() { ["session_elapsed_s"]="3", ["clean_speed_kmh"]="0" }]),"clean_speed_kmh")[0] == new SessionChartPoint(3,0), "report chart supports elapsed-only data and stationary speed");
+Check(SessionCharts.Points(new("test",new(),[new() { ["clean_bpm"]="80" }]),"clean_bpm").Count == 0, "report chart does not invent time for undated data");
 var fitWalk = 0d;
 using (bus.Subscribe("sources/FitOSC/autowalk-speed", e => fitWalk = e.Value.GetDouble()))
     Telemetry.Parse("FitOSC", "{\"type\":\"state\",\"data\":{\"metrics\":{},\"walking\":{\"velocity\":0.7,\"mode\":\"Auto\",\"isManualOverride\":false}}}", bus);

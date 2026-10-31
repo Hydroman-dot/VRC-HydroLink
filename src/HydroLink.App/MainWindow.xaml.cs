@@ -50,6 +50,9 @@ public partial class MainWindow : Window
                 var pageIndex = Array.IndexOf(commandArgs, "--preview-page");
                 if (pageIndex >= 0 && commandArgs.Length > pageIndex + 1)
                     SelectPage(commandArgs[pageIndex + 1]);
+                var reportPreview = Array.IndexOf(commandArgs, "--preview-session");
+                if (commandArgs.Contains("--preview-session-print") && reportPreview >= 0 && reportPreview + 1 < commandArgs.Length)
+                    SessionReportView.RenderPrintPreview(SessionAnalysis.Read(commandArgs[reportPreview + 1]), commandArgs[renderIndex + 1]);
                 if (commandArgs.Contains("--preview-edit")) EditDashboard.IsChecked = true;
                 if (commandArgs.Contains("--preview-osc-fixture")) PreviewOscFixture();
                 if (commandArgs.Contains("--preview-ridge") && toyTabs != null) toyTabs.SelectedIndex = 1;

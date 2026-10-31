@@ -77,3 +77,8 @@ Noch offen außerhalb des Praxistests: Hauptlizenz wählen, Icon-Herkunft dokume
 - [ ] Fitness starten und stoppen: Heartrate bleibt aktiv.
 - [ ] Heartrate stoppen: Avatar-Ausgabe wird zurückgesetzt; aktive Fitness/WindForce behalten ihren Sensor.
 - [ ] Heartrate neu starten und zuletzt alle Verbraucher stoppen: Sensor wird erst beim letzten Verbraucher freigegeben.
+
+## Rückmeldung vom 31.10.2026
+Nutzer bestätigt VR Fitness und Aufzeichnungen sowie Heartrate/Coospo H9Z als funktionierend. Zusammenspiel/Dauerbetrieb laut Nutzer bestanden; Update-Abfrage noch nicht beobachtet. Haptik-Rückmeldungen weiterer Nutzer stehen aus.
+
+Neu in 0.16.4 noch zu prüfen: Bericht öffnen, Kennzahlen und Zeitachsen mit eigener Session vergleichen; Druck/PDF inklusive beider Graphen und Notizen prüfen.
