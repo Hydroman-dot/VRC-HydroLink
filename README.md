@@ -2,13 +2,13 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.5 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.6 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
 HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-Stand 31. Oktober 2026: [Windows-Version 0.16.4](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.4) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.16.5. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
+Stand 1. November 2026: [Windows 0.16.5](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.5) mit Unity-Wizard 0.16.5 ist veröffentlicht. Pulsoid-Verbesserungen im Quellstand 0.16.6 sind noch nicht als Release veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.16.5. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
 
 ## KI-Hinweis / AI disclosure
 
@@ -62,7 +62,7 @@ Optional „Ausgewählte Module mit HydroLink starten“ aktivieren; die Auswahl
 - **Sessions:** neue und originale VR-Fitness-CSV-Dateien öffnen, Statistiken und Diagramme ansehen, Textbericht exportieren oder über den Windows-Druckdialog als PDF ausgeben.
 - **WindForce:** eigene Quellenwahl unabhängig von Fitness, manuelle Steuerung, Pause, Quellenpriorität, Kalibrierung, Ausklang, Geräte- und Fanwerte. Bewegungs-/Pulsquelle und Regeln direkt auf WindForce wählen, mit ↑/↓ priorisieren und „Speichern und anwenden“ drücken. Dabei wird nur WindForce neu gestartet; andere Tools laufen weiter. Die Regel `Direct OSC` ist aus Kompatibilitätsgründen standardmäßig aktiv; andere Regeln ausdrücklich aktivieren. Für FitOSC Walking gilt die eigene normalisierte 0–1-Regel, für VRTI AutoWalk km/h.
 - **OSC Hub:** Live-Parameterliste mit Suche, OSCQuery-Werten sowie getrennten Empfangs-/Sendewerten, Dashboard-Übernahme und Zuordnungen pro Avatar.
-- **Haptics:** eigene Reiter für die acht Toy-Profile, automatische SPS-Plug-/Socket-Erkennung, getrennte SPS- und manuelle Radialregler, Hauptschalter und Stop pro Toy sowie automatische Einrichtung für mehrere Avatare.
+- **Haptics:** eigene Reiter für die neun Toy-Profile, automatische SPS-Plug-/Socket-Erkennung, getrennte SPS- und manuelle Radialregler, Hauptschalter und Stop pro Toy sowie automatische Einrichtung für mehrere Avatare.
 
 Verbindungseinstellungen werden beim Erzeugen des Hosts übernommen. Für Änderungen derzeit **Alles stoppen**, speichern, Tools erneut starten. Externe Dienste verbinden sich bei Unterbrechungen erneut.
 
@@ -90,7 +90,7 @@ Einstellungen liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Sessions werden im un
 
 ## Prüfstand
 
-Für Windows 0.16.4 sind 283 automatisierte App-Prüfungen, 14 separate MQTT-Prüfungen und 10 Updater-Prüfungen lokal bestanden. Alle acht Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
+Für Windows 0.16.4 sind 283 automatisierte App-Prüfungen, 14 separate MQTT-Prüfungen und 10 Updater-Prüfungen lokal bestanden. Alle neun Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
 
 ## Dokumentation
 
@@ -146,4 +146,8 @@ Im bisherigen Praxiseinsatz wurden VR Fitness/Aufzeichnungen, Coospo H9Z sowie d
 
 ### Gush 2 — Quellstand 0.16.5
 
-Eigenes Haptics-Profil mit Vibration und Oszillation; automatische Modellzuordnung, SPS, manuelle Regler und Stop. 294 App-, 14 MQTT- und 10 Updater-Prüfungen lokal bestanden. Windows-Paket lokal gebaut; kein neues GitHub-Release veröffentlicht. Unity-Paket 0.16.5 exportiert, alle neun Prefabs im Editor validiert, keine Kompilierungsfehler. Echter Gerätetest offen. [Details](docs/GUSH-2.md).
+Eigenes Haptics-Profil mit Vibration und Oszillation; automatische Modellzuordnung, SPS, manuelle Regler und Stop. 294 App-, 14 MQTT- und 10 Updater-Prüfungen lokal bestanden. Windows-Paket lokal gebaut; Release-Build auf GitHub gestartet. Unity-Paket 0.16.5 exportiert, alle neun Prefabs im Editor validiert, keine Kompilierungsfehler. Echter Gerätetest offen. [Details](docs/GUSH-2.md).
+
+### Pulsoid — Quellstand 0.16.6
+
+Gemeinsame konfigurierbare VRCOSC-Parameter unter Einstellungen → Puls & Avatar. Begrenzte Empfangswartezeit, Wiederverbindung mit gestaffelter Pause und einstellbare Gültigkeitsdauer von Pulsoid-Messwerten. [Einrichtung und Testgrenzen](docs/PULSOID.md). Gush 2 wurde vom Projektinhaber als funktionierend zurückgemeldet; das ist keine vollständige Kanal-/Ausfallabnahme.

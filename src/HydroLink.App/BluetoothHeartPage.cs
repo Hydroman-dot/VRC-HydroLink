@@ -13,7 +13,7 @@ public partial class MainWindow
     private TabItem BuildBluetoothHeartPage()
     {
         var cfg = settings.Heartrate;
-        var panel = Page("Bluetooth-Puls", "Coospo H9Z direkt mit HydroLink verbinden. VRCOSC-Pulsparameter für vorhandene Avatar-Prefabs.");
+        var panel = Page("Puls & Avatar", "Bluetooth, Pulsoid und weitere Pulsquellen: gemeinsame, anpassbare VRCOSC-Avatarparameter.");
         panel.MaxWidth = 850; panel.HorizontalAlignment = HorizontalAlignment.Left;
         bluetoothStatus = new TextBlock { Text = "Vorbereitet · Hardwaretest mit H9Z steht aus", TextWrapping = TextWrapping.Wrap };
         panel.Children.Add(bluetoothStatus);
@@ -59,6 +59,9 @@ public partial class MainWindow
         Field("period", "Mittelwert-Zeitraum · ms", cfg.AveragePeriodMs.ToString());
         Field("lower", "Normalisierung: unterer Pulswert", cfg.LowerBpm.ToString());
         Field("upper", "Normalisierung: oberer Pulswert", cfg.UpperBpm.ToString()); controls.Children.Add(heartPulse);
+        Field("pulsoidTimeout", "Pulsoid: letzte Messung höchstens halten · Sekunden (5–60)", cfg.PulsoidSignalTimeoutSeconds.ToString());
+        controls.Children.Add(ActionButton("Pulsoid verwenden und VRCOSC-Ausgabe aktivieren", () => { HeartSource.SelectedItem = "Pulsoid"; heartCompatibility.IsChecked = true; bluetoothStatus.Text = "Pulsoid ausgewählt. Zugangstoken unter Verbindungen eintragen, speichern und Heartrate neu starten. Eigene Parameteradressen bleiben erhalten."; }));
+        controls.Children.Add(ActionButton("VRCOSC-Standardadressen einsetzen", () => { foreach (var name in HeartrateOptions.Names) heartFields[name].Text = "/avatar/parameters/VRCOSC/Heartrate/" + name; }));
         var mapping = new StackPanel();
         foreach (var name in HeartrateOptions.Names)
         {
@@ -70,7 +73,7 @@ public partial class MainWindow
         panel.Children.Add(ActionButton("Einstellungen speichern", () => Save_Click(this, new RoutedEventArgs())));
         panel.Children.Add(new TextBlock { Text = "Konfiguration ändern: erst unter Module ‚Alles stoppen‘. Danach speichern und Heartrate starten. VR Fitness und WindForce können den Sensor zusätzlich nutzen. Bei aktivierter VRCOSC-Ausgabe ersetzt dieses Profil die einzelne HeartRate-Ausgabe unter OSCQuery. Beat wird aus dem Puls berechnet und ist kein zeitgenaues EKG-Signal. Bei fehlendem Signal werden Connected/Enabled und die Werte zurückgesetzt.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,12,0,0) });
         Closing += (_, _) => heartScan?.Cancel();
-        return new TabItem { Header = "Bluetooth-Puls", Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
+        return new TabItem { Header = "Puls & Avatar", Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
     }
     private HeartrateOptions ReadHeartrate()
     {
@@ -79,6 +82,7 @@ public partial class MainWindow
         var cfg = new HeartrateOptions { BluetoothAddress = device?.Address ?? 0, DeviceName = device?.Name ?? "Coospo H9Z", VrcOscParameters = heartCompatibility.IsChecked == true,
             SmoothValue = heartSmooth.IsChecked == true, SmoothAverage = heartAverageSmooth.IsChecked == true, PulseBeat = heartPulse.IsChecked == true,
             ValueSmoothingMs = Number("valueMs"), AverageSmoothingMs = Number("averageMs"), AveragePeriodMs = Number("period"), LowerBpm = Number("lower"), UpperBpm = Number("upper"),
+            PulsoidSignalTimeoutSeconds = Number("pulsoidTimeout"),
             Parameters = HeartrateOptions.Names.ToDictionary(name => name, name => heartFields[name].Text.Trim()) };
         cfg.Validate();
         if ((Equals(HeartSource.SelectedItem, "Bluetooth") || Equals(WindHeartSource.SelectedItem, "Bluetooth")) && cfg.BluetoothAddress == 0) throw new ArgumentException("Bitte zuerst einen Bluetooth-Pulssensor suchen und auswählen.");

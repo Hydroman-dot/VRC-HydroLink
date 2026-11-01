@@ -4,6 +4,7 @@ public sealed class HeartrateOptions
     public ulong BluetoothAddress { get; set; }
     public string DeviceName { get; set; } = "Coospo H9Z";
     public bool VrcOscParameters { get; set; }
+    public int PulsoidSignalTimeoutSeconds { get; set; } = 15;
     public bool SmoothValue { get; set; } = true;
     public int ValueSmoothingMs { get; set; } = 1000;
     public bool SmoothAverage { get; set; } = true;
@@ -17,6 +18,7 @@ public sealed class HeartrateOptions
     public string Address(string name) => Parameters.GetValueOrDefault(name) ?? "/avatar/parameters/VRCOSC/Heartrate/" + name;
     public void Validate()
     {
+        if (PulsoidSignalTimeoutSeconds is < 5 or > 60) throw new ArgumentException("Pulsoid-Signalwartezeit muss zwischen 5 und 60 Sekunden liegen.");
         if (LowerBpm < 0 || UpperBpm <= LowerBpm || UpperBpm > 1000) throw new ArgumentException("Pulsgrenzen müssen aufsteigend zwischen 0 und 1000 liegen.");
         if (AveragePeriodMs is < 1000 or > 300000 || ValueSmoothingMs is < 0 or > 30000 || AverageSmoothingMs is < 0 or > 30000) throw new ArgumentException("Mittelwert: 1000–300000 ms; Glättung: 0–30000 ms.");
         foreach (var name in Names)

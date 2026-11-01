@@ -5,7 +5,7 @@ public sealed class HeartrateOutput(Settings settings, IDataBus bus, Action<stri
 {
     protected override async Task Run(CancellationToken token)
     {
-        var cfg = settings.Heartrate; cfg.Validate(); var frame = new HeartrateFrame(cfg); var gate = new object();
+        var cfg = settings.Heartrate; cfg.Validate(); var frame = new HeartrateFrame(cfg, settings.HeartSource == "Pulsoid" ? cfg.PulsoidSignalTimeoutSeconds : 5); var gate = new object();
         using var subscription = bus.Subscribe("", e =>
         {
             lock (gate)

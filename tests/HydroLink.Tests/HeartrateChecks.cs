@@ -27,6 +27,11 @@ internal static class HeartrateChecks
         state.Receive(300, now.AddSeconds(8)); frame = state.Tick(now.AddSeconds(8));
         check(Equals(frame["Normalised"],1f) && Equals(frame["Average"],300), "reconnection clears stale average and clamps normalised value");
         state.Receive(0,now.AddSeconds(9)); check(state.Tick(now.AddSeconds(9))["Connected"] is false, "invalid pulse disconnects output");
+        var cloud = new HeartrateFrame(cfg, 15); cloud.Receive(80,now);
+        check(cloud.Tick(now.AddSeconds(6))["Connected"] is true, "Pulsoid tolerates short measurement gaps");
+        check(cloud.Tick(now.AddSeconds(15))["Connected"] is false, "Pulsoid expires at configured age");
+        cloud.Receive(80,now); cloud.Disconnect();
+        check(cloud.Tick(now)["Connected"] is false, "Pulsoid disconnect immediately invalidates held sample");
         var beat = new HeartrateFrame(cfg); beat.Receive(60,now); beat.Tick(now);
         check(beat.Tick(now.AddSeconds(1))["Beat"] is true && beat.Tick(now.AddSeconds(2))["Beat"] is false, "toggle beat follows BPM");
         cfg.PulseBeat = true; beat = new(cfg); beat.Receive(60,now); beat.Tick(now);

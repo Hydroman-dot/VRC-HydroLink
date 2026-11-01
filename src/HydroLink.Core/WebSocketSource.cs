@@ -10,6 +10,7 @@ public sealed class WebSocketSource(string name, Uri uri, Settings settings, IDa
     private static Task Send(ClientWebSocket ws, object data, CancellationToken token) => ws.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data)), WebSocketMessageType.Text, true, token);
     protected override async Task Run(CancellationToken token)
     {
+        int failures = 0;
         while (!token.IsCancellationRequested)
         {
             using var ws = new ClientWebSocket();
@@ -41,21 +42,24 @@ public sealed class WebSocketSource(string name, Uri uri, Settings settings, IDa
                     WebSocketReceiveResult result;
                     do
                     {
-                        result = await ws.ReceiveAsync(buffer, token);
-                        if (result.MessageType == WebSocketMessageType.Close) throw new WebSocketException("Connection closed");
+                        using var receiveTimeout = CancellationTokenSource.CreateLinkedTokenSource(token);
+                        if (Id == "Pulsoid") receiveTimeout.CancelAfter(TimeSpan.FromSeconds(90));
+                        result = await ws.ReceiveAsync(buffer, receiveTimeout.Token);
+                        if (result.MessageType == WebSocketMessageType.Close) { Log(Id + ": Server beendet Verbindung, Code " + (int?)result.CloseStatus); throw new WebSocketException("Connection closed"); }
                         message.Write(buffer, 0, result.Count);
                         if (message.Length > 1024 * 1024) throw new FormatException("Message exceeds 1 MiB");
                     } while (!result.EndOfMessage);
                     if (result.MessageType != WebSocketMessageType.Text) continue;
+                    failures = 0;
                     bus.Publish("provider/" + Id + "/status", "connected", Id);
                     try { Telemetry.Parse(Id, Encoding.UTF8.GetString(message.ToArray()), bus, Id == settings.MovementSource || Id == settings.HeartSource, settings.VrtiTimeMilliseconds); }
                     catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException) { Log(Id + ": ungültige Nachricht übersprungen"); }
                 }
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { break; }
-            catch (Exception ex) { Log(Id + ": getrennt (" + ex.GetType().Name + ") · neuer Versuch in 3 s"); }
+            catch (Exception ex) { failures = Math.Min(failures + 1, 5); Log(Id + ": getrennt (" + ex.GetType().Name + ") · automatische Wiederverbindung" ); }
             finally { bus.Publish("provider/" + Id + "/status", "disconnected", Id); await connection.CancelAsync(); try { await heartbeat; } catch (OperationCanceledException) { } catch (WebSocketException) { } }
-            await Task.Delay(3000, token);
+            await Task.Delay(Id == "Pulsoid" ? Math.Min(30000, 1000 * (1 << failures)) : 3000, token);
         }
     }
     private static async Task Heartbeat(ClientWebSocket ws, CancellationToken token)

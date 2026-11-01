@@ -1,6 +1,6 @@
 namespace HydroLink.Core;
 // Independent implementation of the public VRCOSC heartrate parameter contract.
-public sealed class HeartrateFrame(HeartrateOptions options)
+public sealed class HeartrateFrame(HeartrateOptions options, int signalTimeoutSeconds = 5)
 {
     private readonly Queue<(DateTimeOffset Time, int Bpm)> samples = new();
     private DateTimeOffset lastSample, lastTick, nextBeat, pulseEnd;
@@ -16,7 +16,7 @@ public sealed class HeartrateFrame(HeartrateOptions options)
     public void Disconnect() { lastSample = default; target = 0; samples.Clear(); }
     public Dictionary<string, object> Tick(DateTimeOffset now)
     {
-        bool connected = lastSample != default && now - lastSample < TimeSpan.FromSeconds(5);
+        bool connected = lastSample != default && now - lastSample < TimeSpan.FromSeconds(signalTimeoutSeconds);
         double dt = lastTick == default ? 50 : Math.Clamp((now - lastTick).TotalMilliseconds, 0, 1000); lastTick = now;
         while (samples.TryPeek(out var sample) && now - sample.Time >= TimeSpan.FromMilliseconds(options.AveragePeriodMs)) samples.Dequeue();
         double Move(double value, double goal, bool smooth, int ms) => !smooth || ms == 0 ? goal : value + (goal - value) * (1 - Math.Exp(-dt * 4 / ms));
