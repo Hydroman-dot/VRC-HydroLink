@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $required = @(
-    'LICENSE', 'THIRD-PARTY-NOTICES.md',
+    'LICENSE', 'THIRD-PARTY-NOTICES.md', 'licenses/VrcHapticsBridge-MIT.txt', 'licenses/Microsoft-NET-Library-License.html',
     'licenses/VR-Fitness-MIT.txt', 'licenses/VRC-Windforce-MIT.txt',
     'licenses/OSCQuery-MIT.txt', 'licenses/MeaMod.DNS-MIT.txt',
     'licenses/Buttplug.txt', 'licenses/MQTTnet.txt',

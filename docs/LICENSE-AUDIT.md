@@ -49,3 +49,7 @@ Quellen: [MIT](https://opensource.org/license/mit), [BSD-3-Clause](https://opens
 ## Nachprüfung 31.10.2026
 
 Ausgangsstand: Commit `21baf10`, Windows 0.16.4. Die vier direkten Core-Paketverweise sind gegenüber dem bisherigen Inventar unverändert. Die Zahlen oben bleiben ausdrücklich historische Messwerte; es wurde kein neuer vollständiger Ähnlichkeitsvergleich durchgeführt. Hauptlizenz und Icon-Herkunft wurden ergänzt. Der Build prüft erforderliche Lizenzdateien und übernimmt LICENSE sowie Drittanbieterhinweise in neue Windows-Pakete. Bereits veröffentlichte ZIP-Dateien werden dadurch nicht nachträglich verändert.
+
+## Korrektur und Vertiefung 01.11.2026
+
+Die bisherige Angabe von zwei Quellprojekten ist unvollständig: VrcHapticsBridge ist ein drittes dokumentiertes Herkunftsprojekt. Dessen MIT-Lizenz wurde ergänzt. Auch die pauschale Runtime-Zuordnung oben ist zu präzisieren: Windows-native Runtime/WPF-Dateien können der Microsoft .NET Library License oder den Windows-SDK-Bedingungen unterliegen. [Dateivergleich, Binärzuordnung und verbleibende Fragen](PROVENANCE-RECHECK.md).

@@ -18,3 +18,7 @@ MQTTnet 4.3.7.1207 (MIT), https://github.com/dotnet/MQTTnet, is used for Home As
 ## Inventory and licensing update — 2026-10-31
 
 See docs/LICENSE-AUDIT.md and docs/DEPENDENCY-INVENTORY.csv for scope, versions, provenance and remaining checks. Microsoft.Extensions.Logging.Abstractions (MIT) and C#/WinRT (MIT) texts have been added. The Windows SDK .NET targeting pack points to separate Microsoft Windows SDK terms, included as licenses/Windows-SDK-License.rtf; it is not labelled MIT here. HydroLink-owned code is licensed under MIT; see LICENSE. Third-party components retain their respective licenses. VRCOSC's public heartrate parameter contract was inspected; its GPL implementation and prefabs are not bundled.
+
+## Additional provenance and Windows runtime notices (2026-11-01)
+
+Haptics code was also adapted from the local VrcHapticsBridge project (MIT, copyright 2026 VRC Haptics Bridge contributors); see licenses/VrcHapticsBridge-MIT.txt. Native Windows runtime/WPF components are not uniformly MIT: see licenses/Microsoft-NET-Library-License.html and licenses/Windows-SDK-License.rtf. Their original terms remain applicable. See docs/PROVENANCE-RECHECK.md for file evidence and remaining redistribution questions.
