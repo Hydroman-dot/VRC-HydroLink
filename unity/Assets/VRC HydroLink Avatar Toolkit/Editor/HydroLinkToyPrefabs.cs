@@ -15,12 +15,12 @@ namespace HydroLink.AvatarToolkit.Editor
     public static class HydroLinkToyPrefabs
     {
         public const string Folder = "Assets/VRC HydroLink Avatar Toolkit/Toys";
-        public static readonly string[] Toys = { "Max2", "Ridge", "SolacePro", "Dolce", "Gemini", "Nora", "Gravity", "LushMini" };
-        public static string Label(string toy) { CheckToy(toy); return toy == "Max2" ? "Max 2" : toy == "SolacePro" ? "Solace Pro" : toy == "LushMini" ? "Lush Mini" : toy; }
+        public static readonly string[] Toys = { "Max2", "Ridge", "SolacePro", "Dolce", "Gemini", "Nora", "Gravity", "LushMini", "Gush2" };
+        public static string Label(string toy) { CheckToy(toy); return toy == "Gush2" ? "Gush 2" : toy == "Max2" ? "Max 2" : toy == "SolacePro" ? "Solace Pro" : toy == "LushMini" ? "Lush Mini" : toy; }
         public static string ObjectName(string toy) => "HydroLink " + Label(toy);
         public static string AssetPath(string toy) => Folder + "/" + toy + "/" + ObjectName(toy) + ".prefab";
         public static string Prefix(string toy) { CheckToy(toy); return "HydroLink/" + toy + "/"; }
-        public static string[] Channels(string toy) => toy == "Dolce" || toy == "Gemini" ? new[] { "Enabled", "Vibration1", "Vibration2", "Manual", "ManualVibration1", "ManualVibration2", "Stop" } : toy == "Gravity" ? new[] { "Enabled", "Vibration", "Thrusting", "Manual", "ManualVibration", "ManualThrusting", "Stop" } : toy == "LushMini" ? new[] { "Enabled", "Vibration", "Manual", "ManualVibration", "Stop" } : toy == "SolacePro" ? new[] { "Enabled", "Motion", "StrokeStart", "StrokeEnd", "Position", "TravelTime", "PositionMode", "Manual", "ManualMotion", "ManualStrokeStart", "ManualStrokeEnd", "ManualPosition", "ManualTravelTime", "ManualPositionMode", "Stop" } : toy == "Max2" ? new[] { "Enabled", "Vibration", "Pump", "Manual", "ManualVibration", "ManualPump", "Stop" } : new[] { "Enabled", "Vibration", "Rotation", "Clockwise", "Manual", "ManualVibration", "ManualRotation", "ManualClockwise", "Stop" };
+        public static string[] Channels(string toy) => toy == "Gush2" ? new[] { "Enabled", "Vibration", "Oscillation", "Manual", "ManualVibration", "ManualOscillation", "Stop" } : toy == "Dolce" || toy == "Gemini" ? new[] { "Enabled", "Vibration1", "Vibration2", "Manual", "ManualVibration1", "ManualVibration2", "Stop" } : toy == "Gravity" ? new[] { "Enabled", "Vibration", "Thrusting", "Manual", "ManualVibration", "ManualThrusting", "Stop" } : toy == "LushMini" ? new[] { "Enabled", "Vibration", "Manual", "ManualVibration", "Stop" } : toy == "SolacePro" ? new[] { "Enabled", "Motion", "StrokeStart", "StrokeEnd", "Position", "TravelTime", "PositionMode", "Manual", "ManualMotion", "ManualStrokeStart", "ManualStrokeEnd", "ManualPosition", "ManualTravelTime", "ManualPositionMode", "Stop" } : toy == "Max2" ? new[] { "Enabled", "Vibration", "Pump", "Manual", "ManualVibration", "ManualPump", "Stop" } : new[] { "Enabled", "Vibration", "Rotation", "Clockwise", "Manual", "ManualVibration", "ManualRotation", "ManualClockwise", "Stop" };
         static void CheckToy(string toy) { if (!Toys.Contains(toy)) throw new ArgumentException("Unbekanntes Toy."); }
         static bool IsBool(string key) => key == "Enabled" || key == "Stop" || key.EndsWith("Clockwise") || key == "Manual" || key.EndsWith("PositionMode");
         static float Default(string key) => key == "Enabled" || key == "Stop" || key == "Manual" ? 0 : key.EndsWith("PositionMode") || key.EndsWith("StrokeStart") ? 0 : key.EndsWith("StrokeEnd") || key == "Position" || key.EndsWith("Clockwise") ? 1 : key.EndsWith("TravelTime") ? 400f / 4900f : .25f;
@@ -295,7 +295,7 @@ namespace HydroLink.AvatarToolkit.Editor
                 Preflight(root, toy);
                 lines.Add("PASS " + Label(toy) + ": eigene Prefab-Instanz, " + Channels(toy).Length + " lokale Parameter, eigenes Menue und FX-Ergaenzung.");
             }
-            return string.Join("\n", lines) + "\nDesktop 0.14.0 erforderlich fuer alle acht Toy-Profile. Alle SPS-Plugs und Sockets bleiben automatisch nutzbar.";
+            return string.Join("\n", lines) + "\nDesktop 0.16.5 erforderlich fuer Gush 2. Alle SPS-Plugs und Sockets bleiben automatisch nutzbar.";
         }
 
         static VRCExpressionsMenu.Control Control(string toy, string key)

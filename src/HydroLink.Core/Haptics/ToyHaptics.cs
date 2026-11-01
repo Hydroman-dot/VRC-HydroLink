@@ -1,7 +1,7 @@
 using Buttplug.Core.Messages;
 namespace VrcHapticsBridge.Core;
 
-public enum ToyKind { Max2, Ridge, SolacePro, Dolce, Gemini, Nora, Gravity, LushMini }
+public enum ToyKind { Max2, Ridge, SolacePro, Dolce, Gemini, Nora, Gravity, LushMini, Gush2 }
 public sealed record ToyDevice(uint Id, string Name)
 {
     public override string ToString() => Name;
@@ -26,6 +26,7 @@ public sealed class ToyHaptics : IAsyncDisposable
     {
         var words = System.Text.RegularExpressions.Regex.Replace(name.ToLowerInvariant(), "[^a-z0-9]+", " ").Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (ToyProfiles.Extended(toy)) return toy switch {
+            ToyKind.Gush2 => words.Contains("gush2") || words.Contains("gush") && words.Contains("2"),
             ToyKind.Dolce => words.Contains("dolce") || words.Contains("quake"),
             ToyKind.LushMini => words.Contains("lushmini") || words.Contains("lush") && words.Contains("mini"),
             _ => words.Contains(toy.ToString().ToLowerInvariant()) };

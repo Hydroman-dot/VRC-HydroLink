@@ -29,6 +29,9 @@ internal static class AdditionalToyChecks
             toys.Receive([new(prefix+"Stop",1)]); await engine.TickAsync();
             check(!engine.Snapshot.Armed,toy+" menu stop disarms");
         }
+        check(!ToyHaptics.Matches(ToyKind.Gush2,"Lovense Gush"),"Gush 2 does not auto-select original Gush");
+        check(ToyHaptics.Matches(ToyKind.Gush2,"Lovense Gush2"),"Compact Gush2 name");
+        check(ToyProfiles.Feature(ToyProfiles.Channels(ToyKind.Gush2)[1],[new(1,7,"Gush 2","Vibration",OutputType.Vibrate,0,20,0)])==null,"Missing Gush 2 oscillation stays unavailable");
         check(!ToyHaptics.Matches(ToyKind.LushMini,"Lovense Lush 3"),"Lush Mini cannot auto-select Lush 3");
         check(ToyHaptics.Matches(ToyKind.Dolce,"Lovense Quake"),"Dolce legacy Quake name");
         check(ToyProfiles.Feature(ToyProfiles.Channels(ToyKind.Gemini)[1],[new(1,7,"Gemini","Motor",OutputType.Vibrate,0,20,0)])==null,"Missing second motor is not duplicated");

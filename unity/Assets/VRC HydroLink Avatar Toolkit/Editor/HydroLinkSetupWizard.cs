@@ -21,7 +21,7 @@ namespace HydroLink.AvatarToolkit.Editor
         public const string AddonName = "HydroLink Bridge Preview";
         const string Prefix = "HydroLink/";
         [SerializeField] GameObject avatar;
-        [SerializeField] bool installDolce, installGemini, installNora, installGravity, installLushMini;
+        [SerializeField] bool installDolce, installGemini, installNora, installGravity, installLushMini, installGush2;
         [SerializeField] bool installMax2 = true, installRidge = true, installSolacePro = false;
         bool legacyExpanded;
         Vector2 scroll;
@@ -92,11 +92,12 @@ namespace HydroLink.AvatarToolkit.Editor
             installGemini = EditorGUILayout.ToggleLeft("Gemini - Motor 1 / 2 - SPS / Manuell und Stopp", installGemini);
             installNora = EditorGUILayout.ToggleLeft("Nora - Vibration / Rotation / Richtung - SPS / Manuell und Stopp", installNora);
             installGravity = EditorGUILayout.ToggleLeft("Gravity - Vibration / Hubgeschwindigkeit - SPS / Manuell und Stopp", installGravity);
+            installGush2 = EditorGUILayout.ToggleLeft("Gush 2 - Vibration / Oszillation - SPS / Manuell und Stopp", installGush2);
             installLushMini = EditorGUILayout.ToggleLeft("Lush Mini - Vibration - SPS / Manuell und Stopp", installLushMini);
             using (new EditorGUI.DisabledScope(!avatar || EditorApplication.isCompiling || EditorApplication.isPlayingOrWillChangePlaymode))
             {
                 if (GUILayout.Button("1. Avatar und SPS pruefen")) Run(() => report = Inspect(avatar));
-                if (GUILayout.Button("2. Toy-Prefabs anlegen und automatisch uebergeben")) Run(() => { report = HydroLinkToyPrefabs.Install(avatar, installMax2, installRidge, installSolacePro, new[] { installDolce ? "Dolce" : null, installGemini ? "Gemini" : null, installNora ? "Nora" : null, installGravity ? "Gravity" : null, installLushMini ? "LushMini" : null }.Where(t => t != null).ToArray()); lastFolder = HydroLinkToyPrefabs.Folder; });
+                if (GUILayout.Button("2. Toy-Prefabs anlegen und automatisch uebergeben")) Run(() => { report = HydroLinkToyPrefabs.Install(avatar, installMax2, installRidge, installSolacePro, new[] { installDolce ? "Dolce" : null, installGemini ? "Gemini" : null, installNora ? "Nora" : null, installGravity ? "Gravity" : null, installLushMini ? "LushMini" : null, installGush2 ? "Gush2" : null }.Where(t => t != null).ToArray()); lastFolder = HydroLinkToyPrefabs.Folder; });
                 if (GUILayout.Button("Vorhandene Toy-Menues unter HydroLink zusammenfassen")) Run(() => report = HydroLinkToyPrefabs.GroupMenus(avatar));
                 if (GUILayout.Button("3. Toy-Prefabs pruefen")) Run(() => report = HydroLinkToyPrefabs.Validate(avatar));
                 if (GUILayout.Button("Vorhandene Einrichtung erneut an HydroLink uebergeben")) Run(() => report = "Unity-Einrichtung: lokal fuer HydroLink gespeichert.\nVRChat-Avatar: wird in der Desktop-App geprueft.\nToy / Intiface: wird in der Desktop-App geprueft.\n\nDatei: " + HydroLinkToyPrefabs.PublishToHydroLink(avatar));

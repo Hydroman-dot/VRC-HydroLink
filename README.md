@@ -2,7 +2,7 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.4 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.5 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
@@ -24,7 +24,7 @@ This project is developed and documented with assistance from artificial intelli
 
 Jeden Avatar einmal im Unity-Wizard einrichten und übergeben. HydroLink speichert die Profile getrennt nach Upload-ID und wählt beim Avatarwechsel automatisch das passende Profil. Am PC das Toy freigeben, anschließend im Radialmenü **Haptik einschalten**. **Haptik-Staerken** und **Manuell** besitzen separate Regler; das manuelle Untermenü hat einen eigenen Einschalter.
 
-Enthalten sind acht eigene Toy-Profile und Unity-Prefabs:
+Enthalten sind neun Desktop-Toy-Profile; der Unity-Wizard-Quellcode unterstützt ebenfalls Gush 2. Das bisherige Unity-Paket 0.14.1 enthält Gush 2 noch nicht:
 
 | Toy | Regler, soweit vom Gerät/Backend gemeldet |
 | --- | --- |
@@ -36,6 +36,7 @@ Enthalten sind acht eigene Toy-Profile und Unity-Prefabs:
 | Nora | Vibration, Rotation, Richtung |
 | Gravity | Vibration, Hubgeschwindigkeit |
 | Lush Mini | Vibration |
+| Gush 2 | Vibration, Oszillation |
 
 Im Radialmenü liegen die eingerichteten Toys gemeinsam unter **HydroLink**. Jedes Toy besitzt eigene SPS-Stärken, einen manuellen Modus und Stop. Nicht gemeldete Gerätefunktionen bleiben deaktiviert; Herstellerprogramme und LED-Farben sind nicht angebunden. Physische Geräte sind noch nicht abschließend getestet. Avatar- und SPS-Dateien anderer Anbieter sind nicht enthalten; die benötigten Pakete separat installieren.
 
@@ -142,3 +143,7 @@ Der eigene HydroLink-Code steht unter der [MIT-Lizenz](LICENSE). Drittanbieter b
 ## Rückmeldungen und offene Abnahme
 
 Im bisherigen Praxiseinsatz wurden VR Fitness/Aufzeichnungen, Coospo H9Z sowie das Zusammenspiel im Dauerbetrieb positiv zurückgemeldet. Das ersetzt keine vollständige Abnahme aller Fehler- und Wiederverbindungsfälle. Offen bleiben insbesondere Geräteprüfungen aller Toy-Profile, Update-Abfrage mit neuerer Version und die vollständige MQTT-Session-Bestätigung. Die [Praxistestliste](docs/ACCEPTANCE-CHECKLIST.md) trennt diese Rückmeldungen von noch ausstehenden Einzelprüfungen.
+
+### Gush 2 — Quellstand 0.16.5
+
+Eigenes Haptics-Profil mit Vibration und Oszillation; automatische Modellzuordnung, SPS, manuelle Regler und Stop. 294 App-, 14 MQTT- und 10 Updater-Prüfungen lokal bestanden. Windows-Paket lokal gebaut; kein neues GitHub-Release veröffentlicht. Wizard-Quellcode erweitert, Unity-Paket 0.14.1 unverändert. Echter Geräte- und Editor-Test offen. [Details](docs/GUSH-2.md).
