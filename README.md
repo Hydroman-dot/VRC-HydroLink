@@ -8,7 +8,7 @@ Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.6 ist eine Entwickl
 
 HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-Stand 1. November 2026: [Windows 0.16.5](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.5) mit Unity-Wizard 0.16.5 ist veröffentlicht. Pulsoid-Verbesserungen im Quellstand 0.16.6 sind noch nicht als Release veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.16.5. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
+Stand 1. November 2026: [Windows 0.16.6](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.6) mit den Pulsoid-Anpassungen ist veröffentlicht und wird über den Autoupdater angeboten. Unity-Wizard 0.16.5 bleibt die passende aktuelle Toolkit-Version. Das Unity-Wizard-Paket hat die eigenständige Version 0.16.5. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
 
 ## KI-Hinweis / AI disclosure
 
@@ -90,7 +90,7 @@ Einstellungen liegen unter `%LOCALAPPDATA%\VRC HydroLink`. Sessions werden im un
 
 ## Prüfstand
 
-Für Windows 0.16.4 sind 283 automatisierte App-Prüfungen, 14 separate MQTT-Prüfungen und 10 Updater-Prüfungen lokal bestanden. Alle neun Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
+Für Windows 0.16.6 sind 297 automatisierte App-Prüfungen, 14 separate MQTT-Prüfungen und 10 Updater-Prüfungen lokal bestanden. Alle neun Unity-Toy-Prefabs wurden im Editor validiert. Ausgiebige Hardware-Praxistests und der vollständige OSC-Netzwerktest stehen weiterhin aus.
 
 ## Dokumentation
 
@@ -146,7 +146,7 @@ Im bisherigen Praxiseinsatz wurden VR Fitness/Aufzeichnungen, Coospo H9Z sowie d
 
 ### Gush 2 — Quellstand 0.16.5
 
-Eigenes Haptics-Profil mit Vibration und Oszillation; automatische Modellzuordnung, SPS, manuelle Regler und Stop. 294 App-, 14 MQTT- und 10 Updater-Prüfungen lokal bestanden. Windows-Paket lokal gebaut; Release-Build auf GitHub gestartet. Unity-Paket 0.16.5 exportiert, alle neun Prefabs im Editor validiert, keine Kompilierungsfehler. Echter Gerätetest offen. [Details](docs/GUSH-2.md).
+Eigenes Haptics-Profil mit Vibration und Oszillation; automatische Modellzuordnung, SPS, manuelle Regler und Stop. 294 App-, 14 MQTT- und 10 Updater-Prüfungen lokal bestanden. Windows-Paket veröffentlicht; inzwischen durch 0.16.6 ergänzt. Unity-Paket 0.16.5 exportiert, alle neun Prefabs im Editor validiert, keine Kompilierungsfehler. Echter Gerätetest offen. [Details](docs/GUSH-2.md).
 
 ### Pulsoid — Quellstand 0.16.6
 
