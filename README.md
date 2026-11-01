@@ -8,7 +8,7 @@ Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.5 ist eine Entwickl
 
 HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-Stand 31. Oktober 2026: [Windows-Version 0.16.4](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.4) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.14.1. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
+Stand 31. Oktober 2026: [Windows-Version 0.16.4](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.4) ist veröffentlicht. Das Unity-Wizard-Paket hat die eigenständige Version 0.16.5. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
 
 ## KI-Hinweis / AI disclosure
 
@@ -18,13 +18,13 @@ This project is developed and documented with assistance from artificial intelli
 
 ## Avatar-Toolkit und Haptics
 
-- [Unity-Paket herunterladen](packages/HydroLink-Wizard-0.14.1.unitypackage)
+- [Unity-Paket herunterladen](packages/HydroLink-Wizard-0.16.5.unitypackage)
 - [Einrichtung und mehrere Avatare](docs/AVATAR-TOOLKIT.md)
 - [Unity-Quellcode und Prefabs](unity/Assets/VRC%20HydroLink%20Avatar%20Toolkit)
 
 Jeden Avatar einmal im Unity-Wizard einrichten und übergeben. HydroLink speichert die Profile getrennt nach Upload-ID und wählt beim Avatarwechsel automatisch das passende Profil. Am PC das Toy freigeben, anschließend im Radialmenü **Haptik einschalten**. **Haptik-Staerken** und **Manuell** besitzen separate Regler; das manuelle Untermenü hat einen eigenen Einschalter.
 
-Enthalten sind neun Desktop-Toy-Profile; der Unity-Wizard-Quellcode unterstützt ebenfalls Gush 2. Das bisherige Unity-Paket 0.14.1 enthält Gush 2 noch nicht:
+Enthalten sind neun Desktop-Toy-Profile; der Unity-Wizard-Quellcode unterstützt ebenfalls Gush 2. Unity-Paket 0.16.5 enthält Gush 2:
 
 | Toy | Regler, soweit vom Gerät/Backend gemeldet |
 | --- | --- |
@@ -146,4 +146,4 @@ Im bisherigen Praxiseinsatz wurden VR Fitness/Aufzeichnungen, Coospo H9Z sowie d
 
 ### Gush 2 — Quellstand 0.16.5
 
-Eigenes Haptics-Profil mit Vibration und Oszillation; automatische Modellzuordnung, SPS, manuelle Regler und Stop. 294 App-, 14 MQTT- und 10 Updater-Prüfungen lokal bestanden. Windows-Paket lokal gebaut; kein neues GitHub-Release veröffentlicht. Wizard-Quellcode erweitert, Unity-Paket 0.14.1 unverändert. Echter Geräte- und Editor-Test offen. [Details](docs/GUSH-2.md).
+Eigenes Haptics-Profil mit Vibration und Oszillation; automatische Modellzuordnung, SPS, manuelle Regler und Stop. 294 App-, 14 MQTT- und 10 Updater-Prüfungen lokal bestanden. Windows-Paket lokal gebaut; kein neues GitHub-Release veröffentlicht. Unity-Paket 0.16.5 exportiert, alle neun Prefabs im Editor validiert, keine Kompilierungsfehler. Echter Gerätetest offen. [Details](docs/GUSH-2.md).
