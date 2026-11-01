@@ -4,7 +4,7 @@ Geprüft: Projektverweise, aufgelöste NuGet-Metadaten, veröffentlichte Windows
 
 ## Wie viel fremder Code?
 
-- **Zwei ausdrücklich dokumentierte Herkunftsprojekte für portierte/adaptierte Funktionen:** VR Fitness und VRC WindForce. Das sind Projekte unter Hydroman-dot bzw. mit dem Copyright-Namen martinhesmer3-alt. Diese Herkunft bleibt auch beim Portieren nach C# relevant.
+- **Zwei ausdrücklich dokumentierte Herkunftsprojekte für portierte/adaptierte Funktionen:** VR Fitness und VRC WindForce. Das sind Projekte unter Hydroman-dot bzw. mit dem Copyright-Namen Hydroman-dot. Diese Herkunft bleibt auch beim Portieren nach C# relevant.
 - **Fünf externe Nicht-Microsoft-Bibliotheken mit Laufzeitcode:** VRChat.OSCQuery, MeaMod.DNS, Buttplug, MQTTnet und Newtonsoft.Json. Dazu Microsoft.Logging, Microsoft/.NET-Laufzeit und Windows-Bluetooth-Projektionen.
 - **Vier direkte NuGet-Verweise** im Core-Projekt: VRChat.OSCQuery, Buttplug, MQTTnet und ProtectedData.
 - Der aufgelöste NuGet-Graph enthält **82 Pakete** einschließlich transitiver, historischer Framework-, Build- und plattformspezifischer Referenzen. Das bedeutet nicht 82 zusätzlich ausgelieferte Bibliotheken: Im Windows-deps-Manifest haben sechs normale Pakete konkrete Laufzeitassets. Hinzu kommen drei Runtime-Packs (.NET, WPF, Windows SDK). Vollständige Paketliste: [DEPENDENCY-INVENTORY.csv](DEPENDENCY-INVENTORY.csv).
@@ -15,7 +15,7 @@ Geprüft: Projektverweise, aufgelöste NuGet-Metadaten, veröffentlichte Windows
 
 | Bestandteil | Urheber / Herkunft | Lizenz / Befund |
 | --- | --- | --- |
-| VR Fitness: Adapter, Fitness-/Sessionverhalten, HA-v1-Protokoll | martinhesmer3-alt, Repository Hydroman-dot/VR-Fitness | MIT; Text unter licenses/VR-Fitness-MIT.txt |
+| VR Fitness: Adapter, Fitness-/Sessionverhalten, HA-v1-Protokoll | Hydroman-dot, Repository Hydroman-dot/VR-Fitness | MIT; Text unter licenses/VR-Fitness-MIT.txt |
 | VRC WindForce: Protokoll, Mapping-/Ausklangverhalten | Hydroman-dot | MIT; licenses/VRC-Windforce-MIT.txt |
 | VRChat.OSCQuery 0.0.7 | VRChat Inc. / VRChat Developers | MIT; licenses/OSCQuery-MIT.txt |
 | MeaMod.DNS 1.0.70 | James Weston / MeaMod Group | MIT; licenses/MeaMod.DNS-MIT.txt |
