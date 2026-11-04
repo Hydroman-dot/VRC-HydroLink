@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Reflection;
@@ -15,7 +15,7 @@ public partial class MainWindow
         try
         {
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("HydroLink-Updater/0.16.6");
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("HydroLink-Updater/0.16.7");
             using var json = JsonDocument.Parse(await http.GetStringAsync("https://api.github.com/repos/Hydroman-dot/VRC-HydroLink/releases/latest"));
             var current = Assembly.GetExecutingAssembly().GetName().Version!;
             var version = ReleaseUpdate.NewerVersion(json.RootElement, current);

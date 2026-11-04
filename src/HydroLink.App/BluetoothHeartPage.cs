@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using HydroLink.Core;
@@ -7,7 +7,7 @@ public partial class MainWindow
 {
     private ComboBox heartSensor = null!;
     private CheckBox heartCompatibility = null!, heartSmooth = null!, heartAverageSmooth = null!, heartPulse = null!;
-    private TextBlock bluetoothStatus = null!;
+    private TextBlock bluetoothStatus = null!, bluetoothLiveStatus = null!, bluetoothMeasurement = null!;
     private readonly Dictionary<string, TextBox> heartFields = [];
     private CancellationTokenSource? heartScan;
     private TabItem BuildBluetoothHeartPage()
@@ -15,7 +15,11 @@ public partial class MainWindow
         var cfg = settings.Heartrate;
         var panel = Page("Puls & Avatar", "Bluetooth, Pulsoid und weitere Pulsquellen: gemeinsame, anpassbare VRCOSC-Avatarparameter.");
         panel.MaxWidth = 850; panel.HorizontalAlignment = HorizontalAlignment.Left;
-        bluetoothStatus = new TextBlock { Text = "Vorbereitet · Hardwaretest mit H9Z steht aus", TextWrapping = TextWrapping.Wrap };
+        bluetoothLiveStatus = new TextBlock { Text = "Bluetooth-Puls nicht gestartet", TextWrapping = TextWrapping.Wrap };
+        bluetoothMeasurement = new TextBlock { Text = "Puls: — bpm", FontSize = 26, Margin = new Thickness(0, 8, 0, 8) };
+        panel.Children.Add(bluetoothLiveStatus);
+        panel.Children.Add(bluetoothMeasurement);
+        bluetoothStatus = new TextBlock { Text = "Sensor auswählen oder nach Sensoren suchen.", TextWrapping = TextWrapping.Wrap };
         panel.Children.Add(bluetoothStatus);
         var controls = new StackPanel();
         heartSensor = new ComboBox { MinWidth = 450 };
@@ -90,6 +94,17 @@ public partial class MainWindow
     }
     private void RefreshBluetoothHeart()
     {
-        if (bluetoothStatus != null && host?.Running.Contains("Bluetooth") == true && latest.TryGetValue("bluetooth/status", out var status)) bluetoothStatus.Text = status.Value.ToString();
+        if (bluetoothLiveStatus == null) return;
+        var running = host?.Running.Contains("Bluetooth") == true;
+        bluetoothLiveStatus.Text = running
+            ? latest.TryGetValue("bluetooth/status", out var status) ? status.Value.ToString() : "Bluetooth · Verbindung wird vorbereitet …"
+            : "Bluetooth-Puls nicht gestartet · Pulsquelle Bluetooth auswählen, speichern und Heartrate starten.";
+        var hasMeasurement = latest.TryGetValue("sources/Bluetooth/heart/bpm", out var measurement);
+        var age = hasMeasurement ? DateTimeOffset.UtcNow - measurement!.Timestamp : TimeSpan.MaxValue;
+        var connected = latest.TryGetValue("provider/Bluetooth/status", out var provider) && provider.Value.ToString() == "connected";
+        var fresh = running && connected && age < TimeSpan.FromSeconds(5);
+        bluetoothMeasurement.Text = fresh
+            ? $"Puls: {measurement!.Value} bpm · vor {Math.Max(0, (int)age.TotalSeconds)} s"
+            : hasMeasurement ? $"Puls: — bpm · letzte Messung {measurement!.Timestamp.ToLocalTime():HH:mm:ss} (nicht aktuell)" : "Puls: — bpm · noch keine Messung empfangen";
     }
 }

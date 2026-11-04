@@ -1,8 +1,8 @@
-# VRC HydroLink
+﻿# VRC HydroLink
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.6 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.7 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
@@ -151,3 +151,7 @@ Eigenes Haptics-Profil mit Vibration und Oszillation; automatische Modellzuordnu
 ### Pulsoid — Quellstand 0.16.6
 
 Gemeinsame konfigurierbare VRCOSC-Parameter unter Einstellungen → Puls & Avatar. Begrenzte Empfangswartezeit, Wiederverbindung mit gestaffelter Pause und einstellbare Gültigkeitsdauer von Pulsoid-Messwerten. [Einrichtung und Testgrenzen](docs/PULSOID.md). Gush 2 wurde vom Projektinhaber als funktionierend zurückgemeldet; das ist keine vollständige Kanal-/Ausfallabnahme.
+
+### Bluetooth-Puls — 0.16.7
+
+Unter Einstellungen → Puls & Avatar stehen Verbindungsstatus und aktuelle bpm getrennt von der Sensorsuche. Alte Messungen werden ausdrücklich als nicht aktuell markiert. Nach fünf Sekunden ohne Daten wird fehlendes Signal angezeigt; nach 30 Sekunden erfolgt eine Wiederverbindung. Die Wartezeit beginnt erst nach dem Abonnieren der Messungen. Der Verbindungsaufbau ist auf 45 Sekunden begrenzt und beim Modulstopp abbrechbar. Der Praxistest mit dem H9Z (Hautkontakt, Sensor aus/an, Bluetooth aus/an, Wiederverbindung) steht für diese Korrektur noch aus.
