@@ -1,4 +1,4 @@
-using Buttplug.Core.Messages;
+﻿using Buttplug.Core.Messages;
 namespace VrcHapticsBridge.Core;
 
 public enum ToyKind { Max2, Ridge, SolacePro, Dolce, Gemini, Nora, Gravity, LushMini, Gush2 }
@@ -75,12 +75,17 @@ public sealed class ToyHaptics : IAsyncDisposable
         Interlocked.Increment(ref epoch);
         foreach (var engine in engines.Values) engine.Invalidate();
     }
+    public void InvalidateSps()
+    {
+        Interlocked.Increment(ref epoch);
+        foreach (var engine in engines.Values.Where(e => !e.DesktopManual)) engine.Invalidate();
+    }
     public void ForgetDevices()
     {
         Interlocked.Increment(ref epoch);
         foreach (var engine in engines.Values) engine.ForgetDevices();
     }
-    public async Task ActivateAsync(ToyKind toy, uint id, double vibration, double secondary, bool clockwise)
+    public async Task ActivateAsync(ToyKind toy, uint id, double vibration, double secondary, bool clockwise, bool requestContacts = true)
     {
         var ticket = Interlocked.Read(ref epoch);
         await gate.WaitAsync();
@@ -100,7 +105,7 @@ public sealed class ToyHaptics : IAsyncDisposable
             engines[toy].SetSpsLevels(vibration, secondary, clockwise);
             // VRCFury keeps its OSC contact receivers inactive until the receiving app opts in.
             // Request only after an explicit, successful activation; never from query snapshots.
-            SpsContactsRequested?.Invoke();
+            if (requestContacts) SpsContactsRequested?.Invoke();
         }
         finally { gate.Release(); }
     }

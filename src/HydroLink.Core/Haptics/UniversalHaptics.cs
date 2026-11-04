@@ -1,4 +1,4 @@
-using Buttplug.Core.Messages;
+﻿using Buttplug.Core.Messages;
 namespace VrcHapticsBridge.Core;
 
 public enum UniversalSourceMode { Menu, Sps, Legacy }
@@ -170,6 +170,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
     }
     public double ActiveChannel(string channel) { lock(sync) return controls.GetValueOrDefault((manualToy ? "Manual" : "") + channel, .25); }
     public void SetActiveChannel(string channel, double value) { lock(sync) SetSpsChannel((manualToy ? "Manual" : "") + channel, value); }
+    public bool DesktopManual { get { lock (sync) return desktopManual; } }
     public void SetDesktopManual(bool enabled)
     {
         lock (sync)

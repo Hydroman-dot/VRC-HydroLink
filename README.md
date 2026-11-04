@@ -2,7 +2,7 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.7 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.8 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
@@ -155,3 +155,7 @@ Gemeinsame konfigurierbare VRCOSC-Parameter unter Einstellungen → Puls & Avata
 ### Bluetooth-Puls — 0.16.7
 
 Unter Einstellungen → Puls & Avatar stehen Verbindungsstatus und aktuelle bpm getrennt von der Sensorsuche. Alte Messungen werden ausdrücklich als nicht aktuell markiert. Nach fünf Sekunden ohne Daten wird fehlendes Signal angezeigt; nach 30 Sekunden erfolgt eine Wiederverbindung. Die Wartezeit beginnt erst nach dem Abonnieren der Messungen. Der Verbindungsaufbau ist auf 45 Sekunden begrenzt und beim Modulstopp abbrechbar. Der Praxistest mit dem H9Z (Hautkontakt, Sensor aus/an, Bluetooth aus/an, Wiederverbindung) steht für diese Korrektur noch aus.
+
+### Manuelle Haptics — 0.16.8
+
+Alle Toy-Reiter sind auch ohne Unity-Prefab sichtbar. „Manuell ohne VRChat starten“ aktiviert den Gerätetest direkt über Intiface, ohne Avatar-Abgleich oder OSC-Kontaktfreigabe. Ein Verlust der OSC-Erkennung beendet diesen eigenständigen Test nicht. Toy stoppen und Geräteverbindungsverlust bleiben wirksam. SPS-Aktivierung prüft weiterhin das Unity-Profil. Regler verwenden 1-%-Tastenschritte, 5-%-Seitenschritte und direkte Positionierung beim Klicken statt der ungeeigneten Standardschritte im Bereich 0–1. Hardwaretest der neuen Bedienung steht aus.

@@ -1,4 +1,4 @@
-using VrcHapticsBridge.Core;
+﻿using VrcHapticsBridge.Core;
 using VrcHapticsBridge.Tests;
 using HydroLink.Core;
 using Buttplug.Core.Messages;
@@ -8,6 +8,22 @@ internal static class ToyChecks
     public static async Task Run(Action<bool,string> check, bool network)
     {
         check(ToyHaptics.Matches(ToyKind.Max2, "Lovense Max 2") && ToyHaptics.Matches(ToyKind.Max2, "Lovense Max") && ToyHaptics.Matches(ToyKind.Ridge, "Lovense Ridge") && !ToyHaptics.Matches(ToyKind.Max2, "Maximum"), "toy auto matching uses complete model words");
+        var offlineBackend = new UniversalMemory();
+        await using (var offline = new ToyHaptics(offlineBackend))
+        {
+            int requests = 0; offline.SpsContactsRequested += () => requests++;
+            await offline.ActivateAsync(ToyKind.Max2, 1, .25, .25, true, requestContacts: false);
+            offline[ToyKind.Max2].SetDesktopManual(true);
+            offline[ToyKind.Max2].SetActiveToyLevels(.37, .62, true);
+            for (int i=0;i<5;i++) { await offline[ToyKind.Max2].TickAsync(); await Task.Delay(60); }
+            check(requests == 0 && !offline[ToyKind.Max2].Snapshot.AvatarEnabled && offline[ToyKind.Max2].DesktopManual
+                && offlineBackend.Values.Any(v => v.Feature.Type == OutputType.Vibrate && Math.Abs(v.Amount-.37)<.0001)
+                && offlineBackend.Values.Any(v => v.Feature.Type == OutputType.Constrict && Math.Abs(v.Amount-.62)<.0001), "standalone manual sends intermediate channel values without any avatar or OSC opt-in");
+            offline.InvalidateSps();
+            check(offline[ToyKind.Max2].Snapshot.Armed && offline[ToyKind.Max2].DesktopManual, "OSC discovery loss leaves standalone manual session active");
+            await offline.StopAsync(ToyKind.Max2);
+            check(!offline[ToyKind.Max2].Snapshot.Armed && !offline[ToyKind.Max2].DesktopManual, "stop disarms standalone manual session");
+        }
         var backend = new UniversalMemory();
         await using var toys = new ToyHaptics(backend);
         int contactRequests = 0;

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using Buttplug.Core.Messages;
 using VrcHapticsBridge.Core;
@@ -14,7 +14,7 @@ public partial class MainWindow
         public required Slider Vibration, Secondary;
         public required CheckBox Clockwise;
         public required CheckBox Manual;
-        public required Button Activate;
+        public required Button Activate, ActivateManual;
         public required TextBlock Status, Channels;
         public required TextBlock Battery;
         public string Signature = "unset";
@@ -52,7 +52,7 @@ public partial class MainWindow
             Slider Level(string caption)
             {
                 var label = new TextBlock { Text = caption + " · 25 %" }; content.Children.Add(label);
-                var slider = new Slider { Minimum = 0, Maximum = 1, Value = .25, Margin = new Thickness(0, 4, 0, 12) };
+                var slider = new Slider { Minimum = 0, Maximum = 1, SmallChange = .01, LargeChange = .05, IsMoveToPointEnabled = true, IsSnapToTickEnabled = false, Value = .25, Margin = new Thickness(0, 4, 0, 12) };
                 slider.ValueChanged += (_, _) => label.Text = caption + $" · {slider.Value:P0}";
                 content.Children.Add(slider); return slider;
             }
@@ -63,11 +63,12 @@ public partial class MainWindow
             content.Children.Add(clockwise);
             var buttons = new WrapPanel { Margin = new Thickness(0, 4, 0, 8) }; content.Children.Insert(3, buttons);
             var activate = new Button { Content = title + " aktivieren" }; var stop = new Button { Content = title + " stoppen" };
-            buttons.Children.Add(activate); buttons.Children.Add(stop);
+            var activateManual = new Button { Content = "Manuell ohne VRChat starten" };
+            buttons.Children.Add(activate); buttons.Children.Add(activateManual); buttons.Children.Add(stop);
             var status = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10) }; content.Children.Insert(4, status);
             var manual = new CheckBox { Content = "Manuellen Gerätetest starten (ohne Radialmenü / SPS)", IsChecked = false, Margin = new Thickness(0, 4, 0, 10) };
             content.Children.Insert(5, manual);
-            var view = new ToyView { Kind = kind, Devices = devices, Vibration = vibration, Secondary = secondary, Clockwise = clockwise, Manual = manual, Activate = activate, Status = status, Channels = channels, Battery = new TextBlock { Text = "Akku: kein Gerät ausgewählt", Margin = new Thickness(0, 0, 0, 10), TextWrapping = TextWrapping.Wrap } };
+            var view = new ToyView { Kind = kind, Devices = devices, Vibration = vibration, Secondary = secondary, Clockwise = clockwise, Manual = manual, Activate = activate, ActivateManual = activateManual, Status = status, Channels = channels, Battery = new TextBlock { Text = "Akku: kein Gerät ausgewählt", Margin = new Thickness(0, 0, 0, 10), TextWrapping = TextWrapping.Wrap } };
             toyViews.Add(view);
             if (ToyProfiles.Extended(kind))
             {
@@ -121,12 +122,19 @@ public partial class MainWindow
                 catch (Exception ex) { MessageBox.Show(this, ex.Message, title); }
                 finally { view.Busy = false; RefreshToyHaptics(); }
             };
+            activateManual.Click += async (_, _) => {
+                if (view.Busy || host?.Haptics is not { } service || devices.SelectedItem is not ToyDevice device) return;
+                view.Busy = true; RefreshToyHaptics();
+                try { await service.ActivateToyAsync(kind, device.Id, vibration.Value, secondary.Value, clockwise.IsChecked == true, desktopManual: true); }
+                catch (Exception ex) { MessageBox.Show(this, ex.Message, title); }
+                finally { view.Busy = false; RefreshToyHaptics(); }
+            };
             stop.Click += async (_, _) => {
                 if (host?.Haptics is not { } service) return;
                 try { await service.StopToyAsync(kind); } catch (Exception ex) { MessageBox.Show(this, ex.Message, title + " stoppen"); }
                 RefreshToyHaptics();
             };
-            content.Children.Add(new TextBlock { Text = "Für SPS im Radialmenü Haptik einschalten. Den manuellen Gerätetest hier nach Toy aktivieren starten. SPS und Manuell haben getrennte Werte; hier gelten die Regler für den gewählten Modus. Nach Avatar- oder Verbindungswechsel erneut aktivieren.", TextWrapping = TextWrapping.Wrap, Foreground = Color("#93ADC5"), Margin = new Thickness(0, 12, 0, 0) });
+            content.Children.Add(new TextBlock { Text = "Für SPS im Radialmenü Haptik einschalten. Für den eigenständigen Gerätetest „Manuell ohne VRChat starten“ verwenden. Er benötigt nur die Intiface-Geräteverbindung. SPS und Manuell haben getrennte Werte; hier gelten die Regler für den gewählten Modus. Nach Avatar- oder Verbindungswechsel erneut aktivieren.", TextWrapping = TextWrapping.Wrap, Foreground = Color("#93ADC5"), Margin = new Thickness(0, 12, 0, 0) });
             toyTabs.Items.Add(new TabItem { Header = title, Content = content });
         }
         RefreshToyHaptics();
@@ -183,7 +191,7 @@ public partial class MainWindow
             }
             var included = wizardSync.Profile?.Includes(view.Kind) ?? true;
             var tab = toyTabs!.Items.OfType<TabItem>().ElementAt((int)view.Kind);
-            tab.Visibility = included || view.Kind == ToyKind.SolacePro || ToyProfiles.Extended(view.Kind) ? Visibility.Visible : Visibility.Collapsed;
+            tab.Visibility = Visibility.Visible; // Desktop manual use does not require an avatar prefab.
             if (tab.Visibility != Visibility.Visible && tab.IsSelected) toyTabs.SelectedItem = toyTabs.Items.OfType<TabItem>().FirstOrDefault(t => t != tab && t.Visibility == Visibility.Visible);
             var devices = service?.Toys.Devices(view.Kind) ?? [];
             var signature = wizardSync.Fingerprint + "|" + string.Join("|", devices.Select(d => $"{d.Id}:{d.Name}"));
@@ -250,12 +258,14 @@ public partial class MainWindow
                 }
             }
             view.Activate.IsEnabled = !view.Busy && service?.Backend.Connected == true && selected != null && snapshot?.Armed != true && service.WizardAllows(view.Kind);
+            view.ActivateManual.IsEnabled = !view.Busy && service?.Backend.Connected == true && selected != null && snapshot?.Armed != true;
             view.Devices.IsEnabled = !view.Busy;
             var connectionStatus = service == null ? "Gerät: Erkennung nicht gestartet. Tool starten."
                 : !service.Backend.Connected ? "Gerät: warte auf Intiface-Verbindung."
                 : selected == null ? "Gerät: Intiface verbunden, aber kein Toy zugeordnet. Toy verbinden oder bei mehreren Geräten auswählen."
                 : $"Gerät: verbunden · {selected.Name}";
-            var outputStatus = service != null && !service.WizardAllows(view.Kind)
+            var outputStatus = snapshot?.Armed == true && engine!.DesktopManual ? "Ausgabe: manueller Gerätetest · ohne VRChat / Unity-Profil."
+                : service != null && !service.WizardAllows(view.Kind)
                 ? wizardSync.Profile == null ? "Ausgabe: gesperrt · Unity-Übergabe prüfen."
                 : !wizardSync.Profile.Includes(view.Kind) ? "Ausgabe: Toy fehlt in der Unity-Einrichtung."
                 : "Ausgabe: gesperrt · VRChat-Avatar-Abgleich steht noch aus (siehe oben)."

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using HydroLink.Sdk;
 using VrcHapticsBridge.Core;
 namespace HydroLink.Core;
@@ -44,16 +44,18 @@ public sealed class HapticsService : Worker
     public async Task SelectAsync(uint? id) { await StopDevicesAsync(); universalActive = false; Backend.Select(id); }
     public async Task ArmLegacyAsync() { await Toys.StopAllAsync(); toyActive = false; await Universal.StopAsync(); universalActive = false; await Controller.ArmOscAsync(); }
     public async Task TestLegacyAsync(Channel channel, double value) { await Toys.StopAllAsync(); toyActive = false; await Universal.StopAsync(); universalActive = false; await Controller.TestAsync(channel, value); }
-    public async Task ActivateToyAsync(ToyKind toy, uint id, double vibration, double secondary, bool clockwise)
+    public async Task ActivateToyAsync(ToyKind toy, uint id, double vibration, double secondary, bool clockwise, bool desktopManual = false)
     {
-        if (!WizardAllows(toy)) throw new InvalidOperationException("Unity-Profil und aktiver VRChat-Avatar müssen zum Toy passen.");
+        if (!desktopManual && !WizardAllows(toy)) throw new InvalidOperationException("Unity-Profil und aktiver VRChat-Avatar müssen zum Toy passen.");
         var ticket = Interlocked.Read(ref toyActivationEpoch);
         await Universal.StopAsync(); await Controller.StopAsync();
-        if (ticket != Interlocked.Read(ref toyActivationEpoch) || !WizardAllows(toy)) return;
+        if (ticket != Interlocked.Read(ref toyActivationEpoch) || !desktopManual && !WizardAllows(toy)) return;
         toyActive = true;
         long revision;
         lock (gateSync) revision = liveGateRevision;
-        await Toys.ActivateAsync(toy, id, vibration, secondary, clockwise);
+        await Toys.ActivateAsync(toy, id, vibration, secondary, clockwise, requestContacts: !desktopManual);
+        if (ticket != Interlocked.Read(ref toyActivationEpoch)) { await Toys.StopAsync(toy); return; }
+        if (desktopManual) { SetDesktopManual(toy, true); return; }
         lock (gateSync)
             if (revision == liveGateRevision && ticket == Interlocked.Read(ref toyActivationEpoch) && Toys[toy].Snapshot.Armed && currentAvatar.Length > 0)
                 pendingGates[toy] = (ticket, currentAvatar, DateTimeOffset.UtcNow);
@@ -63,7 +65,7 @@ public sealed class HapticsService : Worker
         lock (gateSync)
         {
             pendingGates.Remove(toy);
-            if (enabled && !WizardAllows(toy)) return;
+            if (!enabled && !WizardAllows(toy)) { Toys[toy].Invalidate("Manueller Gerätetest beendet"); return; }
             Toys[toy].SetDesktopManual(enabled);
         }
     }
@@ -118,7 +120,8 @@ public sealed class HapticsService : Worker
             else if (e.Topic is "routing/reset" or "osc/avatar-id" or "osc/target-changed" or "osc/query-lost")
             {
                 if (e.Topic == "osc/avatar-id") currentAvatar = e.Value.ValueKind == JsonValueKind.String ? e.Value.GetString() ?? "" : "";
-                Interlocked.Increment(ref toyActivationEpoch); Controller.Invalidate(); Universal.Invalidate(); Toys.Invalidate();
+                Interlocked.Increment(ref toyActivationEpoch); Controller.Invalidate(); Universal.Invalidate();
+                if (e.Topic is "osc/query-lost" or "osc/target-changed" or "routing/reset") Toys.InvalidateSps(); else Toys.Invalidate();
             }
             }
         });
