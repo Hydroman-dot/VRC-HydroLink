@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 namespace HydroLink.App;
 public partial class MainWindow
@@ -21,6 +21,11 @@ public partial class MainWindow
     }
     private void SelectPage(string name)
     {
+        if (name == "OSC Router")
+        {
+            var hub = moduleTabs["osc"]; Tabs.SelectedItem = hub;
+            ((TabControl)hub.Content).SelectedIndex = 1; return;
+        }
         var direct = Tabs.Items.OfType<TabItem>().FirstOrDefault(t => Equals(t.Header, name));
         if (direct != null) { Tabs.SelectedItem = direct; return; }
         var nested = settingsTabs.Items.OfType<TabItem>().FirstOrDefault(t => Equals(t.Header, name));

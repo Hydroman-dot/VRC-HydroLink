@@ -2,13 +2,13 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.16.8 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.0 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
 HydroLink führt VR Fitness und VRC WindForce als unabhängig steuerbare Module in einer gemeinsamen Windows-Anwendung weiter. Die bisherigen Einzel-Repositories bleiben als historische Referenzen erhalten. Integration bedeutet noch keine vollständige Funktionsgleichheit oder abgeschlossene Hardware-Abnahme; Details stehen im [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
-Stand 1. November 2026: [Windows 0.16.6](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.16.6) mit den Pulsoid-Anpassungen ist veröffentlicht und wird über den Autoupdater angeboten. Unity-Wizard 0.16.5 bleibt die passende aktuelle Toolkit-Version. Das Unity-Wizard-Paket hat die eigenständige Version 0.16.5. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
+Stand 6. November 2026: [Windows 0.17.0](https://github.com/Hydroman-dot/VRC-HydroLink/releases/tag/v0.17.0) ergänzt den eigenständig steuerbaren OSC Router unter OSC Hub und den wiederholten Abgleich der Haptik-Menüfreigabe. Unity-Wizard 0.16.5 bleibt die passende aktuelle Toolkit-Version. Das Unity-Wizard-Paket hat die eigenständige Version 0.16.5. Die folgende Beschreibung bezieht sich auf den aktuellen Quellcode.
 
 ## KI-Hinweis / AI disclosure
 
@@ -159,3 +159,9 @@ Unter Einstellungen → Puls & Avatar stehen Verbindungsstatus und aktuelle bpm 
 ### Manuelle Haptics — 0.16.8
 
 Alle Toy-Reiter sind auch ohne Unity-Prefab sichtbar. „Manuell ohne VRChat starten“ aktiviert den Gerätetest direkt über Intiface, ohne Avatar-Abgleich oder OSC-Kontaktfreigabe. Ein Verlust der OSC-Erkennung beendet diesen eigenständigen Test nicht. Toy stoppen und Geräteverbindungsverlust bleiben wirksam. SPS-Aktivierung prüft weiterhin das Unity-Profil. Regler verwenden 1-%-Tastenschritte, 5-%-Seitenschritte und direkte Positionierung beim Klicken statt der ungeeigneten Standardschritte im Bereich 0–1. Hardwaretest der neuen Bedienung steht aus.
+
+### OSC Router — 0.17.0
+
+Eigenes Modul unter **OSC Hub → OSC Router**: Start/Stopp/Neustart, Autostart-Auswahl, feste IPv4-/UDP-Endpunkte, Mehrfachverteilung, Filter, Umrechnung, Profil-/Avatarregeln und Diagnoseverlauf. Gemeinsame OSC-Verbindung bleibt bei anderen aktiven Modulen erhalten. OSCQuery-Parameterfehler stoppen nicht mehr allein die Haptik. [Einrichtung, Grenzen und Tests](docs/OSC-ROUTER.md). Intiface und Unity-Wizard 0.16.5 bleiben erhalten.
+
+Die Menüfreigabe wird nach Toy-Aktivierung wiederholt über frische OSCQuery-Werte abgeglichen. Ein anfängliches „aus“ beendet die Abfrage nicht mehr. Live-OSC-Ausschalten hat Vorrang vor alten HTTP-Antworten; ein später verlorenes Einschalten kann nach einer kurzen Sperrfrist und zwei frischen Bestätigungen erkannt werden. Stop, Avatarwechsel und Geräteverlust geben keine Ausgabe automatisch wieder frei. Der Toy-Reiter zeigt Quelle und Zeitpunkt der letzten erkannten Menüfreigabe.

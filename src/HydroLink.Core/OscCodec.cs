@@ -1,4 +1,4 @@
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.Text;
 
 namespace HydroLink.Core;
@@ -6,6 +6,7 @@ namespace HydroLink.Core;
 public sealed record OscMessage(string Address, object[] Arguments);
 public static class OscCodec
 {
+    public static string TypeTag(object value) => value switch { int => "i", float or double => "f", bool b => b ? "T" : "F", string => "s", _ => throw new FormatException("Unsupported OSC type") };
     public static byte[] Encode(string address, params object[] args)
     {
         if (!address.StartsWith('/')) throw new ArgumentException("OSC address must start with /");

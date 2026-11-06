@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using HydroLink.Sdk;
 namespace HydroLink.Core;
 public sealed class HydroHost : IAsyncDisposable
@@ -16,6 +16,7 @@ public sealed class HydroHost : IAsyncDisposable
     private (bool Manual, double Percent, bool Paused)? windControls;
     public DataBus Bus { get; } = new();
     public OscRouting Routing { get; }
+    public OscRouter? Router => running.GetValueOrDefault("osc-router") as OscRouter;
     public OscBridge? Osc => running.GetValueOrDefault("osc") as OscBridge;
     public WindOutput? Wind => running.GetValueOrDefault("windforce") as WindOutput;
     public HapticsService? Haptics => running.GetValueOrDefault("intiface") as HapticsService;
@@ -31,7 +32,8 @@ public sealed class HydroHost : IAsyncDisposable
     public static IReadOnlyList<string> RequiredSources(Settings s)
     {
         var result = new HashSet<string>();
-        if (s.OscHub || s.Haptics || s.WindForce || (s.HeartRate && (s.SendHeartToOsc || s.Heartrate.VrcOscParameters))) result.Add("osc");
+        if (s.RouterEnabled) result.Add("osc-router");
+        if (s.RouterEnabled || s.OscHub || s.Haptics || s.WindForce || (s.HeartRate && (s.SendHeartToOsc || s.Heartrate.VrcOscParameters))) result.Add("osc");
         void Add(string id) { if (id != "None") result.Add(id); }
         if (s.HeartRate) Add(s.HeartSource);
         if (s.HeartRate && s.Heartrate.VrcOscParameters) result.Add("heartrate-output");
@@ -48,11 +50,11 @@ public sealed class HydroHost : IAsyncDisposable
         "fitness" => new[] { settings.MovementSource, settings.HeartSource }.Concat(settings.Companion ? new[] { "companion" } : []).Concat(settings.HomeAssistant.Enabled ? new[] { "home-assistant" } : []).Where(x => x != "None").Distinct().ToArray(),
         "heartrate" => new[] { settings.HeartSource }.Concat(settings.SendHeartToOsc || settings.Heartrate.VrcOscParameters ? new[] { "osc" } : []).Concat(settings.Heartrate.VrcOscParameters ? new[] { "heartrate-output" } : []).Where(x => x != "None").Distinct().ToArray(),
         "windforce" => new[] { "windforce", "osc", settings.WindMovementSource, settings.WindHeartSource }.Where(x => x != "None").Distinct().ToArray(),
-        "haptics" => ["intiface", "osc"], "osc" => ["osc"], _ => []
+        "osc-router" => ["osc-router", "osc"], "haptics" => ["intiface", "osc"], "osc" => ["osc"], _ => []
     };
     public async Task StartAsync()
     {
-        foreach (var (id, enabled) in new[] { ("fitness", settings.Fitness), ("heartrate", settings.HeartRate), ("windforce", settings.WindForce), ("osc", settings.OscHub), ("haptics", settings.Haptics) })
+        foreach (var (id, enabled) in new[] { ("fitness", settings.Fitness), ("heartrate", settings.HeartRate), ("windforce", settings.WindForce), ("osc", settings.OscHub), ("osc-router", settings.RouterEnabled), ("haptics", settings.Haptics) })
             if (enabled) await SetModuleAsync(id, true);
         await StartPluginsAsync();
     }
@@ -70,7 +72,7 @@ public sealed class HydroHost : IAsyncDisposable
     }
     public async Task SetModuleAsync(string id, bool enabled)
     {
-        if (id is not ("fitness" or "heartrate" or "windforce" or "osc" or "haptics")) throw new ArgumentException("Unknown module");
+        if (id is not ("fitness" or "heartrate" or "windforce" or "osc" or "osc-router" or "haptics")) throw new ArgumentException("Unknown module");
         await transition.WaitAsync();
         try { await SetModuleCoreAsync(id, enabled); }
         finally { transition.Release(); }
@@ -80,7 +82,7 @@ public sealed class HydroHost : IAsyncDisposable
             var desired = new HashSet<string>(modules);
             if (enabled) desired.Add(id); else desired.Remove(id);
             var selection = JsonSerializer.Deserialize<Settings>(JsonSerializer.Serialize(settings))!;
-            selection.Fitness = desired.Contains("fitness"); selection.HeartRate = desired.Contains("heartrate"); selection.WindForce = desired.Contains("windforce"); selection.OscHub = desired.Contains("osc"); selection.Haptics = desired.Contains("haptics");
+            selection.Fitness = desired.Contains("fitness"); selection.HeartRate = desired.Contains("heartrate"); selection.WindForce = desired.Contains("windforce"); selection.OscHub = desired.Contains("osc"); selection.RouterEnabled = desired.Contains("osc-router"); selection.Haptics = desired.Contains("haptics");
             var required = RequiredSources(selection).ToHashSet();
             var additions = new List<IComponent>();
             try
@@ -108,7 +110,7 @@ public sealed class HydroHost : IAsyncDisposable
     }
     public async Task RestartModuleAsync(string id)
     {
-        if (id is not ("fitness" or "heartrate" or "windforce" or "osc" or "haptics")) throw new ArgumentException("Unknown module");
+        if (id is not ("fitness" or "heartrate" or "windforce" or "osc" or "osc-router" or "haptics")) throw new ArgumentException("Unknown module");
         await transition.WaitAsync();
         try
         {
@@ -154,6 +156,12 @@ public sealed class HydroHost : IAsyncDisposable
         }
         finally { windControls = null; transition.Release(); }
     }
+    public void SetRouterOptions(OscRouterOptions options)
+    {
+        options.Validate();
+        if (modules.Contains("osc-router")) throw new InvalidOperationException("Zum Ändern nur den OSC Router stoppen.");
+        settings.Router = options.Copy();
+    }
     private WindOutput CreateWind()
     {
         var wind = new WindOutput(settings, Bus, log);
@@ -162,6 +170,7 @@ public sealed class HydroHost : IAsyncDisposable
     }
     private IComponent Create(string id) => id switch
     {
+        "osc-router" => new OscRouter(settings, Bus, log, () => Osc?.Monitor.Avatar ?? ""),
         "heartrate-output" => new HeartrateOutput(settings, Bus, log), "home-assistant" => new HomeAssistantService(settings, Bus, log), "osc" => new OscBridge(settings, Bus, log), "windforce" => CreateWind(), "intiface" => new HapticsService(settings, Bus, log), "companion" => new CompanionSource(settings, Bus, log),
         "VRTI" => Socket(id, settings.VrtiUrl), "FitOSC" => Socket(id, settings.FitOscUrl), "VRCOSC" => Socket(id, settings.HeartUrl),
         "Pulsoid" when !string.IsNullOrWhiteSpace(settings.PulsoidToken) => Socket(id, "wss://dev.pulsoid.net/api/v1/data/real_time?access_token=" + Uri.EscapeDataString(settings.PulsoidToken)),

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using HydroLink.Core;
 using Microsoft.Win32;
@@ -102,6 +102,13 @@ public partial class MainWindow
         }
         panel.Children.Add(cards);
         var tab = new TabItem { Header = title, Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
+        if (id == "osc")
+        {
+            var children = new TabControl { Background = Color("#172334"), Foreground = Color("#E5EDF7"), BorderThickness = new Thickness(0) };
+            var overview = tab.Content; tab.Content = null;
+            children.Items.Add(new TabItem { Header = "Übersicht & Parameter", Content = overview });
+            children.Items.Add(BuildOscRouterPage()); tab.Content = children;
+        }
         moduleTabs[id] = tab;
         Tabs.Items.Insert(2 + moduleButtons.Count - 1, tab);
     }
@@ -204,6 +211,7 @@ public partial class MainWindow
         RefreshDiagnostics();
         RefreshHomeAssistant();
         RefreshBluetoothHeart();
+        RefreshOscRouter();
         if (recordingStatus is not null)
             recordingStatus.Text = fitnessSession?.RecordingError is { } error
                 ? "Aufzeichnung fehlgeschlagen: " + error + " · Vorhandene Datei: " + fitnessSession.CsvPath

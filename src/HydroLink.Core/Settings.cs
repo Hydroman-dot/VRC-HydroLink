@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -10,6 +10,8 @@ public sealed class Settings
     public bool Fitness { get; set; }
     public bool HeartRate { get; set; }
     public bool WindForce { get; set; }
+    public bool RouterEnabled { get; set; }
+    public OscRouterOptions Router { get; set; } = new();
     public bool OscHub { get; set; }
     public bool Haptics { get; set; }
     public string MovementSource { get; set; } = "VRTI";

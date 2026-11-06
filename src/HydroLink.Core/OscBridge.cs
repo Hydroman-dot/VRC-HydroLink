@@ -1,4 +1,4 @@
-using VrcHapticsBridge.Core;
+﻿using VrcHapticsBridge.Core;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -54,7 +54,8 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
             if (Volatile.Read(ref target) is not { } endpoint) return;
             var address = e.Value.GetProperty("address").GetString()!;
             var type = e.Value.TryGetProperty("type", out var tag) ? tag.GetString() : null;
-            var values = e.Value.GetProperty("arguments").EnumerateArray().Select(x => TypedValue(x, type)).ToArray();
+            var types = e.Value.TryGetProperty("types", out var tags) ? tags : default;
+            var values = e.Value.GetProperty("arguments").EnumerateArray().Select((x, i) => TypedValue(x, types.ValueKind == JsonValueKind.Array && i < types.GetArrayLength() ? types[i].GetString() : type)).ToArray();
             var packet = OscCodec.Encode(address, values);
             udp.Send(packet, packet.Length, endpoint);
             Monitor.Message(address, values, true);
@@ -76,7 +77,7 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
                     foreach (var message in messages)
                     {
                         Monitor.Message(message.Address, message.Arguments, false);
-                        bus.Publish("osc/receive" + message.Address, new { address = message.Address, arguments = message.Arguments }, Id);
+                        bus.Publish("osc/receive" + message.Address, new { address = message.Address, arguments = message.Arguments, types = message.Arguments.Select(OscCodec.TypeTag).ToArray() }, Id);
                         if (message.Arguments.Length > 0) bus.Publish("osc/value" + message.Address, message.Arguments[0], Id);
                     }
                 }
@@ -105,7 +106,7 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
     {
         "f" => (object)(float)(OscRouting.Number(value) ?? throw new FormatException("Zahl erwartet")),
         "i" => checked((int)(OscRouting.Number(value) ?? throw new FormatException("Zahl erwartet"))),
-        "T" => (OscRouting.Number(value) ?? throw new FormatException("Bool/Zahl erwartet")) >= .5,
+        "T" or "F" => (OscRouting.Number(value) ?? throw new FormatException("Bool/Zahl erwartet")) >= .5,
         _ => ToOsc(value)
     };
     public static IPEndPoint ParseHostInfo(JsonElement info, IPAddress fallback)
@@ -155,7 +156,7 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
                             }
                             QueryStatus = "Parameter abgefragt · " + DateTimeOffset.Now.ToString("HH:mm:ss");
                         }
-                        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or InvalidOperationException) { QueryStatus = "Parameterabfrage fehlgeschlagen · letzte Werte bleiben sichtbar"; bus.Publish("osc/query-lost", true, Id); }
+                        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or InvalidOperationException) { QueryStatus = "Parameterabfrage fehlgeschlagen · letzte Werte bleiben sichtbar"; bus.Publish("osc/query-warning", "Parameterabfrage fehlgeschlagen; UDP-Empfang bleibt aktiv", Id); }
                         break;
                     }
                     catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or FormatException or KeyNotFoundException) { }

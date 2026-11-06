@@ -277,6 +277,7 @@ public partial class MainWindow
                 : $"Ausgabe: SPS bereit · {engine.SourceCount} Live-Quellen · Kontakt {snapshot.SourceLevel:P0}"
                 : "Ausgabe: aus · zum Starten Toy aktivieren.";
             view.Status.Text = connectionStatus + "\n" + outputStatus;
+            if (snapshot?.Armed == true && engine?.DesktopManual != true) view.Status.Text += "\nMenü-Freigabe: " + service!.GateStatus(view.Kind);
             if (view.Kind == ToyKind.SolacePro && snapshot?.Armed == true)
                 view.Status.Text += "\nBewegung: " + snapshot.Status;
         }

@@ -14,8 +14,9 @@ public sealed class HapticsService : Worker
     private volatile bool toyActive;
     private long toyActivationEpoch;
     private readonly object gateSync = new();
-    private readonly Dictionary<ToyKind, (long Epoch, string Avatar, DateTimeOffset After)> pendingGates = new();
-    private long liveGateRevision;
+    private readonly AvatarGateTracker gateTracker = new();
+    private readonly Dictionary<ToyKind, string> gateStatus = new();
+    public string GateStatus(ToyKind toy) { lock(gateSync) return gateStatus.GetValueOrDefault(toy, "Noch kein Freigabewert empfangen"); }
     private volatile bool universalActive;
     private volatile WizardSyncState wizardState = new(false, null, "missing", "");
     private volatile string currentAvatar = "";
@@ -40,7 +41,7 @@ public sealed class HapticsService : Worker
         Backend.DeviceLost += _ => Universal.ForgetDevices();
     }
     public async Task StopDevicesAsync() { Interlocked.Increment(ref toyActivationEpoch); try { await Toys.StopAllAsync(); } finally { try { await Universal.StopAsync(); } finally { await Controller.StopAsync(); } } }
-    public Task StopToyAsync(ToyKind toy) { Interlocked.Increment(ref toyActivationEpoch); return Toys.StopAsync(toy); }
+    public Task StopToyAsync(ToyKind toy) { lock(gateSync) { gateTracker.Remove(toy.ToString()); gateStatus.Remove(toy); } Interlocked.Increment(ref toyActivationEpoch); return Toys.StopAsync(toy); }
     public async Task SelectAsync(uint? id) { await StopDevicesAsync(); universalActive = false; Backend.Select(id); }
     public async Task ArmLegacyAsync() { await Toys.StopAllAsync(); toyActive = false; await Universal.StopAsync(); universalActive = false; await Controller.ArmOscAsync(); }
     public async Task TestLegacyAsync(Channel channel, double value) { await Toys.StopAllAsync(); toyActive = false; await Universal.StopAsync(); universalActive = false; await Controller.TestAsync(channel, value); }
@@ -51,22 +52,29 @@ public sealed class HapticsService : Worker
         await Universal.StopAsync(); await Controller.StopAsync();
         if (ticket != Interlocked.Read(ref toyActivationEpoch) || !desktopManual && !WizardAllows(toy)) return;
         toyActive = true;
-        long revision;
-        lock (gateSync) revision = liveGateRevision;
+
         await Toys.ActivateAsync(toy, id, vibration, secondary, clockwise, requestContacts: !desktopManual);
         if (ticket != Interlocked.Read(ref toyActivationEpoch)) { await Toys.StopAsync(toy); return; }
         if (desktopManual) { SetDesktopManual(toy, true); return; }
         lock (gateSync)
-            if (revision == liveGateRevision && ticket == Interlocked.Read(ref toyActivationEpoch) && Toys[toy].Snapshot.Armed && currentAvatar.Length > 0)
-                pendingGates[toy] = (ticket, currentAvatar, DateTimeOffset.UtcNow);
+            if (ticket == Interlocked.Read(ref toyActivationEpoch) && Toys[toy].Snapshot.Armed && currentAvatar.Length > 0)
+            {
+                gateTracker.Begin(toy.ToString(), currentAvatar, DateTimeOffset.UtcNow);
+                gateStatus[toy] = "Warte auf frischen Live- oder OSCQuery-Freigabewert";
+            }
     }
     public void SetDesktopManual(ToyKind toy, bool enabled)
     {
         lock (gateSync)
         {
-            pendingGates.Remove(toy);
+            gateTracker.Remove(toy.ToString());
             if (!enabled && !WizardAllows(toy)) { Toys[toy].Invalidate("Manueller Gerätetest beendet"); return; }
             Toys[toy].SetDesktopManual(enabled);
+            if (!enabled && Toys[toy].Snapshot.Armed && currentAvatar.Length > 0)
+            {
+                gateTracker.Begin(toy.ToString(), currentAvatar, DateTimeOffset.UtcNow);
+                gateStatus[toy] = "Manueller Test beendet · prüfe Menü-Freigabe erneut";
+            }
         }
     }
     public async Task ConfigureUniversalAsync(IEnumerable<FeatureRoute> routes, UniversalSourceMode mode, IEnumerable<SpsSource> sources)
@@ -90,13 +98,13 @@ public sealed class HapticsService : Worker
             {
                 var address = e.Value.GetProperty("address").GetString();
                 foreach (var toy in Enum.GetValues<ToyKind>())
-                    if (address == "/avatar/parameters/HydroLink/" + toy + "/Enabled" && pendingGates.TryGetValue(toy, out var pending)
-                        && pending.Epoch == Interlocked.Read(ref toyActivationEpoch) && pending.Avatar == currentAvatar
-                        && pending.Avatar == e.Value.GetProperty("avatar").GetString()
-                        && e.Value.GetProperty("queryStarted").GetDateTimeOffset() >= pending.After && WizardAllows(toy))
+                    if (address == "/avatar/parameters/HydroLink/" + toy + "/Enabled" && Toys[toy].Snapshot.Armed && !Toys[toy].DesktopManual && WizardAllows(toy)
+                        && currentAvatar == e.Value.GetProperty("avatar").GetString()
+                        && gateTracker.Accept(toy.ToString(), currentAvatar, e.Value.GetProperty("queryStarted").GetDateTimeOffset(), e.Value.GetProperty("enabled").GetDouble() >= .5))
                     {
-                        pendingGates.Remove(toy);
-                        if (Toys[toy].Snapshot.Armed) Toys.Receive([new(address, e.Value.GetProperty("enabled").GetDouble())]);
+                        var enabled = e.Value.GetProperty("enabled").GetDouble();
+                        Toys.Receive([new(address, enabled)]);
+                        gateStatus[toy] = $"OSCQuery: {(enabled >= .5 ? "eingeschaltet" : "ausgeschaltet")} · {DateTimeOffset.Now:HH:mm:ss}";
                     }
             }
             else if (e.Topic.StartsWith("osc/receive/", StringComparison.Ordinal))
@@ -106,7 +114,11 @@ public sealed class HapticsService : Worker
                 var values = new OscValue[] { new(address, args.GetArrayLength() > 0 ? OscRouting.Number(args[0]) : null) };
                 if (address == "/avatar/change" || address == "/avatar/parameters/OGB_ENABLED" && values[0].Value < .5) Interlocked.Increment(ref toyActivationEpoch);
                 foreach (var toy in Enum.GetValues<ToyKind>())
-                    if (address == "/avatar/parameters/HydroLink/" + toy + "/Enabled") { liveGateRevision++; pendingGates.Remove(toy); }
+                    if (address == "/avatar/parameters/HydroLink/" + toy + "/Enabled" && values[0].Value is { } enabled)
+                    {
+                        gateTracker.Live(toy.ToString(), enabled >= .5, e.Timestamp);
+                        gateStatus[toy] = $"Live-OSC: {(enabled >= .5 ? "eingeschaltet" : "ausgeschaltet")} · {e.Timestamp.ToLocalTime():HH:mm:ss}";
+                    }
                 if (Enum.GetValues<ToyKind>().Any(toy => address == "/avatar/parameters/HydroLink/" + toy + "/Stop") && values[0].Value >= .5)
                 {
                     Interlocked.Increment(ref toyActivationEpoch);
@@ -120,6 +132,7 @@ public sealed class HapticsService : Worker
             else if (e.Topic is "routing/reset" or "osc/avatar-id" or "osc/target-changed" or "osc/query-lost")
             {
                 if (e.Topic == "osc/avatar-id") currentAvatar = e.Value.ValueKind == JsonValueKind.String ? e.Value.GetString() ?? "" : "";
+                gateTracker.Clear(); gateStatus.Clear();
                 Interlocked.Increment(ref toyActivationEpoch); Controller.Invalidate(); Universal.Invalidate();
                 if (e.Topic is "osc/query-lost" or "osc/target-changed" or "routing/reset") Toys.InvalidateSps(); else Toys.Invalidate();
             }
