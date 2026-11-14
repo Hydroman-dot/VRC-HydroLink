@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using HydroLink.Core;
 using Microsoft.Win32;
@@ -191,9 +191,7 @@ public partial class MainWindow
             if (latest.Count < 20000 || latest.ContainsKey(item.Topic)) latest[item.Topic] = item;
         });
         await host.StartPluginsAsync();
-        PluginStatus.Text = string.Join("\n", host.Plugins!.Plugins.Select(p => p.Name + (p.Enabled ? " · aktiviert" : " · deaktiviert")));
-        foreach (var page in host.Plugins.Pages)
-            try { if (page.CreateView() is FrameworkElement element) Tabs.Items.Add(new TabItem { Header = page.Title, Content = element, Tag = "plugin" }); } catch (Exception ex) { Log("Plugin-Seite: " + ex.Message); }
+        RefreshPluginRows();
         SettingsPanel.IsEnabled = OscSettings.IsEnabled = false;
         foreach (var editor in launchEditors) editor.IsEnabled = false;
         StopButton.IsEnabled = true;

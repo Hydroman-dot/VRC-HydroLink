@@ -2,7 +2,7 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.1 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.2 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
@@ -169,3 +169,7 @@ Die Menüfreigabe wird nach Toy-Aktivierung wiederholt über frische OSCQuery-We
 ### Spinel — Windows 0.17.1
 
 Zehntes Desktop-Toy-Profil: Vibration, Hubgeschwindigkeit, manueller Betrieb ohne VRChat, Stop und gemeldeter Akkustand. Die Heizung und separate Turbo-Freigabe sind im aktuellen Intiface-/Buttplug-Profil nicht verfügbar. Unity-Wizard und Unity-Paket 0.17.1 enthalten jetzt das Spinel-Prefab mit getrennten SPS- und manuellen Reglern unter dem gemeinsamen HydroLink-Menü. Alle zehn Prefabs wurden im Unity-Editor validiert; Hardware- und Avatar-Build-Test stehen aus. [Funktionen, Quellen und Grenzen](docs/SPINEL.md). Die BPM-Anzeige in der Modulübersicht steht jetzt bei Heartrate statt VR Fitness.
+
+### Plugin-Verwaltung — Windows 0.17.2
+
+Mehrere Plugins gleichzeitig: einzeln freigeben, starten, stoppen, neu starten und mit der App starten. Eigene Seiten unter Einstellungen → Plugins. Dauerhafte Installation unabhängig vom Windows-App-Update, GitHub-Updateprüfung beim Start, bestätigte Installation mit Prüfsumme und Rückkehr zur vorherigen Version nach Neustart. Plugins nutzen den gemeinsamen OSC Hub. Kein OpenShock/PiShock-Plugin enthalten. [Bedienung, Paketformat und Grenzen](docs/PLUGINS.md).

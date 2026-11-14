@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using HydroLink.Sdk;
 namespace HydroLink.Core;
 public sealed class HydroHost : IAsyncDisposable
@@ -20,7 +20,7 @@ public sealed class HydroHost : IAsyncDisposable
     public OscBridge? Osc => running.GetValueOrDefault("osc") as OscBridge;
     public WindOutput? Wind => running.GetValueOrDefault("windforce") as WindOutput;
     public HapticsService? Haptics => running.GetValueOrDefault("intiface") as HapticsService;
-    public PluginLoader? Plugins { get; private set; }
+    public PluginRuntime? Plugins { get; private set; }
     public IReadOnlyList<string> Running => running.Keys.ToArray();
     public IReadOnlySet<string> ActiveModules => modules;
     public HydroHost(Settings settings, Action<string> log, IProgramLauncher? launcher = null, Func<string, IComponent>? factory = null)
@@ -62,13 +62,26 @@ public sealed class HydroHost : IAsyncDisposable
     {
         if (pluginsStarted) return;
         pluginsStarted = true; Plugins = new(Bus, log);
-        Plugins.Load(Path.Combine(AppContext.BaseDirectory, "plugins"), settings.EnabledPlugins);
-        foreach (var component in Plugins.Components)
-        {
-            if (running.ContainsKey(component.Id)) { log("Plugin-ID bereits belegt: " + component.Id); continue; }
-            try { await component.StartAsync(stop.Token); running.Add(component.Id, component); }
-            catch (Exception ex) { await component.DisposeAsync(); log("Plugin-Start: " + ex.Message); }
-        }
+        var catalog = new PluginCatalog(PluginCatalog.DefaultRoot, log);
+        foreach(var entry in catalog.Discover(Path.Combine(AppContext.BaseDirectory,"plugins")))
+            if(settings.EnabledPlugins.Contains(entry.Manifest.Id) && settings.AutoStartPlugins.Contains(entry.Manifest.Id))
+                try { await SetPluginAsync(entry,true); } catch(Exception ex) { log("Plugin-Autostart: "+ex.Message); }
+    }
+    public async Task SetPluginAsync(PluginEntry entry,bool enabled)
+    {
+        await transition.WaitAsync();
+        try {
+            Plugins ??= new(Bus,log);
+            if(enabled) {
+                if(entry.Manifest.RequiresOsc && !running.ContainsKey("osc")) {
+                    var osc=factory?.Invoke("osc") ?? Create("osc");
+                    try { await osc.StartAsync(stop.Token); running.Add("osc",osc); }
+                    catch { await osc.DisposeAsync(); throw; }
+                }
+                try { await Plugins.StartAsync(entry,stop.Token); }
+                finally { await SetModuleCoreAsync("osc",modules.Contains("osc")); }
+            } else { await Plugins.StopAsync(entry.Manifest.Id); await SetModuleCoreAsync("osc",modules.Contains("osc")); }
+        } finally { transition.Release(); }
     }
     public async Task SetModuleAsync(string id, bool enabled)
     {
@@ -84,6 +97,7 @@ public sealed class HydroHost : IAsyncDisposable
             var selection = JsonSerializer.Deserialize<Settings>(JsonSerializer.Serialize(settings))!;
             selection.Fitness = desired.Contains("fitness"); selection.HeartRate = desired.Contains("heartrate"); selection.WindForce = desired.Contains("windforce"); selection.OscHub = desired.Contains("osc"); selection.RouterEnabled = desired.Contains("osc-router"); selection.Haptics = desired.Contains("haptics");
             var required = RequiredSources(selection).ToHashSet();
+            if(Plugins?.RequiresOsc == true) required.Add("osc");
             var additions = new List<IComponent>();
             try
             {
@@ -98,7 +112,7 @@ public sealed class HydroHost : IAsyncDisposable
             catch { foreach (var component in additions.AsEnumerable().Reverse()) await component.DisposeAsync(); throw; }
             foreach (var component in additions) running.Add(component.Id, component);
             if (!selection.HeartRate) { heartOutput?.Dispose(); heartOutput = null; }
-            foreach (var key in running.Keys.Where(k => !required.Contains(k) && !(Plugins?.Components.Any(p => p.Id == k) ?? false)).Reverse().ToArray())
+            foreach (var key in running.Keys.Where(k => !required.Contains(k)).Reverse().ToArray())
             {
                 try { await running[key].DisposeAsync(); } catch (Exception ex) { log(key + " Stop: " + ex.Message); }
                 running.Remove(key);
@@ -183,6 +197,7 @@ public sealed class HydroHost : IAsyncDisposable
         await transition.WaitAsync();
         try
         {
+            if(Plugins is not null) await Plugins.DisposeAsync();
             Routing.Dispose(); await stop.CancelAsync(); heartOutput?.Dispose(); heartOutput = null;
             foreach (var component in running.Values.Reverse()) try { await component.DisposeAsync(); } catch (Exception ex) { log(component.Id + " Stop: " + ex.GetType().Name); }
             running.Clear(); modules.Clear();

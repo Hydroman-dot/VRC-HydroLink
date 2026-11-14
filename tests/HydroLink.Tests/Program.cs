@@ -1,4 +1,4 @@
-﻿using System.Buffers.Binary;
+using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -32,6 +32,7 @@ using (var anotherReceiver = OscBridge.OpenReceiver())
 }
 foreach (var (seconds, expected) in new[] { (0d, "0:00:00"), (59d, "0:00:59"), (60d, "0:01:00"), (3661.9, "1:01:01"), (90061d, "25:01:01"), (730364761d, "202879:06:01"), (-1d, "—"), (double.NaN, "—"), (double.PositiveInfinity, "—") })
     Check(DurationDisplay.Format(seconds) == expected, "duration clock " + seconds);
+await PluginChecks.Run(Check);
 await HeartrateChecks.Run(Check);
 await RouterChecks.Run(Check);
 await AvatarGateChecks.Run(Check);

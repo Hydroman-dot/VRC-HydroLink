@@ -2,13 +2,13 @@
 
 Reference `HydroLink.Sdk`. Implement `IHydroLinkPlugin`, expose a stable unique `Id`, `Name` and `ApiVersion = 1`. `Configure` registers components and pages; it must not open connections. The host calls `StartAsync` only for explicitly enabled plugins and awaits `DisposeAsync` during shutdown. Respect cancellation and stop all external outputs before disposal completes.
 
-Each folder below `plugins/` beside the EXE has a manifest:
+See [Plugin management and GitHub updates](PLUGINS.md) for versioned ZIP installation, autostart and rollback. The legacy `plugins/` folder beside the EXE remains readable. Each plugin has a manifest:
 
 ```json
 {"id":"example.counter","name":"Example Counter","assembly":"ExamplePlugin.dll"}
 ```
 
-Build the included example, then copy its output folder into `plugins/example.counter`. Add `example.counter` to enabled plugin IDs in the Plugins page and save. Restart the application, then start modules. Include the plugin `.deps.json` and dependency DLLs; the host shares its SDK assembly and resolves private dependencies from the plugin directory.
+Build the included example and package its output as a ZIP with `plugin.json` at the root. Under Settings → Plugins, import it, restart HydroLink, enable it and click Start. Autostart is a separate choice per plugin. Include the plugin `.deps.json` and dependency DLLs; the host shares its SDK assembly and resolves private dependencies from the plugin directory.
 
 ```powershell
 dotnet build examples/ExamplePlugin -c Release
@@ -47,11 +47,11 @@ Topics are transient; consumers must track freshness. Cloud raw events should no
 
 ## Components and pages
 
-`IComponent.Kind` can be Source, Processor, Output or Service. Register multiple components in `Configure`. IDs must be unique. Components start in registration order and stop in reverse order. This preview has no dependency graph between plugin components: a plugin coordinates its own dependencies. Built-in provider selection is controlled by module settings, and the host deduplicates shared built-in OSC use. Plugins can consume already-active built-in topics but cannot yet request built-in providers dynamically.
+`IComponent.Kind` can be Source, Processor, Output or Service. Register multiple components in `Configure`. IDs must be unique and equal the plugin ID or start with `<plugin-id>.`. Components start in registration order and stop in reverse order. This preview has no dependency graph between plugin components: a plugin coordinates its own dependencies. Built-in provider selection is controlled by module settings, and the host deduplicates shared built-in OSC use. Plugins can consume already-active built-in topics. Declare `requiresOsc: true` in the manifest to hold the shared OSC service while running; other providers still follow module settings.
 
 For UI, target `net8.0-windows` with `UseWPF=true` and register a `PluginPage("Title", () => new MyUserControl())`. The factory runs on the UI thread; the returned object must be a WPF FrameworkElement. The SDK itself remains independent of WPF.
 
-Only enabled plugins are loaded. Disabled manifests may be listed without loading their assemblies. Enabled plugins have the full process privileges of HydroLink; this is not a security sandbox. Do not install untrusted DLLs. There is no hot-unload; restart to change installed plugin binaries. Network errors must not crash the host or leave motors running.
+Only enabled plugins are loaded. Disabled manifests may be listed without loading their assemblies. Enabled plugins have the full process privileges of HydroLink; this is not a security sandbox. Do not install untrusted DLLs. Individual plugin instances can stop and restart. Assembly contexts are collectible, but garbage collection and plugin-owned references determine unloading; restart HydroLink to change installed plugin binaries. Network errors must not crash the host or leave motors running.
 
 ## Version 0.3 topics
 

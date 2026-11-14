@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
@@ -38,12 +38,12 @@ public partial class MainWindow : Window
         ManualOsc.IsChecked = settings.ManualOsc; ManualHost.Text = settings.ManualOscHost; ManualPort.Text = settings.ManualOscPort.ToString();
         SendHeart.IsChecked = settings.SendHeartToOsc; HeartAddress.Text = settings.HeartOscAddress; PluginIds.Text = string.Join(", ", settings.EnabledPlugins);
         programLauncher = new ProgramLauncher(Log);
-        BuildToolPages(); BuildHistoryPage(); OrganizeSettings(); UiReady = true; BuildDashboard();
+        BuildToolPages(); BuildHistoryPage(); OrganizeSettings(); InitializePlugins(); UiReady = true; BuildDashboard();
         timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) }; timer.Tick += (_, _) => Refresh(); timer.Start();
         Closing += OnClosing;
         var commandArgs = Environment.GetCommandLineArgs();
         var renderIndex = Array.IndexOf(commandArgs, "--render-preview");
-        if (renderIndex < 0) Loaded += async (_, _) => { await CheckStartupUpdate(); if (!closing && !closed && settings.StartModulesWithApp) Start_Click(this, new RoutedEventArgs()); };
+        if (renderIndex < 0) Loaded += async (_, _) => { await CheckStartupUpdate(); await PluginStartup(); if (!closing && !closed && settings.StartModulesWithApp) Start_Click(this, new RoutedEventArgs()); if (!closing && !closed && settings.CheckPluginUpdatesOnStartup) await CheckPlugins(); };
         if (renderIndex >= 0 && commandArgs.Length > renderIndex + 1)
             Loaded += (_, _) => Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
             {
@@ -113,6 +113,7 @@ public partial class MainWindow : Window
             FitnessOptions = settings.FitnessOptions, HomeAssistant = ReadHomeAssistant(), Heartrate = ReadHeartrate(),
             HapticsOptions = settings.HapticsOptions, OscRoutes = settings.OscRoutes,
             WindMovementSource = (string?)WindMovementSource.SelectedItem ?? "None", WindHeartSource = (string?)WindHeartSource.SelectedItem ?? "None",
+            AutoStartPlugins = settings.AutoStartPlugins, CheckPluginUpdatesOnStartup = settings.CheckPluginUpdatesOnStartup,
             EnabledPlugins = PluginIds.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
         };
     }
@@ -141,7 +142,7 @@ public partial class MainWindow : Window
         try { await StopRecording(); } catch (Exception ex) { Log("Session speichern: " + ex.Message); }
         if (host is not null) await host.DisposeAsync(); host = null; subscription?.Dispose(); subscription = null;
         foreach (var tab in Tabs.Items.OfType<TabItem>().Where(t => Equals(t.Tag, "plugin")).ToArray()) Tabs.Items.Remove(tab);
-        latest.Clear();
+        latest.Clear(); RefreshPluginRows();
         StartButton.IsEnabled = true; SettingsPanel.IsEnabled = OscSettings.IsEnabled = true;
         Fitness.IsEnabled = Wind.IsEnabled = Osc.IsEnabled = Haptics.IsEnabled = true;
         foreach (var editor in launchEditors) editor.IsEnabled = true;

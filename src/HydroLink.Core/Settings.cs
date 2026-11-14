@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -38,6 +38,8 @@ public sealed class Settings
     public bool SendHeartToOsc { get; set; }
     public string HeartOscAddress { get; set; } = "/avatar/parameters/HeartRate";
     public List<string> EnabledPlugins { get; set; } = [];
+    public List<string> AutoStartPlugins { get; set; } = [];
+    public bool CheckPluginUpdatesOnStartup { get; set; } = true;
     public List<DashboardCard> Dashboard { get; set; } = DashboardCard.Defaults();
     public List<LaunchProgram> Programs { get; set; } = LaunchProgram.Defaults();
     public bool StartModulesWithApp { get; set; }

@@ -1,1 +1,9 @@
-{"id":"example.counter","name":"Example Counter","assembly":"ExamplePlugin.dll"}
+{
+  "id": "example.counter",
+  "name": "Example Counter",
+  "assembly": "ExamplePlugin.dll",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "minimumHydroLinkVersion": "0.17.2",
+  "requiresOsc": false
+}
