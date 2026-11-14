@@ -9,6 +9,17 @@ public static class PluginChecks
     {
         var folder=Path.Combine(Path.GetTempPath(),"hydrolink-plugin-tests-"+Guid.NewGuid().ToString("N")); Directory.CreateDirectory(folder);
         try {
+            var updateRoot=Path.Combine(folder,"app-updates");
+            var old=Path.Combine(updateRoot,"1.0.0","plugins","fixture"); Directory.CreateDirectory(old);
+            File.WriteAllText(Path.Combine(old,"settings.json"),"kept config");
+            var next=Path.Combine(updateRoot,"1.0.1"); Directory.CreateDirectory(next);
+            File.WriteAllText(Path.Combine(updateRoot,"state.json"),"{\"current\":\"1.0.1\",\"previous\":\"1.0.0\"}");
+            check(!PluginCarryover.Recover(Path.Combine(folder,"portable"),updateRoot,_=>{}),"unrelated portable app does not import other installation plugins");
+            check(PluginCarryover.Recover(next,updateRoot,_=>{}),"startup recovers plugins after older updater");
+            var copied=Path.Combine(next,"plugins","fixture","settings.json");
+            check(File.ReadAllText(copied)=="kept config" && File.ReadAllText(Path.Combine(old,"settings.json"))=="kept config","recovery preserves settings and source installation");
+            File.WriteAllText(copied,"new config");
+            check(!PluginCarryover.Recover(next,updateRoot,_=>{}) && File.ReadAllText(copied)=="new config","repeated recovery never overwrites current plugin settings");
             var catalog=new PluginCatalog(Path.Combine(folder,"store"),_=>{});
             string Package(string id,string version,string? badPath=null,int api=1) {
                 var path=Path.Combine(folder,Guid.NewGuid()+".zip");

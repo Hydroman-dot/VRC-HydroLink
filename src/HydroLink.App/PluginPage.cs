@@ -15,6 +15,9 @@ public partial class MainWindow
     }
     private void InitializePlugins()
     {
+        if(!Environment.GetCommandLineArgs().Contains("--render-preview"))
+            try { PluginCarryover.Recover(AppContext.BaseDirectory,Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"VRC HydroLink Updates"),Log); }
+            catch(Exception ex) { Log("Plugin-Übernahme nicht möglich; bisherige Dateien bleiben erhalten: "+ex.Message); }
         PluginUpdateCheck.IsChecked=settings.CheckPluginUpdatesOnStartup;
         PluginUpdateCheck.Click+=(_,_)=>{ settings.CheckPluginUpdatesOnStartup=PluginUpdateCheck.IsChecked==true; settings.Save(); };
         RefreshPluginRows();

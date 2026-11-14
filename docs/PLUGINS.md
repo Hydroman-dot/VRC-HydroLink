@@ -50,3 +50,9 @@ Ein Plugin mit `requiresOsc: true` erhält den bestehenden OSC-Dienst als gemein
 ## Testumfang
 
 Automatisierte Tests prüfen Mehrfachbetrieb, unabhängigen Stop/Neustart, Abonnement-Aufräumen, unveränderte aktive Version nach abgewiesenem Paket, Versionswechsel/Rückkehr sowie GitHub-Release-Auswahl. Externe Plugins und deren Hardware benötigen zusätzliche Praxistests. OpenShock/PiShock ist nicht Bestandteil dieses Updates.
+
+## App-Updates ab 0.17.3
+
+Verwaltete Plugins liegen weiterhin dauerhaft außerhalb des App-Versionsordners. Freigabe, Autostart und weitere HydroLink-Einstellungen bleiben in der bestehenden settings.json erhalten. Der Updater kopiert zusätzlich alte `plugins`-Ordner neben der EXE vollständig mit ihren Unterordnern und lokalen Konfigurationen in die neue App-Version. Die bisherige Installation bleibt unverändert für eine Rückkehr erhalten. Unterschiedliche Dateien am gleichen Zielpfad führen zu einem Abbruch statt zum Überschreiben.
+
+Für den Übergang von älteren Updatern prüft HydroLink beim Start die vom Updater verzeichnete vorherige Installation: Fehlt der gesamte `plugins`-Ordner in der neuen Version, wird er übernommen. Bereits vorhandene Plugin-Ordner werden durch diese Absicherung nicht überschrieben. Portable Installationen außerhalb der verwalteten Update-Ablage werden nicht automatisch durchsucht. Bei manuellen portablen Updates daher den bisherigen plugins-Ordner mitnehmen oder Plugins über die dauerhafte Plugin-Verwaltung installieren.

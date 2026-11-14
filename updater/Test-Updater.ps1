@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'HydroLink.Update.psm1') -Force
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('HydroLink-updater-test-' + [guid]::NewGuid().ToString('N'))
 $null = New-Item -ItemType Directory -Path $testRoot
@@ -20,10 +20,17 @@ $one = Package 'one.zip' 'VRC HydroLink.exe' 'test executable - never launched'
 $hash = (Get-FileHash $one -Algorithm SHA256).Hash
 $null = Install-HydroPackage $installRoot '1.0.0' $one $hash
 Check ((Read-HydroState $installRoot).current -eq '1.0.0') 'first install commits selected version'
+$oldPlugins = Join-Path $installRoot '1.0.0/plugins/example/nested'
+$null = New-Item -ItemType Directory -Path $oldPlugins -Force
+[IO.File]::WriteAllText((Join-Path $oldPlugins 'settings.json'), '{"userChoice":42}')
+[IO.File]::WriteAllBytes((Join-Path $oldPlugins 'plugin.dll'), [byte[]](0,1,2,255))
 $two = Package 'two.zip' 'VRC HydroLink.exe' 'new test executable - never launched'
 $hashTwo = (Get-FileHash $two -Algorithm SHA256).Hash
 $null = Install-HydroPackage $installRoot '1.0.1' $two $hashTwo
 Check ((Read-HydroState $installRoot).previous -eq '1.0.0' -and (Test-Path (Join-Path $installRoot '1.0.0/VRC HydroLink.exe'))) 'update preserves previous application'
+Check ((Get-Content -LiteralPath (Join-Path $installRoot '1.0.1/plugins/example/nested/settings.json') -Raw) -eq '{"userChoice":42}') 'legacy plugin settings carried into new application'
+Check ((Get-FileHash -LiteralPath (Join-Path $installRoot '1.0.0/plugins/example/nested/plugin.dll')).Hash -eq (Get-FileHash -LiteralPath (Join-Path $installRoot '1.0.1/plugins/example/nested/plugin.dll')).Hash) 'plugin DLL preserved byte for byte'
+Check ((Get-Content -LiteralPath (Join-Path $oldPlugins 'settings.json') -Raw) -eq '{"userChoice":42}') 'original plugin configuration retained for rollback'
 $null = Undo-HydroUpdate $installRoot
 Check ((Read-HydroState $installRoot).current -eq '1.0.0') 'rollback selects previous application'
 $badHash = $false
@@ -47,4 +54,10 @@ $blocked = $false
 try { $null = Install-HydroPackage $installRoot '1.0.1' $two $hashTwo } catch { $blocked = $true }
 Check $blocked 'existing version never overwritten'
 Check ((Get-Content (Join-Path $installRoot '1.0.0/VRC HydroLink.exe') -Raw) -eq 'test executable - never launched') 'old installation bytes preserved'
+$conflict = Package 'conflict.zip' 'VRC HydroLink.exe' 'not launched'
+$zip = [IO.Compression.ZipFile]::Open($conflict, 'Update')
+try { $writer = New-Object IO.StreamWriter($zip.CreateEntry('plugins/example/nested/settings.json').Open()); try { $writer.Write('different settings') } finally { $writer.Dispose() } } finally { $zip.Dispose() }
+$blocked = $false
+try { $null = Install-HydroPackage $installRoot '1.0.3' $conflict (Get-FileHash $conflict -Algorithm SHA256).Hash } catch { $blocked = $true }
+Check ($blocked -and (Read-HydroState $installRoot).current -eq '1.0.0' -and !(Test-Path -LiteralPath (Join-Path $installRoot '1.0.3'))) 'plugin conflict aborts update before changing selected application'
 Write-Host "FINAL: $count updater checks passed. Fixtures: $testRoot"

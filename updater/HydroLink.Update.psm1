@@ -1,4 +1,4 @@
-Set-StrictMode -Version Latest
+﻿Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
@@ -34,6 +34,23 @@ function Write-HydroState([string]$Root, [string]$Current, $Previous) {
     if (Test-Path -LiteralPath $file) { [IO.File]::Replace($temp, $file, (Join-Path $Root 'state.previous.json')) }
     else { [IO.File]::Move($temp, $file) }
 }
+function Copy-HydroPlugins([string]$Source, [string]$Target) {
+    Assert-HydroPath $Source
+    Assert-HydroPath $Target
+    if (!(Test-Path -LiteralPath $Source -PathType Container)) { return }
+    $null = New-Item -ItemType Directory -Path $Target -Force
+    foreach ($item in Get-ChildItem -LiteralPath $Source -Force) {
+        Assert-HydroPath $item.FullName
+        $next = Join-Path $Target $item.Name
+        Assert-HydroPath $next
+        if ($item.PSIsContainer) { Copy-HydroPlugins $item.FullName $next }
+        elseif (Test-Path -LiteralPath $next) {
+            if (!(Test-Path -LiteralPath $next -PathType Leaf) -or (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $next -Algorithm SHA256).Hash) {
+                throw 'Plugin-Konflikt im Update-Paket. Bestehende Plugins und Einstellungen werden nicht ueberschrieben.'
+            }
+        } else { [IO.File]::Copy($item.FullName, $next, $false) }
+    }
+}
 function Install-HydroPackage([string]$Root, [string]$Version, [string]$Zip, [string]$Hash) {
     $destination = Get-HydroVersionFolder $Root $Version
     Assert-HydroPath $destination
@@ -60,6 +77,10 @@ function Install-HydroPackage([string]$Root, [string]$Version, [string]$Zip, [st
     } finally { $archive.Dispose() }
     [IO.Compression.ZipFile]::ExtractToDirectory($Zip, $stage)
     if (!(Test-Path -LiteralPath (Join-Path $stage 'VRC HydroLink.exe') -PathType Leaf)) { throw 'HydroLink-Anwendung fehlt im Paket.' }
+    if ($state) {
+        $oldPlugins = Join-Path (Get-HydroVersionFolder $Root $state.current) 'plugins'
+        Copy-HydroPlugins $oldPlugins (Join-Path $stage 'plugins')
+    }
     [IO.Directory]::Move($stage, $destination)
     Write-HydroState $Root $Version $(if ($state) { $state.current } else { $null })
     return $destination

@@ -2,7 +2,7 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.2 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.3 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
@@ -173,3 +173,7 @@ Zehntes Desktop-Toy-Profil: Vibration, Hubgeschwindigkeit, manueller Betrieb ohn
 ### Plugin-Verwaltung — Windows 0.17.2
 
 Mehrere Plugins gleichzeitig: einzeln freigeben, starten, stoppen, neu starten und mit der App starten. Eigene Seiten unter Einstellungen → Plugins. Dauerhafte Installation unabhängig vom Windows-App-Update, GitHub-Updateprüfung beim Start, bestätigte Installation mit Prüfsumme und Rückkehr zur vorherigen Version nach Neustart. Plugins nutzen den gemeinsamen OSC Hub. Kein OpenShock/PiShock-Plugin enthalten. [Bedienung, Paketformat und Grenzen](docs/PLUGINS.md).
+
+### Plugins bei App-Updates behalten — 0.17.3
+
+App-Updates übernehmen jetzt auch alte Plugins neben der EXE einschließlich ihrer lokalen Einstellungen. Verwaltete Plugins und gespeicherte Freigabe-/Autostart-Auswahl bleiben bestehen. Eine Startprüfung sichert den Übergang von älteren Updatern ab. Bei Dateikonflikten wird nicht überschrieben. [Details](docs/PLUGINS.md#app-updates-ab-0173).
