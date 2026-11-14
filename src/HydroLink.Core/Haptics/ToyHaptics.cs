@@ -1,7 +1,7 @@
 ﻿using Buttplug.Core.Messages;
 namespace VrcHapticsBridge.Core;
 
-public enum ToyKind { Max2, Ridge, SolacePro, Dolce, Gemini, Nora, Gravity, LushMini, Gush2 }
+public enum ToyKind { Max2, Ridge, SolacePro, Dolce, Gemini, Nora, Gravity, LushMini, Gush2, Spinel }
 public sealed record ToyDevice(uint Id, string Name)
 {
     public override string ToString() => Name;

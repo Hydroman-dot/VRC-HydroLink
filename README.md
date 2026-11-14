@@ -2,7 +2,7 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.0 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.1 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
@@ -165,3 +165,7 @@ Alle Toy-Reiter sind auch ohne Unity-Prefab sichtbar. „Manuell ohne VRChat sta
 Eigenes Modul unter **OSC Hub → OSC Router**: Start/Stopp/Neustart, Autostart-Auswahl, feste IPv4-/UDP-Endpunkte, Mehrfachverteilung, Filter, Umrechnung, Profil-/Avatarregeln und Diagnoseverlauf. Gemeinsame OSC-Verbindung bleibt bei anderen aktiven Modulen erhalten. OSCQuery-Parameterfehler stoppen nicht mehr allein die Haptik. [Einrichtung, Grenzen und Tests](docs/OSC-ROUTER.md). Intiface und Unity-Wizard 0.16.5 bleiben erhalten.
 
 Die Menüfreigabe wird nach Toy-Aktivierung wiederholt über frische OSCQuery-Werte abgeglichen. Ein anfängliches „aus“ beendet die Abfrage nicht mehr. Live-OSC-Ausschalten hat Vorrang vor alten HTTP-Antworten; ein später verlorenes Einschalten kann nach einer kurzen Sperrfrist und zwei frischen Bestätigungen erkannt werden. Stop, Avatarwechsel und Geräteverlust geben keine Ausgabe automatisch wieder frei. Der Toy-Reiter zeigt Quelle und Zeitpunkt der letzten erkannten Menüfreigabe.
+
+### Spinel — Windows 0.17.1
+
+Zehntes Desktop-Toy-Profil: Vibration, Hubgeschwindigkeit, manueller Betrieb ohne VRChat, Stop und gemeldeter Akkustand. Die Heizung und separate Turbo-Freigabe sind im aktuellen Intiface-/Buttplug-Profil nicht verfügbar. Unity-Wizard und Unity-Paket bleiben ausdrücklich unverändert auf 0.16.5; das Spinel-Prefab folgt später. [Funktionen, Quellen und Grenzen](docs/SPINEL.md). Die BPM-Anzeige in der Modulübersicht steht jetzt bei Heartrate statt VR Fitness.

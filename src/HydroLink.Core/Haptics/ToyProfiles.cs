@@ -1,4 +1,4 @@
-using Buttplug.Core.Messages;
+﻿using Buttplug.Core.Messages;
 namespace VrcHapticsBridge.Core;
 
 public sealed record ToyChannel(string Key, string Label, OutputType Type, int Index = 0);
@@ -9,7 +9,7 @@ public static class ToyProfiles
     public static ToyChannel[] Channels(ToyKind toy) => toy switch {
         ToyKind.Dolce or ToyKind.Gemini => [new("Vibration1", "Vibration · Motor 1", OutputType.Vibrate), new("Vibration2", "Vibration · Motor 2", OutputType.Vibrate, 1)],
         ToyKind.Nora => [new("Vibration", "Vibration", OutputType.Vibrate), new("Rotation", "Rotation", OutputType.Rotate)],
-        ToyKind.Gravity => [new("Vibration", "Vibration", OutputType.Vibrate), new("Thrusting", "Hubgeschwindigkeit", OutputType.Oscillate)],
+        ToyKind.Gravity or ToyKind.Spinel => [new("Vibration", "Vibration", OutputType.Vibrate), new("Thrusting", "Hubgeschwindigkeit", OutputType.Oscillate)],
         ToyKind.Gush2 => [new("Vibration", "Vibration", OutputType.Vibrate), new("Oscillation", "Oszillation", OutputType.Oscillate)],
         ToyKind.LushMini => [new("Vibration", "Vibration", OutputType.Vibrate)],
         _ => [] };

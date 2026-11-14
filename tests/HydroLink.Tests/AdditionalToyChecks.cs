@@ -1,4 +1,4 @@
-using VrcHapticsBridge.Core;
+﻿using VrcHapticsBridge.Core;
 using Buttplug.Core.Messages;
 internal static class AdditionalToyChecks
 {
@@ -29,6 +29,10 @@ internal static class AdditionalToyChecks
             toys.Receive([new(prefix+"Stop",1)]); await engine.TickAsync();
             check(!engine.Snapshot.Armed,toy+" menu stop disarms");
         }
+        check(!ToyHaptics.Matches(ToyKind.Spinel,"Lovense SpinelFake") && !ToyHaptics.Matches(ToyKind.Spinel,"Lovense Gravity"),"Spinel auto-selection requires exact model token");
+        check(ToyProfiles.Channels(ToyKind.Spinel).Select(c=>c.Type).SequenceEqual(new[]{OutputType.Vibrate,OutputType.Oscillate}),"Spinel exposes verified vibration and thrusting capabilities only");
+        check(ToyProfiles.Feature(ToyProfiles.Channels(ToyKind.Spinel)[1],[new(1,0,"Spinel","Vibration",OutputType.Vibrate,0,20,0)])==null,"Missing Spinel thrusting remains unavailable rather than reusing vibration");
+        check(!ToyProfiles.Accepts(ToyKind.Spinel,"Heating") && !ToyProfiles.Accepts(ToyKind.Spinel,"Position"),"Spinel does not invent unsupported heating or position channels");
         check(!ToyHaptics.Matches(ToyKind.Gush2,"Lovense Gush"),"Gush 2 does not auto-select original Gush");
         check(ToyHaptics.Matches(ToyKind.Gush2,"Lovense Gush2"),"Compact Gush2 name");
         check(ToyProfiles.Feature(ToyProfiles.Channels(ToyKind.Gush2)[1],[new(1,7,"Gush 2","Vibration",OutputType.Vibrate,0,20,0)])==null,"Missing Gush 2 oscillation stays unavailable");

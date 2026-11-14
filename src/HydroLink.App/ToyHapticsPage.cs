@@ -81,6 +81,8 @@ public partial class MainWindow
                 }
             }
             content.Children.Insert(3, view.Battery);
+            if (kind == ToyKind.Spinel)
+                content.Children.Add(new TextBlock { Text = "Spinel: Vibration und Hubgeschwindigkeit werden getrennt gesteuert. Akku wird angezeigt, sofern Intiface ihn meldet. Heizung, Turbo-Freigabe und Hubposition sind über das aktuelle Buttplug-Profil nicht separat verfügbar.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 8), Foreground = Color("#93ADC5") });
             if (kind == ToyKind.SolacePro)
             {
                 view.PositionMode = new CheckBox { Content = "Zielposition steuern (statt wiederholter Hübe)", Margin = new Thickness(0, 8, 0, 8) };
