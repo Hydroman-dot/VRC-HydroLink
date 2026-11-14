@@ -1,4 +1,4 @@
-﻿# VRC HydroLink
+# VRC HydroLink
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
@@ -18,13 +18,13 @@ This project is developed and documented with assistance from artificial intelli
 
 ## Avatar-Toolkit und Haptics
 
-- [Unity-Paket herunterladen](packages/HydroLink-Wizard-0.16.5.unitypackage)
+- [Unity-Paket herunterladen](packages/HydroLink-Wizard-0.17.1.unitypackage)
 - [Einrichtung und mehrere Avatare](docs/AVATAR-TOOLKIT.md)
 - [Unity-Quellcode und Prefabs](unity/Assets/VRC%20HydroLink%20Avatar%20Toolkit)
 
 Jeden Avatar einmal im Unity-Wizard einrichten und übergeben. HydroLink speichert die Profile getrennt nach Upload-ID und wählt beim Avatarwechsel automatisch das passende Profil. Am PC das Toy freigeben, anschließend im Radialmenü **Haptik einschalten**. **Haptik-Staerken** und **Manuell** besitzen separate Regler; das manuelle Untermenü hat einen eigenen Einschalter.
 
-Enthalten sind neun Desktop-Toy-Profile; der Unity-Wizard-Quellcode unterstützt ebenfalls Gush 2. Unity-Paket 0.16.5 enthält Gush 2:
+Enthalten sind zehn Desktop-Toy-Profile. Unity-Paket 0.17.1 ergänzt Spinel mit Vibration und Hubgeschwindigkeit:
 
 | Toy | Regler, soweit vom Gerät/Backend gemeldet |
 | --- | --- |
@@ -62,7 +62,7 @@ Optional „Ausgewählte Module mit HydroLink starten“ aktivieren; die Auswahl
 - **Sessions:** neue und originale VR-Fitness-CSV-Dateien öffnen, Statistiken und Diagramme ansehen, Textbericht exportieren oder über den Windows-Druckdialog als PDF ausgeben.
 - **WindForce:** eigene Quellenwahl unabhängig von Fitness, manuelle Steuerung, Pause, Quellenpriorität, Kalibrierung, Ausklang, Geräte- und Fanwerte. Bewegungs-/Pulsquelle und Regeln direkt auf WindForce wählen, mit ↑/↓ priorisieren und „Speichern und anwenden“ drücken. Dabei wird nur WindForce neu gestartet; andere Tools laufen weiter. Die Regel `Direct OSC` ist aus Kompatibilitätsgründen standardmäßig aktiv; andere Regeln ausdrücklich aktivieren. Für FitOSC Walking gilt die eigene normalisierte 0–1-Regel, für VRTI AutoWalk km/h.
 - **OSC Hub:** Live-Parameterliste mit Suche, OSCQuery-Werten sowie getrennten Empfangs-/Sendewerten, Dashboard-Übernahme und Zuordnungen pro Avatar.
-- **Haptics:** eigene Reiter für die neun Toy-Profile, automatische SPS-Plug-/Socket-Erkennung, getrennte SPS- und manuelle Radialregler, Hauptschalter und Stop pro Toy sowie automatische Einrichtung für mehrere Avatare.
+- **Haptics:** eigene Reiter für die zehn Toy-Profile, automatische SPS-Plug-/Socket-Erkennung, getrennte SPS- und manuelle Radialregler, Hauptschalter und Stop pro Toy sowie automatische Einrichtung für mehrere Avatare.
 
 Verbindungseinstellungen werden beim Erzeugen des Hosts übernommen. Für Änderungen derzeit **Alles stoppen**, speichern, Tools erneut starten. Externe Dienste verbinden sich bei Unterbrechungen erneut.
 
@@ -168,4 +168,4 @@ Die Menüfreigabe wird nach Toy-Aktivierung wiederholt über frische OSCQuery-We
 
 ### Spinel — Windows 0.17.1
 
-Zehntes Desktop-Toy-Profil: Vibration, Hubgeschwindigkeit, manueller Betrieb ohne VRChat, Stop und gemeldeter Akkustand. Die Heizung und separate Turbo-Freigabe sind im aktuellen Intiface-/Buttplug-Profil nicht verfügbar. Unity-Wizard und Unity-Paket bleiben ausdrücklich unverändert auf 0.16.5; das Spinel-Prefab folgt später. [Funktionen, Quellen und Grenzen](docs/SPINEL.md). Die BPM-Anzeige in der Modulübersicht steht jetzt bei Heartrate statt VR Fitness.
+Zehntes Desktop-Toy-Profil: Vibration, Hubgeschwindigkeit, manueller Betrieb ohne VRChat, Stop und gemeldeter Akkustand. Die Heizung und separate Turbo-Freigabe sind im aktuellen Intiface-/Buttplug-Profil nicht verfügbar. Unity-Wizard und Unity-Paket 0.17.1 enthalten jetzt das Spinel-Prefab mit getrennten SPS- und manuellen Reglern unter dem gemeinsamen HydroLink-Menü. Alle zehn Prefabs wurden im Unity-Editor validiert; Hardware- und Avatar-Build-Test stehen aus. [Funktionen, Quellen und Grenzen](docs/SPINEL.md). Die BPM-Anzeige in der Modulübersicht steht jetzt bei Heartrate statt VR Fitness.

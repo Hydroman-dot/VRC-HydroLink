@@ -1,4 +1,4 @@
-﻿# Lovense Spinel · Windows 0.17.1
+# Lovense Spinel · Windows 0.17.1
 
 Eigenes Profil unter Haptics → Spinel. Intiface muss das Gerät als Lovense Spinel erkennen und seine Fähigkeiten melden.
 
@@ -17,7 +17,7 @@ Die Regler verwenden 0–100 % des vom Backend angebotenen Bereichs. Buttplug de
 
 Das Gerät besitzt laut Hersteller auch eine Heizfunktion. Das derzeitige Buttplug-Profil bietet jedoch weder Heizung noch einen separaten Turbo-Schalter, Hubposition oder Hubgrenzen an. Diese Funktionen werden nicht als funktionierende Regler vorgetäuscht. 100 % bedeutet das Backend-Maximum, nicht eine bestätigte separate Turbo-Freigabe. Ein anderer Geräteprovider wäre dafür gesondert zu untersuchen.
 
-**Unity bleibt auf ausdrücklichen Nutzerwunsch unverändert.** Der bisherige Wizard 0.16.5 erzeugt noch kein Spinel-Prefab und keine Spinel-Radialparameter. Bei bestehendem Wizard-Profil ohne Spinel bleibt deshalb der profilgebundene SPS-Start gesperrt; der eigenständige manuelle Gerätetest funktioniert unabhängig davon. Die vollständige Avatar-Einrichtung folgt später.
+Unity-Wizard 0.17.1 enthält ein eigenes Spinel-Prefab. Radialmenü: HydroLink > HydroLink Spinel, mit Haptik einschalten, Haptik-Staerken (Vibration / Hubgeschwindigkeit), Manuell (einschalten und beide Kanäle getrennt regeln) und Stopp. Sieben lokale Parameter unter HydroLink/Spinel/ werden automatisch an die Desktop-Einrichtung übergeben. Im Unity-Editor wurden alle zehn Prefabs validiert; Avatar-Build und echter Spinel-Praxistest stehen aus.
 
 ## Quellen (geprüft 14. November 2026)
 
