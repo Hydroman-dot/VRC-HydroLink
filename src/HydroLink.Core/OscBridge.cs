@@ -1,4 +1,4 @@
-﻿using VrcHapticsBridge.Core;
+using VrcHapticsBridge.Core;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -39,6 +39,9 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
         foreach (var parameter in new[] { "VelocityMagnitude", "VelocityX", "VelocityY", "VelocityZ", "WinForceSensor_Angle" })
             service.AddEndpoint("/avatar/parameters/" + parameter, "f", Attributes.AccessValues.WriteOnly);
         service.AddEndpoint("/avatar/parameters/InStation", "T", Attributes.AccessValues.WriteOnly);
+        var pluginInputs=PluginOscInputs.Resolve(new PluginCatalog(PluginCatalog.DefaultRoot,Log).Discover(Path.Combine(AppContext.BaseDirectory,"plugins")),settings.EnabledPlugins,Settings.Folder,Log);
+        foreach(var input in pluginInputs) service.AddEndpoint(input.Key,input.Value,Attributes.AccessValues.WriteOnly);
+        Log($"OSCQuery: {pluginInputs.Count} Plugin-Eingänge angemeldet");
         service.OnOscQueryServiceAdded += p => { if (p.name.StartsWith(discoveryPrefix, StringComparison.OrdinalIgnoreCase)) profiles[p.name] = p; };
         // Publish only after the complete receive tree exists. A running VRChat may query
         // immediately on discovery and otherwise cache an empty tree for this session.
@@ -145,6 +148,7 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
                                 if (OscMonitor.FindAvatar(tree.RootElement) is { Length: > 0 } avatar && Monitor.SetAvatar(avatar)) bus.Publish("osc/avatar-id", avatar, Id);
                                 Monitor.Query(tree.RootElement);
                                 var queryAvatar = OscMonitor.FindAvatar(tree.RootElement);
+                                OscSnapshots.Publish(bus,tree.RootElement,queryAvatar ?? "",queryStarted);
                                 if (!string.IsNullOrEmpty(queryAvatar))
                                     foreach (var item in OscMonitor.ParseTree(tree.RootElement).Where(x => Enum.GetValues<ToyKind>().Any(t => x.Address == "/avatar/parameters/HydroLink/" + t + "/Enabled")))
                                     {

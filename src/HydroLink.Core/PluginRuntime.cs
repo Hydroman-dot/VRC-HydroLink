@@ -8,6 +8,8 @@ public sealed class PluginRuntime(IDataBus bus, Action<string> log) : IAsyncDisp
     public IReadOnlyCollection<string> Running => active.Keys.ToArray();
     public IReadOnlyList<PluginPage> Pages => active.Values.SelectMany(a=>a.Loader.Pages).ToArray();
     public IReadOnlyList<IComponent> Components => active.Values.SelectMany(a=>a.Loader.Components).ToArray();
+    public IReadOnlyList<PluginPage> PagesFor(string id) => active.TryGetValue(id,out var plugin) ? plugin.Loader.Pages.ToArray() : [];
+    public (long Count,string Topic) OscReception(string id) => active.TryGetValue(id,out var plugin) ? (Interlocked.Read(ref plugin.Bus.OscCount),Volatile.Read(ref plugin.Bus.LastOsc)) : (0,"");
     public bool RequiresOsc { get; private set; }
     private readonly HashSet<string> oscUsers = [];
     public async Task StartAsync(PluginEntry entry,CancellationToken token)
@@ -46,9 +48,10 @@ public sealed class PluginRuntime(IDataBus bus, Action<string> log) : IAsyncDisp
     // Release subscriptions and suppress late output even when plugin teardown fails.
     private sealed class ScopedBus(IDataBus inner) : IDataBus, IDisposable
     {
+        public long OscCount; public string LastOsc="";
         readonly object gate=new(); readonly List<IDisposable> subscriptions=[]; int stopped; int listening=1;
         public void Publish(string topic,object value,string source) { if(Volatile.Read(ref stopped)==0) inner.Publish(topic,value,source); }
-        public IDisposable Subscribe(string prefix,Action<DataEvent> handler) { lock(gate) { if(listening==0) throw new ObjectDisposedException(nameof(ScopedBus)); var subscription=inner.Subscribe(prefix,e=>{ if(Volatile.Read(ref listening)==1) handler(e); }); subscriptions.Add(subscription); return subscription; } }
+        public IDisposable Subscribe(string prefix,Action<DataEvent> handler) { lock(gate) { if(listening==0) throw new ObjectDisposedException(nameof(ScopedBus)); var subscription=inner.Subscribe(prefix,e=>{ if(Volatile.Read(ref listening)==1) { if(e.Topic.StartsWith("osc/value/",StringComparison.Ordinal)) { Interlocked.Increment(ref OscCount); Volatile.Write(ref LastOsc,e.Topic); } handler(e); } }); subscriptions.Add(subscription); return subscription; } }
         public void DetachSubscriptions() { lock(gate) { Interlocked.Exchange(ref listening,0); foreach(var s in subscriptions) s.Dispose(); subscriptions.Clear(); } }
         public void Dispose() { Interlocked.Exchange(ref stopped,1); DetachSubscriptions(); }
     }

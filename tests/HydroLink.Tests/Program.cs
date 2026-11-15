@@ -6,6 +6,18 @@ using System.Text.Json;
 using HydroLink.Core;
 using VRC.OSCQuery;
 
+if(args.Contains("--listen-headpad")) {
+    var diagnosticBus=new DataBus();
+    var received=new System.Collections.Concurrent.ConcurrentDictionary<string,int>();
+    using var listener=diagnosticBus.Subscribe("osc/value/avatar/parameters/HydroHaptic",e=>received.AddOrUpdate(e.Topic,1,(_,n)=>n+1));
+    using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(20));
+    await using var bridge=new OscBridge(new Settings { EnabledPlugins=["hydro.haptic.esb"] },diagnosticBus,Console.WriteLine);
+    await bridge.StartAsync(deadline.Token);
+    await Task.Delay(TimeSpan.FromSeconds(15));
+    foreach(var pair in received.OrderBy(p=>p.Key)) Console.WriteLine(pair.Key+" : "+pair.Value+" live values");
+    Console.WriteLine("Diagnostic complete: receive only, no plugin or hardware loaded.");
+    return;
+}
 int checks = 0;
 void Check(bool condition, string name) { if (!condition) throw new Exception("FAIL: " + name); Console.WriteLine("PASS: " + name); checks++; }
 if (args.Contains("--mqtt-only")) { await HomeAssistantChecks.Run(Check); Console.WriteLine($"FINAL: {checks} MQTT checks passed."); return; }

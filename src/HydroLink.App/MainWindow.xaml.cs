@@ -151,6 +151,7 @@ public partial class MainWindow : Window
     private void Refresh()
     {
         if (closing || closed) return;
+        RefreshPluginReception();
         string Metric(string topic, string unit) => latest.TryGetValue(topic, out var e) && DateTimeOffset.UtcNow - e.Timestamp < TimeSpan.FromSeconds(10) ? $"{e.Value.GetDouble():0.#} {unit}" : $"— {unit}";
         HeartValue.Text = Metric("fitness/heart/bpm", "bpm"); SpeedValue.Text = Metric("fitness/speed-kmh", "km/h"); WindValue.Text = Metric("windforce/output-percent", "%");
         OscCount.Text = Interlocked.Read(ref oscMessages).ToString();

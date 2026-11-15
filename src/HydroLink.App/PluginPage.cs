@@ -7,6 +7,8 @@ public partial class MainWindow
 {
     private readonly Dictionary<string,PluginUpdate> pluginUpdates = [];
     private bool pluginRestartRequired;
+    private readonly Dictionary<string,(TabItem Tab,IReadOnlyList<HydroLink.Sdk.PluginPage> Pages)> pluginViewCache=[];
+    private readonly Dictionary<string,TextBlock> pluginReceptionLabels=[];
     private PluginCatalog Catalog {
         get {
             var args=Environment.GetCommandLineArgs(); var index=Array.IndexOf(args,"--preview-plugin-root");
@@ -31,7 +33,9 @@ public partial class MainWindow
     private void RefreshPlugins_Click(object sender,RoutedEventArgs e)=>RefreshPluginRows();
     private void RefreshPluginRows()
     {
-        PluginRows.Children.Clear(); PluginViews.Items.Clear(); PluginViews.Visibility=Visibility.Collapsed;
+        PluginRows.Children.Clear();
+        var selectedPlugin=(PluginTabs.SelectedItem as TabItem)?.Tag as string;
+        pluginReceptionLabels.Clear();
         IReadOnlyList<PluginEntry> entries;
         try { entries=Catalog.Discover(Path.Combine(AppContext.BaseDirectory,"plugins")); }
         catch(Exception ex) { PluginStatus.Text="Plugin-Verzeichnis nicht lesbar: "+ex.Message; return; }
@@ -42,6 +46,7 @@ public partial class MainWindow
             var panel=new StackPanel { Margin=new Thickness(12) };
             panel.Children.Add(new TextBlock { Text=entry.Manifest.Name+" · "+entry.Manifest.Version+" · "+(active?"Gestartet":"Gestoppt"),FontSize=18 });
             panel.Children.Add(new TextBlock { Text=id+" · "+(entry.Manifest.GitHubRepository ?? "Keine GitHub-Updatequelle")+(entry.Manifest.RequiresOsc?" · nutzt OSC Hub":""),TextWrapping=TextWrapping.Wrap });
+            var reception=new TextBlock { TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,6,0,6) }; panel.Children.Add(reception); pluginReceptionLabels[id]=reception;
             var enabled=new CheckBox { Content="Plugin freigeben", IsChecked=settings.EnabledPlugins.Contains(id),IsEnabled=!active && !pluginRestartRequired };
             enabled.Click+=(_,_)=>{ settings.EnabledPlugins.RemoveAll(x=>x==id); if(enabled.IsChecked==true) settings.EnabledPlugins.Add(id); PluginIds.Text=string.Join(", ",settings.EnabledPlugins); settings.Save(); RefreshPluginRows(); };
             panel.Children.Add(enabled);
@@ -63,8 +68,30 @@ public partial class MainWindow
             }
             panel.Children.Add(row); PluginRows.Children.Add(new Border { Child=panel,Background=Color("#203248"),CornerRadius=new CornerRadius(8),Margin=new Thickness(0,8,0,8) });
         }
-        if(host?.Plugins is {} runtime) foreach(var page in runtime.Pages)
-            try { if(page.CreateView() is FrameworkElement view) { PluginViews.Items.Add(new TabItem { Header=page.Title,Content=view }); PluginViews.Visibility=Visibility.Visible; } } catch(Exception ex) { Log("Plugin-Seite: "+ex.Message); }
+        foreach(var entry in entries) {
+            var id=entry.Manifest.Id;
+            var pages=host?.Plugins?.PagesFor(id) ?? [];
+            if(!pluginViewCache.TryGetValue(id,out var cached) || !cached.Pages.SequenceEqual(pages)) {
+                if(cached.Tab is not null) PluginTabs.Items.Remove(cached.Tab);
+                var content=new StackPanel { Margin=new Thickness(16) };
+                if(pages.Count==0) content.Children.Add(new TextBlock { Text="Plugin in Verwaltung starten. Seine Bedienoberfläche erscheint anschließend hier.",TextWrapping=TextWrapping.Wrap });
+                foreach(var page in pages)
+                    try { if(page.CreateView() is FrameworkElement view) { content.Children.Add(new TextBlock { Text=page.Title,FontSize=18 }); content.Children.Add(view); } } catch(Exception ex) { content.Children.Add(new TextBlock { Text="Plugin-Seite konnte nicht geöffnet werden: "+ex.Message,TextWrapping=TextWrapping.Wrap }); }
+                cached=(new TabItem { Header=entry.Manifest.Name,Tag=id,Content=new ScrollViewer { Content=content,VerticalScrollBarVisibility=ScrollBarVisibility.Auto } },pages);
+                pluginViewCache[id]=cached;
+            }
+            if(!PluginTabs.Items.Contains(cached.Tab)) PluginTabs.Items.Add(cached.Tab);
+            if(id==selectedPlugin) PluginTabs.SelectedItem=cached.Tab;
+        }
+        RefreshPluginReception();
+        foreach(var id in pluginViewCache.Keys.Except(entries.Select(e=>e.Manifest.Id)).ToArray()) { PluginTabs.Items.Remove(pluginViewCache[id].Tab); pluginViewCache.Remove(id); }
+    }
+    private void RefreshPluginReception()
+    {
+        foreach(var pair in pluginReceptionLabels) {
+            var rx=host?.Plugins?.OscReception(pair.Key) ?? (0L,"");
+            pair.Value.Text=rx.Item1==0 ? "OSC im Plugin: noch keine Live-Parameter empfangen" : $"OSC im Plugin: {rx.Item1:N0} Parameter empfangen · zuletzt {rx.Item2.Replace("osc/value","")}";
+        }
     }
     private async Task PluginAction(Func<Task> action)
     {

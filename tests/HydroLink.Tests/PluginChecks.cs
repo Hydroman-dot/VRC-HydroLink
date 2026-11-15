@@ -20,6 +20,19 @@ public static class PluginChecks
             check(File.ReadAllText(copied)=="kept config" && File.ReadAllText(Path.Combine(old,"settings.json"))=="kept config","recovery preserves settings and source installation");
             File.WriteAllText(copied,"new config");
             check(!PluginCarryover.Recover(next,updateRoot,_=>{}) && File.ReadAllText(copied)=="new config","repeated recovery never overwrites current plugin settings");
+            var esb=new PluginEntry(new PluginManifest("hydro.haptic.esb","ESB","unused.dll"),folder,false);
+            var inputs=PluginOscInputs.Resolve([esb],["hydro.haptic.esb"],folder,_=>{});
+            check(inputs.Count==5 && inputs["/avatar/parameters/HydroHaptic/Heartbeat"]=="T" && inputs["/avatar/parameters/HydroHaptic/Left"]=="f","legacy ESB advertises five typed OSC inputs");
+            check(PluginOscInputs.Resolve([esb],[],folder,_=>{}).Count==0,"disabled plugin inputs are not advertised");
+            File.WriteAllText(Path.Combine(folder,"hydro-haptic-parameters.json"),"{\"Left\":\"Headpad/Left\"}");
+            check(PluginOscInputs.Resolve([esb],["hydro.haptic.esb"],folder,_=>{}).ContainsKey("/avatar/parameters/Headpad/Left"),"custom ESB parameter names used for OSCQuery registration");
+            var declared=esb with { Manifest=esb.Manifest with { Id="fixture.inputs",OscInputs=new() { ["/avatar/parameters/Example"]="i" } } };
+            check(PluginOscInputs.Resolve([declared],["fixture.inputs"],folder,_=>{}).Single().Value=="i","plugins can declare their typed OSC inputs in manifest");
+            var queryBus=new DataBus(); int snapshots=0,live=0;
+            using var qsub=queryBus.Subscribe("osc/query-value",e=>{ if(e.Value.GetProperty("value").GetDouble()==0.7) snapshots++; });
+            using var lsub=queryBus.Subscribe("osc/value",_=>live++);
+            using(var tree=JsonDocument.Parse("{\"FULL_PATH\":\"/avatar/parameters/HydroHaptic/Intensity\",\"TYPE\":\"f\",\"VALUE\":[0.7]}")) OscSnapshots.Publish(queryBus,tree.RootElement,"avatar-test",DateTimeOffset.UtcNow);
+            check(snapshots==1 && live==0,"query snapshot uses separate topic and never masquerades as live OSC");
             var catalog=new PluginCatalog(Path.Combine(folder,"store"),_=>{});
             string Package(string id,string version,string? badPath=null,int api=1) {
                 var path=Path.Combine(folder,Guid.NewGuid()+".zip");

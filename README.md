@@ -2,7 +2,7 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.3 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.4 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
@@ -177,3 +177,7 @@ Mehrere Plugins gleichzeitig: einzeln freigeben, starten, stoppen, neu starten u
 ### Plugins bei App-Updates behalten — 0.17.3
 
 App-Updates übernehmen jetzt auch alte Plugins neben der EXE einschließlich ihrer lokalen Einstellungen. Verwaltete Plugins und gespeicherte Freigabe-/Autostart-Auswahl bleiben bestehen. Eine Startprüfung sichert den Übergang von älteren Updatern ab. Bei Dateikonflikten wird nicht überschrieben. [Details](docs/PLUGINS.md#app-updates-ab-0173).
+
+### Plugin-Reiter und OSC-Diagnose — 0.17.4
+
+Eigener Hauptreiter Plugins mit Verwaltung und einem Unterreiter je Plugin. Ansichten bleiben beim Aktualisieren der Liste erhalten. Typisierte Plugin-OSC-Eingänge werden vor der OSCQuery-Anmeldung registriert, einschließlich Kompatibilität für Hydro Haptic ESB 1.0.0 und dessen angepasste Parameternamen. Eine Empfangsanzeige zählt tatsächlich an das Plugin zugestellte Liveparameter; Abfragewerte werden nicht als Live-Signale ausgegeben. [Details](docs/PLUGINS.md#osc-eingänge-und-empfangsanzeige-ab-0174).
