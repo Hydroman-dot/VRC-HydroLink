@@ -39,6 +39,7 @@ public sealed class Settings
     public string HeartOscAddress { get; set; } = "/avatar/parameters/HeartRate";
     public List<string> EnabledPlugins { get; set; } = [];
     public List<string> AutoStartPlugins { get; set; } = [];
+    public List<string> AutoUpdatePlugins { get; set; } = [];
     public bool CheckPluginUpdatesOnStartup { get; set; } = true;
     public List<DashboardCard> Dashboard { get; set; } = DashboardCard.Defaults();
     public List<LaunchProgram> Programs { get; set; } = LaunchProgram.Defaults();

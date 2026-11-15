@@ -113,7 +113,7 @@ public partial class MainWindow : Window
             FitnessOptions = settings.FitnessOptions, HomeAssistant = ReadHomeAssistant(), Heartrate = ReadHeartrate(),
             HapticsOptions = settings.HapticsOptions, OscRoutes = settings.OscRoutes,
             WindMovementSource = (string?)WindMovementSource.SelectedItem ?? "None", WindHeartSource = (string?)WindHeartSource.SelectedItem ?? "None",
-            AutoStartPlugins = settings.AutoStartPlugins, CheckPluginUpdatesOnStartup = settings.CheckPluginUpdatesOnStartup,
+            AutoStartPlugins = settings.AutoStartPlugins, AutoUpdatePlugins = settings.AutoUpdatePlugins, CheckPluginUpdatesOnStartup = settings.CheckPluginUpdatesOnStartup,
             EnabledPlugins = PluginIds.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
         };
     }

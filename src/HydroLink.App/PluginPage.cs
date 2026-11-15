@@ -53,6 +53,9 @@ public partial class MainWindow
             var auto=new CheckBox { Content="Mit HydroLink starten", IsChecked=settings.AutoStartPlugins.Contains(id), IsEnabled=enabled.IsChecked==true };
             auto.Click+=(_,_)=>{ settings.AutoStartPlugins.RemoveAll(x=>x==id); if(auto.IsChecked==true) settings.AutoStartPlugins.Add(id); settings.Save(); };
             panel.Children.Add(auto);
+            var autoUpdate=new CheckBox { Content="Updates automatisch herunterladen (wirksam nach App-Neustart)", IsChecked=settings.AutoUpdatePlugins.Contains(id), IsEnabled=entry.Manifest.GitHubRepository is not null };
+            autoUpdate.Click+=(_,_)=>{ settings.AutoUpdatePlugins.RemoveAll(x=>x==id); if(autoUpdate.IsChecked==true) { settings.AutoUpdatePlugins.Add(id); settings.CheckPluginUpdatesOnStartup=true; PluginUpdateCheck.IsChecked=true; } settings.Save(); };
+            panel.Children.Add(autoUpdate);
             var row=new StackPanel { Orientation=Orientation.Horizontal };
             var toggle=new Button { Content=active?"Stoppen":"Starten", IsEnabled=enabled.IsChecked==true && !pluginRestartRequired };
             toggle.Click+=async(_,_)=>await PluginAction(async()=>{ await EnsureHost(); await host!.SetPluginAsync(entry,!active); }); row.Children.Add(toggle);
@@ -111,29 +114,53 @@ public partial class MainWindow
     private async Task CheckPlugins()
     {
         PluginPanel.IsEnabled=false; PluginStatus.Text="GitHub-Updates werden geprüft …"; pluginUpdates.Clear();
-        var failures=new List<string>();
+        var failures=new List<string>(); var installed=0;
         try {
             using var http=new System.Net.Http.HttpClient { Timeout=TimeSpan.FromSeconds(15) }; var updater=new PluginUpdates(http);
             using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(45));
             foreach(var entry in Catalog.Discover(Path.Combine(AppContext.BaseDirectory,"plugins")))
-                try { var update=await updater.CheckAsync(entry,deadline.Token); if(update is not null) pluginUpdates[entry.Manifest.Id]=update; }
+                try { var update=await updater.CheckAsync(entry,deadline.Token); if(update is not null) {
+                    if(settings.AutoUpdatePlugins.Contains(entry.Manifest.Id)) { await StagePlugin(update); installed++; }
+                    else pluginUpdates[entry.Manifest.Id]=update;
+                } }
                 catch(Exception ex) { failures.Add(entry.Manifest.Name+": "+ex.Message); }
-            PluginStatus.Text=(pluginRestartRequired?"Neue Versionsauswahl wird nach Neustart wirksam.\n":"")+$"{pluginUpdates.Count} Plugin-Update(s) verfügbar."+(failures.Count>0?"\nNicht geprüft: "+string.Join("; ",failures):"");
+            PluginStatus.Text=(pluginRestartRequired?"Neue Versionsauswahl wird nach Neustart wirksam.\n":"")+$"{installed} Update(s) vorbereitet · {pluginUpdates.Count} weitere verfügbar."+(failures.Count>0?"\nNicht geprüft: "+string.Join("; ",failures):"");
         } catch(Exception ex) { PluginStatus.Text="Update-Prüfung fehlgeschlagen: "+ex.Message; }
         finally { PluginPanel.IsEnabled=true; RefreshPluginRows(); }
     }
     private async Task InstallPluginUpdate(PluginUpdate update)
     {
         if(MessageBox.Show(this,$"{update.Installed.Manifest.Name} auf {update.Version} aktualisieren?\nQuelle: github.com/{update.Installed.Manifest.GitHubRepository}\nWirksam nach HydroLink-Neustart. Die vorherige Version bleibt erhalten.","Plugin-Update",MessageBoxButton.YesNo)!=MessageBoxResult.Yes) return;
+        await PluginAction(()=>StagePlugin(update));
+    }
+    private async Task StagePlugin(PluginUpdate update)
+    {
+        var temporary=Path.GetTempFileName();
+        try {
+            using var http=new System.Net.Http.HttpClient { Timeout=TimeSpan.FromMinutes(2) };
+            using var deadline=new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            await new PluginUpdates(http).DownloadAsync(update,temporary,deadline.Token);
+            Catalog.Install(temporary,update.Installed.Manifest.Id,update.Version,update.Installed.Manifest.GitHubRepository);
+            pluginUpdates.Remove(update.Installed.Manifest.Id); RequirePluginRestart();
+        } finally { File.Delete(temporary); }
+    }
+    private async void InstallRepository_Click(object sender,RoutedEventArgs e)
+    {
+        var input=PluginRepositoryLink.Text;
         await PluginAction(async()=>{
-            var temporary=Path.GetTempFileName();
-            try {
-                using var http=new System.Net.Http.HttpClient { Timeout=TimeSpan.FromMinutes(2) };
-                using var deadline=new CancellationTokenSource(TimeSpan.FromMinutes(2));
-                await new PluginUpdates(http).DownloadAsync(update,temporary,deadline.Token);
-                Catalog.Install(temporary,update.Installed.Manifest.Id,update.Version,update.Installed.Manifest.GitHubRepository);
-                pluginUpdates.Remove(update.Installed.Manifest.Id); RequirePluginRestart();
-            } finally { File.Delete(temporary); }
+            using var http=new System.Net.Http.HttpClient { Timeout=TimeSpan.FromSeconds(30) };
+            using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            PluginStatus.Text="Plugin-Release wird gesucht …";
+            var update=await new PluginUpdates(http).FindRepositoryAsync(input,deadline.Token);
+            var existing=Catalog.Discover(Path.Combine(AppContext.BaseDirectory,"plugins")).FirstOrDefault(p=>p.Manifest.Id==update.Installed.Manifest.Id);
+            if(existing is not null && (!string.Equals(existing.Manifest.GitHubRepository,update.Installed.Manifest.GitHubRepository,StringComparison.Ordinal) || Version.Parse(existing.Manifest.Version)>=Version.Parse(update.Version)))
+                throw new InvalidOperationException("Plugin ist bereits gleich/neuer installiert oder verwendet eine andere Updatequelle.");
+            if(MessageBox.Show(this,$"{update.Installed.Manifest.Id} · {update.Version} installieren?\nQuelle: github.com/{update.Installed.Manifest.GitHubRepository}\nKünftige Updates werden beim App-Start automatisch vorbereitet und nach Neustart verwendet. Dies lässt sich pro Plugin ausschalten.\nPlugins führen Code mit deinen Benutzerrechten aus. Neue Plugins bleiben zunächst deaktiviert.","Plugin von GitHub",MessageBoxButton.YesNo)!=MessageBoxResult.Yes) { PluginStatus.Text="Installation abgebrochen."; return; }
+            await StagePlugin(update);
+            var id=update.Installed.Manifest.Id;
+            if(!settings.AutoUpdatePlugins.Contains(id)) settings.AutoUpdatePlugins.Add(id);
+            settings.CheckPluginUpdatesOnStartup=true; PluginUpdateCheck.IsChecked=true; settings.Save();
+            PluginRepositoryLink.Clear();
         });
     }
 }

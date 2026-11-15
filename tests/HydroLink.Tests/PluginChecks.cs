@@ -79,6 +79,13 @@ public static class PluginChecks
                 check(!host.Running.Contains("osc") && osc.Stops==1,"last plugin releases unused OSC dependency");
             }
             using var http=new HttpClient(new ReleaseFixtureHandler());
+            check(PluginUpdates.Repository(" https://github.com/owner/plugins.git/ ")=="owner/plugins", "GitHub plugin link normalizes to repository");
+            foreach(var invalid in new[]{"https://github.com.evil/owner/plugins","http://github.com/owner/plugins","https://github.com/owner/plugins/releases","../plugins","https://user@github.com/owner/plugins"}) {
+                bool rejected=false; try { PluginUpdates.Repository(invalid); } catch(InvalidDataException) { rejected=true; }
+                check(rejected,"invalid plugin repository rejected: "+invalid);
+            }
+            var initial=await new PluginUpdates(http).FindRepositoryAsync("https://github.com/owner/plugins",CancellationToken.None);
+            check(initial.Installed.Manifest.Id=="fixture.one" && initial.Version=="2.0.0" && initial.Installed.Manifest.GitHubRepository=="owner/plugins", "GitHub link resolves plugin identity and release for first installation");
             var entryForUpdate=catalog.Discover()[0] with { Manifest=catalog.Discover()[0].Manifest with { GitHubRepository="owner/plugins" } };
             var update=await new PluginUpdates(http).CheckAsync(entryForUpdate,CancellationToken.None);
             check(update?.Version=="2.0.0","GitHub release selects versioned ZIP and checksum");
