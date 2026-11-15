@@ -6,8 +6,8 @@ using Microsoft.Win32;
 namespace HydroLink.App;
 public partial class MainWindow
 {
-    private bool autoSessionBusy, steamVrSeen, waitForRest;
-    private DateTimeOffset? movingSince, restingSince;
+    private bool autoSessionBusy, steamVrSeen, recordingAutoStartSuppressed;
+    private DateTimeOffset? recordingModuleSince;
     private DateTimeOffset nextSteamCheck;
     private FrameworkElement BuildFitnessOptions()
     {
@@ -27,7 +27,6 @@ public partial class MainWindow
             ("Max km/h", () => options.MaxSpeedKmh, v => options.MaxSpeedKmh = v, .1, 100),
             ("Signalalter s", () => options.StaleSeconds, v => options.StaleSeconds = v, 1, 120),
             ("Autostart nach s", () => options.AutoStartSeconds, v => options.AutoStartSeconds = v, 1, 120),
-            ("Autostop nach s", () => options.AutoStopSeconds, v => options.AutoStopSeconds = v, 5, 3600),
             ("Wochenziel km", () => options.WeeklyKm, v => options.WeeklyKm = v, 0, 10000),
             ("Wochenziel h", () => options.WeeklyHours, v => options.WeeklyHours = v, 0, 168),
             ("Wochenziel Schritte", () => options.WeeklySteps, v => options.WeeklySteps = (int)v, 0, 10000000)
@@ -43,7 +42,7 @@ public partial class MainWindow
         panel.Children.Add(new TextBlock { Text = "Keytel-Schätzung wie im Original. Ohne gültiges Alter, Gewicht und Formelprofil wird kein Kalorienwert ausgegeben.", Foreground = Color("#93ADC5") });
         foreach (var (label, initial, set) in new (string, bool, Action<bool>)[]
         {
-            ("Sessions bei Bewegung automatisch starten und nach Ruhe stoppen", options.AutoSessions, v => options.AutoSessions = v),
+            ("Aufzeichnung mit VR Fitness automatisch starten (unabhängig vom Laufband)", options.AutoSessions, v => options.AutoSessions = v),
             ("Session beim Beenden von SteamVR stoppen", options.StopWithSteamVr, v => options.StopWithSteamVr = v),
             ("Schritte an Health Companion schreiben", options.SendHealthSteps, v => options.SendHealthSteps = v),
             ("Geschätzte Kalorien an Health Companion schreiben", options.SendHealthCalories, v => options.SendHealthCalories = v)
@@ -63,7 +62,12 @@ public partial class MainWindow
     }
     private async Task AutoSessionTick()
     {
-        if (autoSessionBusy || host?.ActiveModules.Contains("fitness") != true) return;
+        if (autoSessionBusy) return;
+        if (host?.ActiveModules.Contains("fitness") != true)
+        {
+            recordingModuleSince = null; recordingAutoStartSuppressed = false;
+            return;
+        }
         autoSessionBusy = true;
         try
         {
@@ -75,28 +79,18 @@ public partial class MainWindow
                 if (steamVrSeen && !steamRunning && fitnessSession?.Running == true) { await StopRecording(); Log("Session mit SteamVR beendet"); }
                 steamVrSeen = steamRunning;
             }
-            // Once SteamVR has stopped, do not immediately restart from a lingering speed sample.
-            if (options.StopWithSteamVr && !steamVrSeen) { movingSince = null; restingSince = null; return; }
-            if (!options.AutoSessions) return;
-            bool moving = latest.TryGetValue("fitness/speed-kmh", out var speed) && now - speed.Timestamp < TimeSpan.FromSeconds(options.StaleSeconds) && speed.Value.ValueKind == System.Text.Json.JsonValueKind.Number && speed.Value.GetDouble() > .05;
-            if (moving)
+            if (options.StopWithSteamVr && !steamVrSeen) { recordingModuleSince = null; return; }
+            if (!options.AutoSessions || recordingAutoStartSuppressed) return;
+            recordingModuleSince ??= now;
+            if (fitnessSession is null && now - recordingModuleSince >= TimeSpan.FromSeconds(options.AutoStartSeconds))
             {
-                if (waitForRest) return;
-                movingSince ??= now; restingSince = null;
-                if (fitnessSession is null && now - movingSince >= TimeSpan.FromSeconds(options.AutoStartSeconds))
-                {
-                    var recording = new FitnessSession(host.Bus, options.DataDirectory, settings); recording.Start(sessionName?.Text ?? "VR Training"); fitnessSession = recording;
-                    if (recordButton is not null) recordButton.Content = "Session stoppen und speichern"; Log("Automatische Session gestartet");
-                }
-            }
-            else
-            {
-                waitForRest = false;
-                movingSince = null; restingSince ??= now;
-                if (fitnessSession?.Running == true && now - restingSince >= TimeSpan.FromSeconds(options.AutoStopSeconds)) { await StopRecording(); Log("Automatische Session nach Ruhe beendet"); }
+                var recording = new FitnessSession(host.Bus, options.DataDirectory, settings);
+                recording.Start(sessionName?.Text ?? "VR Training"); fitnessSession = recording;
+                if (recordButton is not null) recordButton.Content = "Session stoppen und speichern";
+                Log("Automatische Session mit VR Fitness gestartet; Laufbandpausen beenden sie nicht");
             }
         }
-        catch (Exception ex) { movingSince = null; Log("Auto-Session: " + ex.Message); }
+        catch (Exception ex) { recordingModuleSince = null; Log("Auto-Session: " + ex.Message); }
         finally { autoSessionBusy = false; }
     }
 }

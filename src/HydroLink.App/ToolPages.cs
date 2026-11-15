@@ -25,7 +25,7 @@ public partial class MainWindow
         try
         {
             if (fitnessSession is null) return;
-            waitForRest = true; movingSince = null;
+            recordingAutoStartSuppressed = true; recordingModuleSince = null;
             await fitnessSession.StopAsync(sessionNote?.Text ?? "");
             Log((fitnessSession.RecordingError is null ? "Session gespeichert: " : "Aufzeichnung abgebrochen; vorhandene Daten gespeichert: ") + fitnessSession.CsvPath); fitnessSession = null;
             refreshSessionHistory?.Invoke();

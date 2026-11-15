@@ -11,6 +11,22 @@ internal static class OscStartupChecks
         using (var first = OscBridge.OpenReceiver())
         using (var second = OscBridge.OpenReceiver())
             check(((IPEndPoint)first.Client.LocalEndPoint!).Port != ((IPEndPoint)second.Client.LocalEndPoint!).Port, "independent OSC receivers never share a port");
+        // Reproduce Windows' UDP ICMP reset: send from the receiver to a closed
+        // local port, then ensure that same advertised socket still receives.
+        using (var receiver = OscBridge.OpenReceiver())
+        using (var sender = new UdpClient(AddressFamily.InterNetwork))
+        {
+            int closedPort;
+            using (var reservation = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0)))
+                closedPort = ((IPEndPoint)reservation.Client.LocalEndPoint!).Port;
+            var endpoint = (IPEndPoint)receiver.Client.LocalEndPoint!;
+            await receiver.SendAsync(OscCodec.Encode("/test/closed-peer", 1), new IPEndPoint(IPAddress.Loopback, closedPort));
+            await Task.Delay(200);
+            await sender.SendAsync(OscCodec.Encode("/test/recovered", .5f), endpoint);
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            var packet = await receiver.ReceiveAsync(deadline.Token);
+            check(OscCodec.Decode(packet.Buffer).Single().Address == "/test/recovered", "OSC receiver survives ICMP rejection from a closed peer without changing port");
+        }
         foreach (var peerFirst in new[] { true, false })
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(35));

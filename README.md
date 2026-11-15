@@ -2,7 +2,7 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.4 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.5 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
@@ -181,3 +181,9 @@ App-Updates übernehmen jetzt auch alte Plugins neben der EXE einschließlich ih
 ### Plugin-Reiter und OSC-Diagnose — 0.17.4
 
 Eigener Hauptreiter Plugins mit Verwaltung und einem Unterreiter je Plugin. Ansichten bleiben beim Aktualisieren der Liste erhalten. Typisierte Plugin-OSC-Eingänge werden vor der OSCQuery-Anmeldung registriert, einschließlich Kompatibilität für Hydro Haptic ESB 1.0.0 und dessen angepasste Parameternamen. Eine Empfangsanzeige zählt tatsächlich an das Plugin zugestellte Liveparameter; Abfragewerte werden nicht als Live-Signale ausgegeben. [Details](docs/PLUGINS.md#osc-eingänge-und-empfangsanzeige-ab-0174).
+
+### OSC-Wiederanlauf und durchgehende Aufzeichnung — 0.17.5
+
+- Ein geschlossener UDP-Zielport (z. B. beim Beenden von VRChat) darf den gemeinsamen OSC-Empfänger nicht beenden. Windows-UDP-Resetmeldungen werden unterdrückt; entsprechende vorübergehende Empfangsfehler werden abgefangen.
+- Automatische Fitness-Aufzeichnungen starten mit dem Fitness-Modul, unabhängig von Laufbandbewegung. Die bisherige Fünf-Minuten-Ruheabschaltung entfällt auch für manuelle Sessions. Beendet wird manuell, beim Stoppen des Fitness-Moduls/der App oder optional mit SteamVR. Nach manuellem Stop erfolgt bis zum nächsten Modulstart kein automatischer Neustart.
+- Die Beobachtung, dass VRCFT nach Avatarwechsel neu gestartet werden muss, bleibt gesondert zu prüfen. Dieser Fix behauptet keine Behebung eines VRCFT- oder VRChat-internen Fehlers.

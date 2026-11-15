@@ -13,7 +13,7 @@ public sealed record PluginManifest(string Id, string Name, string Assembly, str
     {
         if (string.IsNullOrEmpty(Id) || !Regex.IsMatch(Id, @"\A[a-z0-9][a-z0-9.-]{0,79}\z") || Id.Contains("..") || string.IsNullOrWhiteSpace(Name))
             throw new InvalidDataException("Ungültige Plugin-Identität.");
-        if (ApiVersion != 1 || !System.Version.TryParse(Version, out _) || !System.Version.TryParse(MinimumHydroLinkVersion, out var minimum) || minimum > new System.Version(0,17,4))
+        if (ApiVersion != 1 || !System.Version.TryParse(Version, out _) || !System.Version.TryParse(MinimumHydroLinkVersion, out var minimum) || minimum > new System.Version(0,17,5))
             throw new InvalidDataException("Plugin-Version oder HydroLink-API nicht kompatibel.");
         if (string.IsNullOrWhiteSpace(Assembly) || Path.GetFileName(Assembly) != Assembly || Assembly.Contains(':') || !Assembly.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("Plugin-DLL muss im Paket-Hauptordner liegen.");

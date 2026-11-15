@@ -71,7 +71,15 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
         {
             while (!token.IsCancellationRequested)
             {
-                var packet = await udp.ReceiveAsync(token);
+                UdpReceiveResult packet;
+                try { packet = await udp.ReceiveAsync(token); }
+                catch (SocketException ex) when (ex.SocketErrorCode is SocketError.ConnectionReset or SocketError.ConnectionRefused)
+                {
+                    // An ICMP reply to an earlier UDP send is not a failed listener.
+                    // Keep discovery and the same advertised receive port alive.
+                    await Task.Delay(100, token);
+                    continue;
+                }
                 try
                 {
                     var messages = OscCodec.Decode(packet.Buffer);
@@ -87,7 +95,7 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
                 catch (FormatException) { /* A malformed datagram must not stop reception. */ }
             }
         }
-        finally { await session.CancelAsync(); try { await discovery; } catch (OperationCanceledException) { } target = null; bus.Publish("osc/target-changed", false, Id); }
+        finally { await session.CancelAsync(); try { await discovery; } catch (OperationCanceledException) { } target = null; ReceivePort = QueryPort = 0; QueryStatus = "OSC-Dienst beendet · angezeigte Parameter sind letzte bekannte Werte"; bus.Publish("osc/target-changed", false, Id); }
     }
     public static UdpClient OpenReceiver()
     {
@@ -95,7 +103,15 @@ public sealed class OscBridge(Settings settings, IDataBus bus, Action<string> lo
         udp.ExclusiveAddressUse = true;
         // Keep VRChat's conventional receive port free for VRCOSC and other tools.
         // OSCQuery advertises the actual port allocated atomically by Windows.
-        try { udp.Client.Bind(new IPEndPoint(IPAddress.Loopback, 0)); return udp; }
+        try
+        {
+            if (OperatingSystem.IsWindows())
+                // SIO_UDP_CONNRESET: do not turn a peer's ICMP Port Unreachable
+                // (e.g. VRChat exiting) into WSAECONNRESET on our next receive.
+                udp.Client.IOControl(unchecked((int)0x9800000C), new byte[4], null);
+            udp.Client.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+            return udp;
+        }
         catch { udp.Dispose(); throw; }
     }
     private static object ToOsc(JsonElement x) => x.ValueKind switch
