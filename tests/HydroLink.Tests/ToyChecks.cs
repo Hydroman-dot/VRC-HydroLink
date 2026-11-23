@@ -1,4 +1,4 @@
-﻿using VrcHapticsBridge.Core;
+using VrcHapticsBridge.Core;
 using VrcHapticsBridge.Tests;
 using HydroLink.Core;
 using Buttplug.Core.Messages;
@@ -23,6 +23,20 @@ internal static class ToyChecks
             check(offline[ToyKind.Max2].Snapshot.Armed && offline[ToyKind.Max2].DesktopManual, "OSC discovery loss leaves standalone manual session active");
             await offline.StopAsync(ToyKind.Max2);
             check(!offline[ToyKind.Max2].Snapshot.Armed && !offline[ToyKind.Max2].DesktopManual, "stop disarms standalone manual session");
+        }
+        await using (var filtered = new ToyHaptics(new UniversalMemory()))
+        {
+            const string chest = "/avatar/parameters/OGB/Orf/Chest/";
+            const string plug = "/avatar/parameters/OGB/Pen/OtherPlug/PenOthers";
+            await filtered.ActivateAsync(ToyKind.Max2, 1, .2, .3, true);
+            await filtered.ActivateAsync(ToyKind.Ridge, 2, .2, .3, true, spsPrefixes: [chest]);
+            filtered.Receive([new(chest + "PenOthers", .4), new(plug, .9)]);
+            check(filtered[ToyKind.Max2].SourceCount == 2 && filtered[ToyKind.Ridge].SourceCount == 1
+                && Math.Abs(filtered[ToyKind.Ridge].Snapshot.SourceLevel - .4) < .001,
+                "all contacts and selected contacts route independently to different toys");
+            await filtered.ActivateAsync(ToyKind.Ridge, 2, .2, .3, true, spsPrefixes: []);
+            filtered.Receive([new(chest + "PenOthers", 1)]);
+            check(filtered[ToyKind.Ridge].SourceCount == 0, "empty selection ignores all fresh SPS contacts");
         }
         var backend = new UniversalMemory();
         await using var toys = new ToyHaptics(backend);

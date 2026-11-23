@@ -1,4 +1,4 @@
-﻿using Buttplug.Core.Messages;
+using Buttplug.Core.Messages;
 namespace VrcHapticsBridge.Core;
 
 public enum ToyKind { Max2, Ridge, SolacePro, Dolce, Gemini, Nora, Gravity, LushMini, Gush2, Spinel }
@@ -85,7 +85,7 @@ public sealed class ToyHaptics : IAsyncDisposable
         Interlocked.Increment(ref epoch);
         foreach (var engine in engines.Values) engine.ForgetDevices();
     }
-    public async Task ActivateAsync(ToyKind toy, uint id, double vibration, double secondary, bool clockwise, bool requestContacts = true)
+    public async Task ActivateAsync(ToyKind toy, uint id, double vibration, double secondary, bool clockwise, bool requestContacts = true, IReadOnlyCollection<string>? spsPrefixes = null)
     {
         var ticket = Interlocked.Read(ref epoch);
         await gate.WaitAsync();
@@ -97,7 +97,7 @@ public sealed class ToyHaptics : IAsyncDisposable
             var features = backend.Features.Where(f => f.DeviceId == id && Compatible(toy, f)).ToArray();
             if (ToyProfiles.Extended(toy)) { var mapping = ToyProfiles.Bind(toy, features); features = features.Where(f => mapping.ContainsKey(f.Key)).ToArray(); }
             if (!backend.Connected || features.Length == 0) throw new InvalidOperationException("Toy noch nicht verbunden. Intiface starten und Geräte suchen lassen.");
-            await engines[toy].ConfigureAsync(features.Select(f => new FeatureRoute(f, 1)), UniversalSourceMode.Sps, [], allSps: true, toyGate: true, solace: toy == ToyKind.SolacePro, featureChannels: ToyProfiles.Bind(toy, features));
+            await engines[toy].ConfigureAsync(features.Select(f => new FeatureRoute(f, 1)), UniversalSourceMode.Sps, [], allSps: true, toyGate: true, solace: toy == ToyKind.SolacePro, featureChannels: ToyProfiles.Bind(toy, features), spsPrefixes: spsPrefixes);
             if (ticket != Interlocked.Read(ref epoch)) return;
             await engines[toy].ArmAsync();
             if (ticket != Interlocked.Read(ref epoch)) { await engines[toy].StopAsync(); return; }

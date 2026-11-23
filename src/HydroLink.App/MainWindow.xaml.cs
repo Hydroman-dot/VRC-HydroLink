@@ -111,7 +111,7 @@ public partial class MainWindow : Window
             HideInactiveModules = settings.HideInactiveModules, Dashboard = settings.Dashboard, Programs = settings.Programs, StartModulesWithApp = StartWithApp.IsChecked == true,
             WindRules = settings.WindRules, WindRiseMs = settings.WindRiseMs, WindMultiPwm = settings.WindMultiPwm, WindHeartMode = settings.WindHeartMode,
             FitnessOptions = settings.FitnessOptions, HomeAssistant = ReadHomeAssistant(), Heartrate = ReadHeartrate(),
-            HapticsOptions = settings.HapticsOptions, OscRoutes = settings.OscRoutes,
+            HapticsOptions = settings.HapticsOptions, ToySpsSources = settings.ToySpsSources, OscRoutes = settings.OscRoutes,
             WindMovementSource = (string?)WindMovementSource.SelectedItem ?? "None", WindHeartSource = (string?)WindHeartSource.SelectedItem ?? "None",
             AutoStartPlugins = settings.AutoStartPlugins, AutoUpdatePlugins = settings.AutoUpdatePlugins, CheckPluginUpdatesOnStartup = settings.CheckPluginUpdatesOnStartup,
             EnabledPlugins = PluginIds.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()

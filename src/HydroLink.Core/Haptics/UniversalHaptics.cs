@@ -1,4 +1,4 @@
-﻿using Buttplug.Core.Messages;
+using Buttplug.Core.Messages;
 namespace VrcHapticsBridge.Core;
 
 public enum UniversalSourceMode { Menu, Sps, Legacy }
@@ -16,6 +16,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
     private readonly SpsInput sps = new();
     private FeatureRoute[] routes = [];
     private Dictionary<string,string> featureChannels = new();
+    private HashSet<string>? allowedSpsPrefixes;
     private SpsSource[] sources = [];
     private readonly Dictionary<string, double> controls = new();
     private readonly Dictionary<string, double> sent = new();
@@ -53,7 +54,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
     public void ForgetDevices()
     { lock (sync) { Disarm("Geräte neu auswählen"); routes = []; } }
 
-    public async Task ConfigureAsync(IEnumerable<FeatureRoute> selected, UniversalSourceMode mode, IEnumerable<SpsSource> selectedSources, int idleTimeout = 0, bool allSps = false, bool toyGate = false, bool solace = false, IReadOnlyDictionary<string,string>? featureChannels = null)
+    public async Task ConfigureAsync(IEnumerable<FeatureRoute> selected, UniversalSourceMode mode, IEnumerable<SpsSource> selectedSources, int idleTimeout = 0, bool allSps = false, bool toyGate = false, bool solace = false, IReadOnlyDictionary<string,string>? featureChannels = null, IReadOnlyCollection<string>? spsPrefixes = null)
     {
         var list = selected.ToArray(); var inputs = selectedSources.ToArray();
         if (!Enum.IsDefined(mode) || idleTimeout is < 0 or > 600) throw new ArgumentException("Ungültiger Eingangsmodus.");
@@ -72,7 +73,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
         {
             lock (sync) Disarm("Auswahl geändert");
             await FlushStops();
-            lock (sync) { routes = list; this.featureChannels = featureChannels == null ? new() : new(featureChannels); sources = inputs; sourceMode = mode; idleSeconds = idleTimeout; automaticSps = allSps; requireToyEnable = toyGate; solaceControl = solace; }
+            lock (sync) { routes = list; this.featureChannels = featureChannels == null ? new() : new(featureChannels); sources = inputs; sourceMode = mode; idleSeconds = idleTimeout; automaticSps = allSps; allowedSpsPrefixes = spsPrefixes?.ToHashSet(StringComparer.Ordinal); requireToyEnable = toyGate; solaceControl = solace; }
         }
         finally { gate.Release(); }
     }
@@ -114,7 +115,7 @@ public sealed partial class UniversalHaptics(IUniversalHapticsBackend backend, T
             {
                 if (m.Value is not { } value || !double.IsFinite(value)) continue;
                 if (automaticSps && m.Address.StartsWith(P, StringComparison.Ordinal)) continue;
-                if (automaticSps && SpsSource.FromLiveAddress(m.Address) is { } discovered && !sources.Any(s => s.Prefix == discovered.Prefix) && sources.Length < 512)
+                if (automaticSps && SpsSource.FromLiveAddress(m.Address) is { } discovered && (allowedSpsPrefixes?.Contains(discovered.Prefix) ?? true) && !sources.Any(s => s.Prefix == discovered.Prefix) && sources.Length < 512)
                     sources = sources.Append(discovered).ToArray();
                 if (m.Address.StartsWith(P, StringComparison.Ordinal))
                 {

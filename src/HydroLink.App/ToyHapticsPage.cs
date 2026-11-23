@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using Buttplug.Core.Messages;
 using VrcHapticsBridge.Core;
@@ -36,7 +36,7 @@ public partial class MainWindow
     private bool wizardStarting;
     private void BuildToyHaptics(StackPanel panel)
     {
-        panel.Children.Add(new TextBlock { Text = "Toy aktivieren → alle SPS-Plugs und Sockets werden automatisch verbunden. Mehrere Toys können gleichzeitig laufen.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 0) });
+        panel.Children.Add(new TextBlock { Text = "Toy aktivieren → SPS-Plugs und Sockets je Toy zuordnen. Mehrere Toys können gleichzeitig laufen.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 0) });
         socketAutoStatus = new TextBlock { Text = "Warte auf VRChat · keine Quellenauswahl oder Übertragung nötig", Margin = new Thickness(0, 10, 0, 10), TextWrapping = TextWrapping.Wrap };
         panel.Children.Add(socketAutoStatus);
         wizardSyncStatus = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10), Foreground = Color("#93ADC5") };
@@ -137,6 +137,7 @@ public partial class MainWindow
                 RefreshToyHaptics();
             };
             content.Children.Add(new TextBlock { Text = "Für SPS im Radialmenü Haptik einschalten. Für den eigenständigen Gerätetest „Manuell ohne VRChat starten“ verwenden. Er benötigt nur die Intiface-Geräteverbindung. SPS und Manuell haben getrennte Werte; hier gelten die Regler für den gewählten Modus. Nach Avatar- oder Verbindungswechsel erneut aktivieren.", TextWrapping = TextWrapping.Wrap, Foreground = Color("#93ADC5"), Margin = new Thickness(0, 12, 0, 0) });
+            content.Children.Add(ActionButton("SPS-Quellen zuordnen …", () => EditToySpsSources(kind)));
             toyTabs.Items.Add(new TabItem { Header = title, Content = content });
         }
         RefreshToyHaptics();

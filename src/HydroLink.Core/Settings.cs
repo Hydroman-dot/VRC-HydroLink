@@ -50,6 +50,7 @@ public sealed class Settings
     public int WindRiseMs { get; set; } = 120;
     public bool WindMultiPwm { get; set; }
     public string WindHeartMode { get; set; } = "SOURCE";
+    public Dictionary<string, Dictionary<VrcHapticsBridge.Core.ToyKind, string[]>> ToySpsSources { get; set; } = [];
     public FitnessOptions FitnessOptions { get; set; } = new();
     public VrcHapticsBridge.Core.BridgeSettings HapticsOptions { get; set; } = new();
     public List<OscRoute> OscRoutes { get; set; } = [];

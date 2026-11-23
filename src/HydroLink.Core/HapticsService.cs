@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using HydroLink.Sdk;
 using VrcHapticsBridge.Core;
 namespace HydroLink.Core;
@@ -53,7 +53,12 @@ public sealed class HapticsService : Worker
         if (ticket != Interlocked.Read(ref toyActivationEpoch) || !desktopManual && !WizardAllows(toy)) return;
         toyActive = true;
 
-        await Toys.ActivateAsync(toy, id, vibration, secondary, clockwise, requestContacts: !desktopManual);
+        var avatar = currentAvatar;
+        var prefixes = settings.ToySpsSources.GetValueOrDefault(avatar)?.GetValueOrDefault(toy);
+        if (avatar.Length == 0 && settings.ToySpsSources.Values.Any(profile => profile.ContainsKey(toy)))
+            prefixes = [];
+        await Toys.ActivateAsync(toy, id, vibration, secondary, clockwise,
+            requestContacts: !desktopManual && prefixes is not { Length: 0 }, spsPrefixes: prefixes);
         if (ticket != Interlocked.Read(ref toyActivationEpoch)) { await Toys.StopAsync(toy); return; }
         if (desktopManual) { SetDesktopManual(toy, true); return; }
         lock (gateSync)
