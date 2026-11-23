@@ -20,13 +20,18 @@ public partial class MainWindow
         var dialog = new Window
         {
             Owner = this, Title = ToyProfiles.Label(toy) + " · SPS-Quellen",
-            Width = 540, Height = 470, WindowStartupLocation = WindowStartupLocation.CenterOwner
+            Width = 650, Height = 520, MinWidth = 400, MinHeight = 350,
+            Background = Color("#172334"), Foreground = Color("#E5EDF7"), FontSize = 14,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
         };
-        var panel = new StackPanel { Margin = new Thickness(20) };
+        var panel = new DockPanel { Margin = new Thickness(20) };
         dialog.Content = panel;
-        panel.Children.Add(new TextBlock { Text = "Die Auswahl gilt für den aktuellen Avatar. Nach dem Speichern das Toy erneut aktivieren.", TextWrapping = TextWrapping.Wrap });
+        var intro = new TextBlock { Text = "Die Auswahl gilt für den aktuellen Avatar. Nach dem Speichern das Toy erneut aktivieren.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10) };
+        DockPanel.SetDock(intro, Dock.Top);
+        panel.Children.Add(intro);
         var mode = new ComboBox { ItemsSource = new[] { "Alle Plugs und Sockets", "Nur ausgewählte Quellen", "Keine SPS-Quelle" },
             SelectedIndex = saved is null ? 0 : saved.Length == 0 ? 2 : 1 };
+        DockPanel.SetDock(mode, Dock.Top);
         panel.Children.Add(mode);
         var sources = SpsSource.Discover(monitor!.Snapshot().Select(parameter => parameter.Address));
         var choices = new StackPanel();
@@ -36,14 +41,26 @@ public partial class MainWindow
         }).ToList();
         foreach (var prefix in (saved ?? []).Except(sources.Select(source => source.Prefix)))
             boxes.Add(new CheckBox { Content = prefix.Split('/')[^2] + " · zurzeit nicht erkannt", Tag = prefix, IsChecked = true });
-        foreach (var box in boxes) choices.Children.Add(box);
+        var readOnlyLabels = new StackPanel();
+        foreach (var box in boxes)
+        {
+            var label = (string)box.Content;
+            box.Content = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap };
+            choices.Children.Add(box);
+            readOnlyLabels.Children.Add(new TextBlock
+            {
+                Text = label, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 6)
+            });
+        }
         if (boxes.Count == 0) choices.Children.Add(new TextBlock { Text = "Derzeit keine SPS-Quellen erkannt." });
-        panel.Children.Add(new ScrollViewer { Content = choices, Height = 240, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+        var list = new ScrollViewer { Margin = new Thickness(0, 10, 0, 10), VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         var save = new Button { Content = "Zuordnung speichern", IsDefault = true };
+        DockPanel.SetDock(save, Dock.Bottom);
         panel.Children.Add(save);
+        panel.Children.Add(list);
         void RefreshSelection()
         {
-            choices.IsEnabled = mode.SelectedIndex == 1;
+            list.Content = mode.SelectedIndex == 1 || boxes.Count == 0 ? choices : readOnlyLabels;
             save.IsEnabled = mode.SelectedIndex != 1 || boxes.Any(box => box.IsChecked == true);
         }
         mode.SelectionChanged += (_, _) => RefreshSelection();

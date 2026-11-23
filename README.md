@@ -2,7 +2,7 @@
 
 **Unified VRChat OSC, fitness, haptics and hardware bridge.**
 
-Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.6 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
+Native Windows-App mit WPF und .NET 8. **Der Quellstand 0.17.8 ist eine Entwicklungsvorschau. Vollständige Funktionsgleichheit mit den Originaltools ist noch nicht erreicht.** Alle offenen Originalfunktionen bleiben Ziel der Migration: [Funktionsvergleich](docs/FEATURE-PARITY.md).
 
 ## Projekt und Entwicklungsstand
 
@@ -195,3 +195,7 @@ Unter **Plugins → Verwaltung** einen öffentlichen Repository-Link (`https://g
 Das Release muss genau ein Paket `plugin.id-VERSION.zip` plus `plugin.id-VERSION.zip.sha256` enthalten. Das Paket benötigt ein kompatibles `plugin.json` im Hauptordner; dessen ID, Version und GitHubRepository müssen zum Release passen. Beliebige Quellcode-Repositories und private Repositories werden nicht unterstützt.
 
 Für so installierte Plugins sind automatische Updates zunächst eingeschaltet. Pro Plugin lässt sich **Updates automatisch herunterladen** ausschalten. Bei aktivierter Startprüfung werden Updates vorbereitet; laufende Plugins bleiben unverändert, die neue Version gilt nach HydroLink-Neustart. Die vorherige Version bleibt für Rollback erhalten. Bestehende Plugins erhalten automatische Downloads erst, wenn der Schalter für sie aktiviert wird. SHA-256 prüft die Übertragung, nicht die Vertrauenswürdigkeit des Anbieters.
+
+### SPS-Zuordnung pro Avatar und Toy (0.17.8)
+
+Unter **Haptics** im jeweiligen Toy-Reiter **SPS-Quellen zuordnen** öffnen. Pro Toy sind alle Plugs und Sockets, ausgewählte Quellen oder keine SPS-Quelle wählbar. Das vorhandene Unity-Paket bleibt kompatibel.
