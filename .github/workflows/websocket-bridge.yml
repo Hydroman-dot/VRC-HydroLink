@@ -1,0 +1,33 @@
+name: WebSocket Bridge plugin
+on:
+  push:
+    paths:
+      - 'plugins/WebSocketBridgePlugin/**'
+      - '.github/workflows/websocket-bridge.yml'
+  pull_request:
+    paths:
+      - 'plugins/WebSocketBridgePlugin/**'
+      - '.github/workflows/websocket-bridge.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish isolated plugin
+        shell: pwsh
+        run: |
+          dotnet publish plugins/WebSocketBridgePlugin/WebSocketBridgePlugin.csproj -c Release -o artifacts/hydrolink.websocket-bridge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (!(Test-Path artifacts/hydrolink.websocket-bridge/plugin.json)) { throw 'Plugin manifest missing' }
+          if (!(Test-Path artifacts/hydrolink.websocket-bridge/WebSocketBridgePlugin.dll)) { throw 'Plugin DLL missing' }
+          Compress-Archive -Path artifacts/hydrolink.websocket-bridge -DestinationPath artifacts/HydroLink-WebSocket-Bridge.zip -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HydroLink-WebSocket-Bridge
+          path: artifacts/HydroLink-WebSocket-Bridge.zip
